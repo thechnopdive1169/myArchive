@@ -235,7 +235,7 @@
 
         <div class="game-content">
             <div>
-                <canvas id="gameCanvas" width="400" height="600"></canvas>
+                <canvas id="gameCanvas" width="500" height="600"></canvas>
                 
                 <div class="game-controls">
                     <button class="control-btn" onclick="startGame()">Start Game</button>
@@ -249,7 +249,8 @@
                     ← → or A/D to move<br>
                     SPACE to boost<br>
                     W/S for speed control<br>
-                    Avoid cars & police!
+                    Avoid cars & police!<br>
+                    Watch parked cars!
                 </div>
             </div>
         </div>
@@ -282,6 +283,16 @@
         let isBoosting = false;
         let lastObstacleSpawnTime = 0;
         let lastPoliceSpawnTime = 0;
+        let lastParkedVehicleSpawnTime = 0;
+
+        // Road configuration
+        const roadLeft = 30;
+        const roadRight = 470;
+        const laneWidth = (roadRight - roadLeft) / 5;
+        const laneCenters = [];
+        for (let i = 0; i < 5; i++) {
+            laneCenters.push(roadLeft + laneWidth * i + laneWidth/2);
+        }
 
         // Update best score display
         document.getElementById('bestScore').textContent = bestScore;
@@ -300,14 +311,33 @@
         // Game objects arrays
         let obstacles = [];
         let policeCars = [];
+        let parkedVehicles = [];
         let roadLines = [];
 
         // Initialize road lines
         for (let i = 0; i < 10; i++) {
             roadLines.push({
-                x: canvas.width / 2 - 5,
+                x: roadLeft + laneWidth,
                 y: i * 80,
-                width: 10,
+                width: 5,
+                height: 40
+            });
+            roadLines.push({
+                x: roadLeft + laneWidth * 2,
+                y: i * 80,
+                width: 5,
+                height: 40
+            });
+            roadLines.push({
+                x: roadLeft + laneWidth * 3,
+                y: i * 80,
+                width: 5,
+                height: 40
+            });
+            roadLines.push({
+                x: roadLeft + laneWidth * 4,
+                y: i * 80,
+                width: 5,
                 height: 40
             });
         }
@@ -401,14 +431,19 @@
         function drawRoad() {
             // Road background
             ctx.fillStyle = '#333';
-            ctx.fillRect(50, 0, canvas.width - 100, canvas.height);
+            ctx.fillRect(roadLeft, 0, roadRight - roadLeft, canvas.height);
             
             // Road edges
             ctx.fillStyle = '#fff';
-            ctx.fillRect(45, 0, 5, canvas.height);
-            ctx.fillRect(canvas.width - 50, 0, 5, canvas.height);
+            ctx.fillRect(roadLeft - 5, 0, 5, canvas.height);
+            ctx.fillRect(roadRight, 0, 5, canvas.height);
             
-            // Road lines
+            // Shoulder areas (for parked cars)
+            ctx.fillStyle = '#444';
+            ctx.fillRect(0, 0, roadLeft - 5, canvas.height);
+            ctx.fillRect(roadRight + 5, 0, canvas.width - roadRight - 5, canvas.height);
+            
+            // Lane lines
             ctx.fillStyle = '#fff';
             roadLines.forEach(line => {
                 ctx.fillRect(line.x, line.y, line.width, line.height);
@@ -426,12 +461,11 @@
 
         function createObstacle() {
             const currentTime = Date.now();
-            if (currentTime - lastObstacleSpawnTime < 3000) return; // Reduced to 3 seconds
+            if (currentTime - lastObstacleSpawnTime < 3000) return; // 3 seconds cooldown
             
-            // Random position within road bounds
-            const minX = 50;
-            const maxX = canvas.width - 100 - 50; // 50 is car width
-            const x = Math.random() * (maxX - minX) + minX;
+            // Random lane
+            const laneIndex = Math.floor(Math.random() * 5);
+            const x = laneCenters[laneIndex] - 25; // Center car in lane
             
             obstacles.push({
                 x: x,
@@ -446,12 +480,11 @@
 
         function createPoliceCar() {
             const currentTime = Date.now();
-            if (currentTime - lastPoliceSpawnTime < 4000) return; // Reduced to 4 seconds
+            if (currentTime - lastPoliceSpawnTime < 4000) return; // 4 seconds cooldown
             
-            // Random position within road bounds
-            const minX = 50;
-            const maxX = canvas.width - 100 - 50; // 50 is car width
-            const x = Math.random() * (maxX - minX) + minX;
+            // Random lane
+            const laneIndex = Math.floor(Math.random() * 5);
+            const x = laneCenters[laneIndex] - 25; // Center car in lane
             
             policeCars.push({
                 x: x,
@@ -465,6 +498,30 @@
             lastPoliceSpawnTime = currentTime;
         }
 
+        function createParkedVehicle() {
+            const currentTime = Date.now();
+            if (currentTime - lastParkedVehicleSpawnTime < 5000) return; // 5 seconds cooldown
+            
+            // Random side (left or right shoulder)
+            const side = Math.random() > 0.5 ? 'left' : 'right';
+            const x = side === 'left' ? 5 : canvas.width - 55;
+            const y = Math.random() * canvas.height;
+            
+            parkedVehicles.push({
+                x: x,
+                y: y,
+                width: 50,
+                height: 80,
+                color: '#888', // Gray color for parked vehicles
+                side: side,
+                pullOutTimer: Math.random() * 500 + 100, // Random time before pulling out
+                pullingOut: false,
+                targetLane: -1
+            });
+            
+            lastParkedVehicleSpawnTime = currentTime;
+        }
+
         function updateObstacles() {
             obstacles.forEach((obstacle, index) => {
                 obstacle.y += currentGameSpeed;
@@ -475,7 +532,7 @@
                 }
             });
             
-            // Random chance to create obstacle (but respecting cooldown)
+            // Random chance to create obstacle
             if (Math.random() < 0.02) {
                 createObstacle();
             }
@@ -483,20 +540,63 @@
 
         function updatePoliceCars() {
             policeCars.forEach((police, index) => {
-                // Police cars come from opposite direction (faster)
                 police.y += police.speed;
                 
-                // Remove police cars that are off screen
                 if (police.y > canvas.height) {
                     policeCars.splice(index, 1);
-                    // Increase pursuit level when police pass by
                     pursuitLevel = Math.min(100, pursuitLevel + 5);
                 }
             });
             
-            // Add police cars based on pursuit level (but respecting cooldown)
             if (policeActive && Math.random() < 0.01) {
                 createPoliceCar();
+            }
+        }
+
+        function updateParkedVehicles() {
+            parkedVehicles.forEach((vehicle, index) => {
+                // Update pull out timer
+                vehicle.pullOutTimer -= 16; // Approximate frame time
+                
+                // If timer expired and not already pulling out, start pulling out
+                if (vehicle.pullOutTimer <= 0 && !vehicle.pullingOut) {
+                    vehicle.pullingOut = true;
+                    vehicle.targetLane = Math.floor(Math.random() * 5);
+                }
+                
+                // If pulling out, move towards target lane
+                if (vehicle.pullingOut) {
+                    const targetX = laneCenters[vehicle.targetLane] - 25;
+                    const diff = targetX - vehicle.x;
+                    
+                    if (Math.abs(diff) < 2) {
+                        // Reached target lane, convert to regular obstacle
+                        obstacles.push({
+                            x: vehicle.x,
+                            y: vehicle.y,
+                            width: vehicle.width,
+                            height: vehicle.height,
+                            color: vehicle.color
+                        });
+                        parkedVehicles.splice(index, 1);
+                    } else {
+                        // Move horizontally towards target lane
+                        vehicle.x += diff > 0 ? 1.5 : -1.5;
+                    }
+                }
+                
+                // Move all parked vehicles downward
+                vehicle.y += currentGameSpeed * 0.5; // Parked vehicles move slower
+                
+                // Remove if off screen
+                if (vehicle.y > canvas.height + vehicle.height) {
+                    parkedVehicles.splice(index, 1);
+                }
+            });
+            
+            // Random chance to create parked vehicle
+            if (Math.random() < 0.005) {
+                createParkedVehicle();
             }
         }
 
@@ -538,11 +638,9 @@
         }
 
         function updatePursuitLevel() {
-            // Increase pursuit level over time when police are active
             if (policeActive) {
                 pursuitLevel += 0.3;
             } else {
-                // Start police pursuit after score reaches 200
                 if (score > 200) {
                     policeActive = true;
                     document.getElementById('policeSiren').style.display = 'block';
@@ -550,7 +648,6 @@
                 }
             }
             
-            // Update pursuit meter (capped at 100%)
             const pursuitPercentage = Math.min(100, pursuitLevel);
             document.getElementById('pursuitFill').style.width = pursuitPercentage + '%';
         }
@@ -566,13 +663,23 @@
                 }
             });
             
-            // Check collision with police cars - this is the only way to get busted
+            // Check collision with police cars
             policeCars.forEach(police => {
                 if (player.x < police.x + police.width &&
                     player.x + player.width > police.x &&
                     player.y < police.y + police.height &&
                     player.y + player.height > police.y) {
                     gameOver('busted');
+                }
+            });
+            
+            // Check collision with parked vehicles
+            parkedVehicles.forEach(vehicle => {
+                if (player.x < vehicle.x + vehicle.width &&
+                    player.x + player.width > vehicle.x &&
+                    player.y < vehicle.y + vehicle.height &&
+                    player.y + player.height > vehicle.y) {
+                    gameOver('crash');
                 }
             });
         }
@@ -587,8 +694,8 @@
                 player.x += currentSpeed;
             }
             
-            if (player.x < 50) player.x = 50;
-            if (player.x > canvas.width - 100) player.x = canvas.width - 100;
+            if (player.x < roadLeft) player.x = roadLeft;
+            if (player.x > roadRight - player.width) player.x = roadRight - player.width;
         }
 
         function updateGame() {
@@ -599,6 +706,7 @@
             updateRoadLines();
             updateObstacles();
             updatePoliceCars();
+            updateParkedVehicles();
             updateBoost();
             updateSpeedControl();
             updatePlayer();
@@ -606,6 +714,12 @@
             checkCollision();
             
             drawRoad();
+            
+            // Draw parked vehicles first (behind everything else)
+            parkedVehicles.forEach(vehicle => {
+                drawCar(vehicle.x, vehicle.y, vehicle.width, vehicle.height, vehicle.color);
+            });
+            
             drawMotorbike(player.x, player.y, player.width, player.height, player.color);
             
             obstacles.forEach(obstacle => {
@@ -654,8 +768,10 @@
             isBoosting = false;
             lastObstacleSpawnTime = 0;
             lastPoliceSpawnTime = 0;
+            lastParkedVehicleSpawnTime = 0;
             obstacles = [];
             policeCars = [];
+            parkedVehicles = [];
             player.x = canvas.width / 2 - 15;
             
             document.getElementById('score').textContent = score;
