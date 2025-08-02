@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Racer - Police Pursuit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            background: #000;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            width: 100%;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .pursuit-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 2px solid #ff6b6b;
+        }
+
+        .pursuit-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #FFC107, #FF5722);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .boost-meter {
+            width: 100%;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 2px solid #00ff88;
+        }
+
+        .boost-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            width: 100%;
+            transition: width 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .game-content {
+            display: flex;
+            width: 100%;
+        }
+
+        #gameCanvas {
+            border: 3px solid #ff6b6b;
+            border-radius: 10px;
+            display: block;
+            background: #222;
+        }
+
+        .instructions-panel {
+            margin-left: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .instructions {
+            font-size: 1em;
+            color: #ccc;
+            text-align: left;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 2px solid #ff6b6b;
+            max-width: 200px;
+        }
+
+        .game-controls {
+            text-align: center;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #ff6b6b;
+            display: none;
+        }
+
+        .game-over h2 {
+            color: #ff6b6b;
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .final-score {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #ffd93d;
+        }
+
+        .police-siren {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2em;
+            animation: flash 0.5s infinite alternate;
+            display: none;
+        }
+
+        @keyframes flash {
+            0% { color: #ff0000; }
+            100% { color: #0000ff; }
+        }
+
+        .boost-indicator {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            font-size: 1.2em;
+            color: #00ff88;
+            display: none;
+        }
+
+        .speed-control {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 0.9em;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🏍️ POLICE PURSUIT</h1>
+            <div class="police-siren" id="policeSiren">🚨</div>
+            <div class="boost-indicator" id="boostIndicator">BOOST!</div>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat">Score: <span id="score">0</span></div>
+            <div class="stat">Speed: <span id="speed">1</span></div>
+            <div class="stat">Best: <span id="bestScore">0</span></div>
+        </div>
+
+        <div class="pursuit-meter">
+            <div class="pursuit-fill" id="pursuitFill"></div>
+        </div>
+
+        <div class="boost-meter">
+            <div class="boost-fill" id="boostFill"></div>
+        </div>
+
+        <div class="game-content">
+            <div>
+                <canvas id="gameCanvas" width="400" height="600"></canvas>
+                
+                <div class="game-controls">
+                    <button class="control-btn" onclick="startGame()">Start Game</button>
+                    <button class="control-btn" onclick="pauseGame()">Pause</button>
+                    <button class="control-btn" onclick="resetGame()">Reset</button>
+                </div>
+            </div>
+            
+            <div class="instructions-panel">
+                <div class="instructions">
+                    ← → or A/D to move<br>
+                    SPACE to boost<br>
+                    W/S for speed control<br>
+                    Avoid cars & police!
+                </div>
+            </div>
+        </div>
+
+        <div class="speed-control">
+            W: Speed Up | S: Slow Down
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverTitle">💥 GAME OVER!</h2>
+            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+            <button class="control-btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let baseGameSpeed = 2;
+        let currentGameSpeed = 2;
+        let bestScore = localStorage.getItem('bestScore') || 0;
+        let pursuitLevel = 0;
+        let policeActive = false;
+        let boostLevel = 100;
+        let isBoosting = false;
+        let lastObstacleSpawnTime = 0;
+        let lastPoliceSpawnTime = 0;
+
+        // Update best score display
+        document.getElementById('bestScore').textContent = bestScore;
+
+        // Player motorbike
+        const player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height - 100,
+            width: 30,
+            height: 80,
+            speed: 6,
+            boostSpeed: 10,
+            color: '#ff6b6b'
+        };
+
+        // Game objects arrays
+        let obstacles = [];
+        let policeCars = [];
+        let roadLines = [];
+
+        // Initialize road lines
+        for (let i = 0; i < 10; i++) {
+            roadLines.push({
+                x: canvas.width / 2 - 5,
+                y: i * 80,
+                width: 10,
+                height: 40
+            });
+        }
+
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Draw functions
+        function drawCar(x, y, width, height, color, isPolice = false) {
+            // Car body
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+            
+            // Car details
+            ctx.fillStyle = isPolice ? '#000' : '#333';
+            ctx.fillRect(x + 5, y + 10, width - 10, 25); // Windshield
+            ctx.fillRect(x + 5, y + height - 20, width - 10, 15); // Rear window
+            
+            // Wheels
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x - 5, y + 15, 8, 15);
+            ctx.fillRect(x + width - 3, y + 15, 8, 15);
+            ctx.fillRect(x - 5, y + height - 30, 8, 15);
+            ctx.fillRect(x + width - 3, y + height - 30, 8, 15);
+            
+            // Police specific details
+            if (isPolice) {
+                // Police lights
+                ctx.fillStyle = Math.random() > 0.5 ? '#ff0000' : '#0000ff';
+                ctx.fillRect(x + width/2 - 5, y - 5, 10, 5);
+                
+                // Police text
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Arial';
+                ctx.fillText('POLICE', x + 5, y + height/2);
+            }
+        }
+
+        function drawMotorbike(x, y, width, height, color) {
+            // Bike body
+            ctx.fillStyle = color;
+            ctx.fillRect(x + width/4, y, width/2, height * 0.6); // Main body
+            
+            // Seat
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x + width/4, y + height * 0.1, width/2, height * 0.2);
+            
+            // Front part (handlebar area)
+            ctx.fillStyle = color;
+            ctx.fillRect(x + width/3, y - 10, width/3, 20);
+            
+            // Wheels
+            ctx.fillStyle = '#000';
+            // Front wheel
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.7, width/3, 0, Math.PI * 2);
+            ctx.fill();
+            // Rear wheel
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.9, width/3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Handlebars
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x + width/3, y);
+            ctx.lineTo(x + width/3, y - 10);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + 2*width/3, y);
+            ctx.lineTo(x + 2*width/3, y - 10);
+            ctx.stroke();
+
+            // Boost effect
+            if (isBoosting) {
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.6)';
+                ctx.fillRect(x + width/4 - 5, y + height, width/2 + 10, 20);
+            }
+        }
+
+        function drawRoad() {
+            // Road background
+            ctx.fillStyle = '#333';
+            ctx.fillRect(50, 0, canvas.width - 100, canvas.height);
+            
+            // Road edges
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(45, 0, 5, canvas.height);
+            ctx.fillRect(canvas.width - 50, 0, 5, canvas.height);
+            
+            // Road lines
+            ctx.fillStyle = '#fff';
+            roadLines.forEach(line => {
+                ctx.fillRect(line.x, line.y, line.width, line.height);
+            });
+        }
+
+        function updateRoadLines() {
+            roadLines.forEach(line => {
+                line.y += currentGameSpeed;
+                if (line.y > canvas.height) {
+                    line.y = -40;
+                }
+            });
+        }
+
+        function createObstacle() {
+            const currentTime = Date.now();
+            if (currentTime - lastObstacleSpawnTime < 3000) return; // Reduced to 3 seconds
+            
+            // Random position within road bounds
+            const minX = 50;
+            const maxX = canvas.width - 100 - 50; // 50 is car width
+            const x = Math.random() * (maxX - minX) + minX;
+            
+            obstacles.push({
+                x: x,
+                y: -80,
+                width: 50,
+                height: 80,
+                color: ['#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'][Math.floor(Math.random() * 4)]
+            });
+            
+            lastObstacleSpawnTime = currentTime;
+        }
+
+        function createPoliceCar() {
+            const currentTime = Date.now();
+            if (currentTime - lastPoliceSpawnTime < 4000) return; // Reduced to 4 seconds
+            
+            // Random position within road bounds
+            const minX = 50;
+            const maxX = canvas.width - 100 - 50; // 50 is car width
+            const x = Math.random() * (maxX - minX) + minX;
+            
+            policeCars.push({
+                x: x,
+                y: -80,
+                width: 50,
+                height: 80,
+                color: '#fff',
+                speed: currentGameSpeed + 2
+            });
+            
+            lastPoliceSpawnTime = currentTime;
+        }
+
+        function updateObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += currentGameSpeed;
+                
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                    score += 10;
+                }
+            });
+            
+            // Random chance to create obstacle (but respecting cooldown)
+            if (Math.random() < 0.02) {
+                createObstacle();
+            }
+        }
+
+        function updatePoliceCars() {
+            policeCars.forEach((police, index) => {
+                // Police cars come from opposite direction (faster)
+                police.y += police.speed;
+                
+                // Remove police cars that are off screen
+                if (police.y > canvas.height) {
+                    policeCars.splice(index, 1);
+                    // Increase pursuit level when police pass by
+                    pursuitLevel = Math.min(100, pursuitLevel + 5);
+                }
+            });
+            
+            // Add police cars based on pursuit level (but respecting cooldown)
+            if (policeActive && Math.random() < 0.01) {
+                createPoliceCar();
+            }
+        }
+
+        function updateBoost() {
+            if (keys[' '] && boostLevel > 0) {
+                isBoosting = true;
+                boostLevel -= 1.5;
+                currentGameSpeed = Math.min(currentGameSpeed + 0.1, 8);
+                document.getElementById('boostIndicator').style.display = 'block';
+            } else {
+                isBoosting = false;
+                boostLevel = Math.min(boostLevel + 0.5, 100);
+                currentGameSpeed = Math.max(currentGameSpeed - 0.05, baseGameSpeed);
+                document.getElementById('boostIndicator').style.display = 'none';
+            }
+            
+            // Update boost meter
+            document.getElementById('boostFill').style.width = boostLevel + '%';
+        }
+
+        function updateSpeedControl() {
+            // W key to speed up
+            if (keys['w'] || keys['W']) {
+                baseGameSpeed = Math.min(baseGameSpeed + 0.02, 6);
+            }
+            // S key to slow down
+            if (keys['s'] || keys['S']) {
+                baseGameSpeed = Math.max(baseGameSpeed - 0.02, 1);
+            }
+            
+            // Gradually adjust current speed to base speed when not boosting
+            if (!isBoosting) {
+                if (currentGameSpeed > baseGameSpeed) {
+                    currentGameSpeed = Math.max(currentGameSpeed - 0.02, baseGameSpeed);
+                } else if (currentGameSpeed < baseGameSpeed) {
+                    currentGameSpeed = Math.min(currentGameSpeed + 0.02, baseGameSpeed);
+                }
+            }
+        }
+
+        function updatePursuitLevel() {
+            // Increase pursuit level over time when police are active
+            if (policeActive) {
+                pursuitLevel += 0.3;
+            } else {
+                // Start police pursuit after score reaches 200
+                if (score > 200) {
+                    policeActive = true;
+                    document.getElementById('policeSiren').style.display = 'block';
+                    createPoliceCar();
+                }
+            }
+            
+            // Update pursuit meter (capped at 100%)
+            const pursuitPercentage = Math.min(100, pursuitLevel);
+            document.getElementById('pursuitFill').style.width = pursuitPercentage + '%';
+        }
+
+        function checkCollision() {
+            // Check collision with regular cars
+            obstacles.forEach(obstacle => {
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
+                    gameOver('crash');
+                }
+            });
+            
+            // Check collision with police cars - this is the only way to get busted
+            policeCars.forEach(police => {
+                if (player.x < police.x + police.width &&
+                    player.x + player.width > police.x &&
+                    player.y < police.y + police.height &&
+                    player.y + player.height > police.y) {
+                    gameOver('busted');
+                }
+            });
+        }
+
+        function updatePlayer() {
+            const currentSpeed = isBoosting ? player.boostSpeed : player.speed;
+            
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.x -= currentSpeed;
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.x += currentSpeed;
+            }
+            
+            if (player.x < 50) player.x = 50;
+            if (player.x > canvas.width - 100) player.x = canvas.width - 100;
+        }
+
+        function updateGame() {
+            if (!gameRunning || gamePaused) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            updateRoadLines();
+            updateObstacles();
+            updatePoliceCars();
+            updateBoost();
+            updateSpeedControl();
+            updatePlayer();
+            updatePursuitLevel();
+            checkCollision();
+            
+            drawRoad();
+            drawMotorbike(player.x, player.y, player.width, player.height, player.color);
+            
+            obstacles.forEach(obstacle => {
+                drawCar(obstacle.x, obstacle.y, obstacle.width, obstacle.height, obstacle.color);
+            });
+            
+            policeCars.forEach(police => {
+                drawCar(police.x, police.y, police.width, police.height, police.color, true);
+            });
+            
+            score += 1;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = Math.floor(currentGameSpeed);
+            
+            requestAnimationFrame(updateGame);
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gamePaused = false;
+                updateGame();
+            } else if (gamePaused) {
+                gamePaused = false;
+                updateGame();
+            }
+        }
+
+        function pauseGame() {
+            gamePaused = !gamePaused;
+            if (!gamePaused && gameRunning) {
+                updateGame();
+            }
+        }
+
+        function resetGame() {
+            gameRunning = false;
+            gamePaused = false;
+            score = 0;
+            baseGameSpeed = 2;
+            currentGameSpeed = 2;
+            pursuitLevel = 0;
+            policeActive = false;
+            boostLevel = 100;
+            isBoosting = false;
+            lastObstacleSpawnTime = 0;
+            lastPoliceSpawnTime = 0;
+            obstacles = [];
+            policeCars = [];
+            player.x = canvas.width / 2 - 15;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = currentGameSpeed;
+            document.getElementById('pursuitFill').style.width = '0%';
+            document.getElementById('boostFill').style.width = '100%';
+            document.getElementById('policeSiren').style.display = 'none';
+            document.getElementById('boostIndicator').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRoad();
+            drawMotorbike(player.x, player.y, player.width, player.height, player.color);
+        }
+
+        function gameOver(reason) {
+            gameRunning = false;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('bestScore', bestScore);
+                document.getElementById('bestScore').textContent = bestScore;
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            
+            if (reason === 'busted') {
+                document.getElementById('gameOverTitle').textContent = '🚨 BUSTED!';
+            } else {
+                document.getElementById('gameOverTitle').textContent = '💥 CRASHED!';
+            }
+            
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function restartGame() {
+            resetGame();
+            startGame();
+        }
+
+        // Initialize game
+        resetGame();
+    </script>
+</body>
+</html>
