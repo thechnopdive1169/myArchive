@@ -217,7 +217,8 @@
   async function loadProjects() {
     projectsContainer.setAttribute('aria-busy', 'true');
     try {
-      const res = await fetch('projects.json');
+      const res = await fetch('https://raw.githubusercontent.com/thechnopdive1169/myArchive/refs/heads/main/projects.json');
+
       const rawProjects = await res.json();
 
       allProjects = rawProjects.map(project => ({
