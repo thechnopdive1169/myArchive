@@ -123,36 +123,36 @@
       font-size: 0.9rem;
       opacity: 0.6;
     }
+  .tags {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
-    .tags {
-      margin-top: 0.5rem;
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+  .tag {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    color: var(--link);
+    font-weight: bold;
+  }
 
-    .tag {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-      color: var(--link);
-      font-weight: bold;
-    }
+  .difficulty {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    background: rgba(255,255,255,0.1);
+    color: gold;
+  }
+</style>
 
-    .difficulty {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: bold;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-top: 4px;
-      background: rgba(255,255,255,0.1);
-      color: gold;
-    }
-  </style>
 </head>
 <body data-theme="dark">
   <header>
@@ -170,13 +170,123 @@
     <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repo</a>
   </footer>
 
-  <script>
-    function toggleTheme() {
-      const body = document.body;
-      const current = body.getAttribute('data-theme');
-      const next = current === 'light' ? 'dark' : 'light';
-      body.setAttribute('data-theme', next);
+<script>
+  const projectsContainer = document.getElementById('projects');
+
+  async function loadProjects() {
+    try {
+      const repo = 'thechnopdive1169/myArchive';
+
+      // Load metadata from project-data.json if available; else fallback to hardcoded metadata
+      let projectMeta = {};
+      try {
+        const metaRes = await fetch('project-data.json');
+        if (metaRes.ok) {
+          projectMeta = await metaRes.json();
+        } else {
+          // fallback hardcoded metadata
+          projectMeta = {
+            "3D Cube Collector .html": {
+              desc: "Collect spinning cubes in a 3D space using mouse controls.",
+              tags: ["3D", "Arcade"],
+              difficulty: "Easy"
+            },
+            "3D Snake Battle Royale .html": {
+              desc: "Multiplayer snake survival with battle royale mechanics.",
+              tags: ["Multiplayer", "Snake"],
+              difficulty: "Medium"
+            },
+            "CYBERPUNK CITY .html": {
+              desc: "Walk through a glowing futuristic cyber city in first person.",
+              tags: ["FPS", "Sci-Fi"],
+              difficulty: "Medium"
+            },
+            "Dominion of Otherworldly Monsters .html": {
+              desc: "Defend Earth from cosmic creatures in a fast-paced shooter.",
+              tags: ["Shooter", "Monsters"],
+              difficulty: "Hard"
+            },
+            "POLICE PURSUIT .html": {
+              desc: "Evade the police in a retro-style chase simulator.",
+              tags: ["Driving", "Chase"],
+              difficulty: "Easy"
+            }
+          };
+        }
+      } catch (err) {
+        console.warn('Failed to load project-data.json, using fallback metadata.');
+        projectMeta = {};
+      }
+
+      // Fetch repo tree (recursive)
+      const repoRes = await fetch(`https://api.github.com/repos/${repo}/git/trees/main?recursive=1`);
+      if (!repoRes.ok) throw new Error('Failed to fetch repo tree');
+      const repoTree = await repoRes.json();
+
+      const allFiles = repoTree.tree;
+      const htmlFiles = allFiles.filter(item => item.path.endsWith('.html'));
+
+      // Fetch latest commit date for each HTML file
+      const projects = await Promise.all(htmlFiles.map(async (file) => {
+        const commitRes = await fetch(`https://api.github.com/repos/${repo}/commits?path=${encodeURIComponent(file.path)}&per_page=1`);
+        if (!commitRes.ok) {
+          return { path: file.path, name: file.path.split('/').pop(), date: new Date(0) };
+        }
+        const commitData = await commitRes.json();
+        const date = new Date(commitData[0]?.commit?.committer?.date || 0);
+        return { path: file.path, name: file.path.split('/').pop(), date };
+      }));
+
+      // Sort by date descending
+      projects.sort((a, b) => b.date - a.date);
+
+      // Clear projects container
+      projectsContainer.innerHTML = '';
+
+      // Build project cards
+      projects.forEach(project => {
+        const name = project.name;
+        const url = project.path;
+        const shortName = name.replace('.html', '');
+        const meta = projectMeta[name] || {};
+        const desc = meta.desc || "No description yet.";
+        const tags = meta.tags || [];
+        const difficulty = meta.difficulty || null;
+        const thumb = `thumbnails/${shortName}.jpg`;
+        const lastUpdated = project.date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+        const tagHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        const difficultyHTML = difficulty ? `<div class="difficulty">⭐ ${difficulty}</div>` : '';
+
+        const card = document.createElement('div');
+        card.className = 'project-card';
+        card.innerHTML = `
+          <img src="${thumb}" alt="${shortName}" onerror="this.src='https://via.placeholder.com/400x160?text=${encodeURIComponent(shortName)}'">
+          <h3>${shortName}</h3>
+          <p>${desc}</p>
+          ${difficultyHTML}
+          <div class="tags">${tagHTML}</div>
+          <p style="margin-top:0.5rem;font-size:0.8rem;opacity:0.6;">Last updated: ${lastUpdated}</p>
+          <a href="${url}">Open Project</a>
+        `;
+        projectsContainer.appendChild(card);
+      });
+
+    } catch (err) {
+      projectsContainer.innerHTML = '<p>Error loading projects.</p>';
+      console.error(err);
     }
-  </script>
+  }
+
+  function toggleTheme() {
+    const body = document.body;
+    const current = body.getAttribute('data-theme');
+    const next = current === 'light' ? 'dark' : 'light';
+    body.setAttribute('data-theme', next);
+  }
+
+  loadProjects();
+</script>
+  
 </body>
 </html>
