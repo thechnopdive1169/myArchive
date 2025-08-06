@@ -12,6 +12,8 @@
       --card: rgba(255 255 255 / 0.05);
       --text: #fff;
       --link: #00ffff;
+      --btn-bg: #00ffff;
+      --btn-text: #0f2027;
     }
     [data-theme="light"] {
       --bg: #f0f0f0;
@@ -19,9 +21,8 @@
       --card: #fff;
       --text: #111;
       --link: #007acc;
-    }
-    * {
-      box-sizing: border-box;
+      --btn-bg: #007acc;
+      --btn-text: #fff;
     }
     body {
       margin: 0;
@@ -136,6 +137,7 @@
       background: rgba(255 255 255 / 0.1);
       padding: 4px 10px;
       border-radius: 4px;
+      text-transform: capitalize;
     }
     .difficulty {
       font-size: 0.75rem;
@@ -145,6 +147,27 @@
       border-radius: 4px;
       display: inline-block;
       margin-top: 0.3rem;
+      text-transform: capitalize;
+    }
+    a.project-link {
+      margin-top: auto;
+      display: inline-block;
+      text-align: center;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 255, 255, 0.3);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      user-select: none;
+    }
+    a.project-link:hover,
+    a.project-link:focus {
+      background: var(--btn-text);
+      color: var(--btn-bg);
+      box-shadow: 0 0 12px var(--btn-bg);
     }
     footer {
       text-align: center;
@@ -202,7 +225,6 @@
   </footer>
 
   <script>
-    // Your projects data in root directory format:
     const rawData = {
       "3D Cube Collector .html": {
         desc: "Collect spinning cubes in a 3D space using mouse controls.",
@@ -231,16 +253,23 @@
       }
     };
 
-    // Convert rawData object into an array for easier filtering & sorting:
-    let allProjects = Object.entries(rawData).map(([filename, meta]) => ({
-      file: filename,
-      name: filename.replace(/\.html$/i, "").trim(),
-      desc: meta.desc || "No description.",
-      tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
-      difficulty: meta.difficulty || "",
-    }));
+    // Normalize projects to array:
+    let allProjects = Object.entries(rawData).map(([filename, meta]) => {
+      const name = filename.replace(/\.html$/i, "").trim();
+      // Find corresponding thumbnail filename (same name + ".jpg") carefully:
+      // Spaces and casing as in your example, so:
+      const thumbnailFileName = name + ".jpg";
 
-    // Sort alphabetically by name:
+      return {
+        file: filename.trim(),
+        name,
+        desc: meta.desc || "No description.",
+        tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
+        difficulty: meta.difficulty || "",
+        thumbnail: `./thumbnails/${thumbnailFileName}`
+      };
+    });
+
     allProjects.sort((a, b) => a.name.localeCompare(b.name));
 
     const projectsContainer = document.getElementById("projects");
@@ -281,21 +310,17 @@
         const difficultyHTML = project.difficulty
           ? `<div class="difficulty">⭐ ${project.difficulty}</div>`
           : "";
-        // No thumbnail folder, use placeholder:
-        const thumbnail = `https://via.placeholder.com/400x160?text=${encodeURIComponent(
-          project.name
-        )}`;
 
         const card = document.createElement("div");
         card.className = "project-card";
         card.innerHTML = `
-          <img src="${thumbnail}" alt="${project.name} Thumbnail" />
+          <img src="${project.thumbnail}" alt="${project.name} Thumbnail" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400x160?text=No+Image';" />
           <div style="flex:1; display:flex; flex-direction: column;">
             <h3>${project.name}</h3>
             <p>${project.desc}</p>
             ${difficultyHTML}
             <div class="tags">${tagsHTML}</div>
-            <a href="./${project.file}" target="_blank" rel="noopener noreferrer" style="margin-top:auto;">Open Project</a>
+            <a href="./${project.file}" target="_blank" rel="noopener noreferrer" class="project-link">Open Project</a>
           </div>
         `;
         projectsContainer.appendChild(card);
@@ -365,7 +390,6 @@
       body.setAttribute("data-theme", next);
     }
 
-    // Initial render:
     renderProjects();
   </script>
 </body>
