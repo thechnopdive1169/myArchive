@@ -22,9 +22,7 @@
       --link: #007acc;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -49,7 +47,6 @@
     }
 
     header p {
-      color: var(--text);
       opacity: 0.7;
       font-size: 1.1rem;
     }
@@ -64,35 +61,26 @@
       padding: 0.5rem 1rem;
       cursor: pointer;
       border-radius: 8px;
-      user-select: none;
     }
 
-    /* Controls Container */
     #controls {
       max-width: 1200px;
-      margin: 1rem auto 0 auto;
+      margin: 1rem auto 0;
       padding: 0 1rem;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
-      align-items: center;
     }
 
-    #controls > * {
+    #viewToggle button, #searchInput, #filterDifficulty, #pagination button {
       font-size: 1rem;
-    }
-
-    /* Grid/List toggle buttons */
-    #viewToggle button {
-      background: var(--card);
-      border: 1.5px solid var(--link);
-      color: var(--link);
       padding: 0.3rem 0.8rem;
       border-radius: 6px;
+      border: 1.5px solid var(--link);
+      background: var(--card);
+      color: var(--text);
       cursor: pointer;
-      user-select: none;
-      font-weight: bold;
     }
 
     #viewToggle button.active {
@@ -100,26 +88,6 @@
       color: var(--bg);
     }
 
-    /* Search and filters */
-    #searchInput {
-      padding: 0.3rem 0.6rem;
-      border-radius: 6px;
-      border: 1.5px solid var(--link);
-      background: var(--card);
-      color: var(--text);
-      min-width: 220px;
-    }
-
-    #filterDifficulty {
-      padding: 0.3rem 0.6rem;
-      border-radius: 6px;
-      border: 1.5px solid var(--link);
-      background: var(--card);
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    /* Projects container grid/list styles */
     .projects.grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -140,38 +108,19 @@
 
     .project-card {
       background: var(--card);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
       border-radius: 12px;
       padding: 1rem;
-      transition: 0.3s ease;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      cursor: default;
+      transition: 0.3s ease;
     }
 
-    .project-card:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    }
-
-    /* In list view, layout changes */
     .projects.list .project-card {
       flex-direction: row;
       align-items: flex-start;
-      padding: 1rem;
       gap: 1rem;
     }
 
-    .projects.list .project-card img {
-      width: 180px;
-      height: 100px;
-      border-radius: 8px;
-      flex-shrink: 0;
-    }
-
-    /* In grid view, image fills width */
     .projects.grid .project-card img {
       width: 100%;
       height: 160px;
@@ -180,73 +129,16 @@
       margin-bottom: 1rem;
     }
 
-    .project-card h3 {
-      margin: 0.2rem 0;
-      text-align: center;
+    .projects.list .project-card img {
+      width: 180px;
+      height: 100px;
       flex-shrink: 0;
+      border-radius: 8px;
     }
 
-    /* Title aligned left in list view */
-    .projects.list .project-card h3 {
-      text-align: left;
-    }
-
-    .project-card p {
-      font-size: 0.9rem;
-      opacity: 0.8;
-      text-align: center;
-      margin: 0.25rem 0;
-    }
-
-    /* Description left aligned in list view */
-    .projects.list .project-card p {
-      text-align: left;
-    }
-
-    .project-card a {
-      color: var(--link);
-      text-decoration: none;
-      font-weight: bold;
-      margin-top: 0.5rem;
-      user-select: none;
-    }
-
-    /* Tags & difficulty styling */
-    .tags {
-      margin-top: 0.5rem;
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    /* Left aligned in list */
-    .projects.list .tags {
-      justify-content: flex-start;
-    }
-
-    .tag {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-      color: var(--link);
-      font-weight: bold;
-      user-select: none;
-    }
-
-    .difficulty {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: bold;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-top: 4px;
-      background: rgba(255,255,255,0.1);
-      color: gold;
-      user-select: none;
-    }
+    .tags { margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .tag { font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 4px; }
+    .difficulty { font-size: 0.75rem; background: rgba(255,255,255,0.1); color: gold; padding: 2px 6px; border-radius: 4px; }
 
     footer {
       text-align: center;
@@ -255,25 +147,12 @@
       opacity: 0.6;
     }
 
-    /* Pagination styles */
     #pagination {
       max-width: 1200px;
-      margin: 1rem auto 3rem auto;
+      margin: 1rem auto 3rem;
       display: flex;
       justify-content: center;
       gap: 1rem;
-      user-select: none;
-    }
-
-    #pagination button {
-      background: var(--card);
-      border: 1.5px solid var(--link);
-      color: var(--link);
-      padding: 0.3rem 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      min-width: 50px;
     }
 
     #pagination button:disabled {
@@ -289,15 +168,13 @@
     <button class="toggle" onclick="toggleTheme()">🌙 / ☀️</button>
   </header>
 
-  <div id="controls" aria-label="Project controls">
-    <div id="viewToggle" role="group" aria-label="Toggle grid or list view">
-      <button id="btnGrid" class="active" aria-pressed="true" title="Grid View">Grid</button>
-      <button id="btnList" aria-pressed="false" title="List View">List</button>
+  <div id="controls">
+    <div id="viewToggle">
+      <button id="btnGrid" class="active">Grid</button>
+      <button id="btnList">List</button>
     </div>
-
-    <input type="search" id="searchInput" placeholder="Search by tag or name…" aria-label="Search projects by tag or name" />
-
-    <select id="filterDifficulty" aria-label="Filter projects by difficulty">
+    <input type="search" id="searchInput" placeholder="Search by tag or name…" />
+    <select id="filterDifficulty">
       <option value="">All Difficulty</option>
       <option value="Easy">Easy</option>
       <option value="Medium">Medium</option>
@@ -305,19 +182,19 @@
     </select>
   </div>
 
-  <section class="projects grid" id="projects" aria-live="polite" aria-busy="true">
+  <section class="projects grid" id="projects">
     <p>Loading projects...</p>
   </section>
 
-  <nav id="pagination" aria-label="Project pagination" role="navigation" style="display:none;">
-    <button id="prevPage" disabled aria-disabled="true" aria-label="Previous page">← Prev</button>
-    <span id="pageInfo" aria-live="polite" aria-atomic="true"></span>
-    <button id="nextPage" disabled aria-disabled="true" aria-label="Next page">Next →</button>
+  <nav id="pagination" style="display:none;">
+    <button id="prevPage" disabled>← Prev</button>
+    <span id="pageInfo"></span>
+    <button id="nextPage" disabled>Next →</button>
   </nav>
 
   <footer>
     &copy; 2025 TechnopDive |
-    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
+    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repo</a>
   </footer>
 
 <script>
@@ -331,95 +208,29 @@
   const nextPageBtn = document.getElementById('nextPage');
   const pageInfo = document.getElementById('pageInfo');
 
-  let allProjects = [];  // Store all loaded projects
+  let allProjects = [];
   let filteredProjects = [];
   let currentPage = 1;
   const projectsPerPage = 10;
-  let currentView = 'grid'; // 'grid' or 'list'
+  let currentView = 'grid';
 
   async function loadProjects() {
     projectsContainer.setAttribute('aria-busy', 'true');
     try {
-      const repo = 'thechnopdive1169/myArchive';
+      const res = await fetch('projects.json');
+      const rawProjects = await res.json();
 
-      let projectMeta = {};
-      try {
-        const metaRes = await fetch('project-data.json');
-        if (metaRes.ok) {
-          projectMeta = await metaRes.json();
-        } else {
-          projectMeta = {
-            "3D Cube Collector .html": {
-              desc: "Collect spinning cubes in a 3D space using mouse controls.",
-              tags: ["3D", "Arcade"],
-              difficulty: "Easy"
-            },
-            "3D Snake Battle Royale .html": {
-              desc: "Multiplayer snake survival with battle royale mechanics.",
-              tags: ["Multiplayer", "Snake"],
-              difficulty: "Medium"
-            },
-            "CYBERPUNK CITY .html": {
-              desc: "Walk through a glowing futuristic cyber city in first person.",
-              tags: ["FPS", "Sci-Fi"],
-              difficulty: "Medium"
-            },
-            "Dominion of Otherworldly Monsters .html": {
-              desc: "Defend Earth from cosmic creatures in a fast-paced shooter.",
-              tags: ["Shooter", "Monsters"],
-              difficulty: "Hard"
-            },
-            "POLICE PURSUIT .html": {
-              desc: "Evade the police in a retro-style chase simulator.",
-              tags: ["Driving", "Chase"],
-              difficulty: "Easy"
-            }
-          };
-        }
-      } catch (err) {
-        console.warn('Failed to load project-data.json, using fallback metadata.');
-        projectMeta = {};
-      }
-
-      const repoRes = await fetch(`https://api.github.com/repos/${repo}/git/trees/main?recursive=1`);
-      if (!repoRes.ok) throw new Error('Failed to fetch repo tree');
-      const repoTree = await repoRes.json();
-
-      const allFiles = repoTree.tree;
-      const htmlFiles = allFiles.filter(item => item.path.endsWith('.html'));
-
-      // Get commit dates in parallel, but rate-limiting might be needed for many files.
-      // For demo, keep as is, but in production consider caching.
-      const projects = await Promise.all(htmlFiles.map(async (file) => {
-        const commitRes = await fetch(`https://api.github.com/repos/${repo}/commits?path=${encodeURIComponent(file.path)}&per_page=1`);
-        let date = new Date(0);
-        if (commitRes.ok) {
-          const commitData = await commitRes.json();
-          date = new Date(commitData[0]?.commit?.committer?.date || 0);
-        }
-        return { path: file.path, name: file.path.split('/').pop(), date };
+      allProjects = rawProjects.map(project => ({
+        path: project.file,
+        name: project.name,
+        desc: project.desc || "No description.",
+        tags: project.tags?.map(tag => tag.toLowerCase()) || [],
+        difficulty: project.difficulty || "",
+        date: new Date(project.date)
       }));
 
-      projects.sort((a, b) => b.date - a.date);
-
-      // Map projects with metadata for filtering/searching
-      allProjects = projects.map(project => {
-        const name = project.name;
-        const shortName = name.replace('.html', '');
-        const meta = projectMeta[name] || {};
-        return {
-          path: project.path,
-          name: shortName,
-          desc: meta.desc || "No description yet.",
-          tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
-          difficulty: meta.difficulty || "",
-          date: project.date,
-        };
-      });
-
-      // Initially filter and render
+      allProjects.sort((a, b) => b.date - a.date);
       applyFilters();
-
     } catch (err) {
       projectsContainer.innerHTML = '<p>Error loading projects.</p>';
       console.error(err);
@@ -427,7 +238,6 @@
     projectsContainer.setAttribute('aria-busy', 'false');
   }
 
-  // Render projects for current page & view
   function renderProjects() {
     projectsContainer.innerHTML = '';
     if (filteredProjects.length === 0) {
@@ -438,23 +248,18 @@
 
     pagination.style.display = 'flex';
 
-    // Calculate pagination
     const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-    if(currentPage > totalPages) currentPage = totalPages;
-    if(currentPage < 1) currentPage = 1;
-
+    currentPage = Math.max(1, Math.min(currentPage, totalPages));
     const startIdx = (currentPage - 1) * projectsPerPage;
     const endIdx = startIdx + projectsPerPage;
     const projectsToShow = filteredProjects.slice(startIdx, endIdx);
 
-    // Set container class for grid/list
     projectsContainer.className = `projects ${currentView}`;
 
-    // Build project cards
     projectsToShow.forEach(project => {
       const tagHTML = project.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
       const difficultyHTML = project.difficulty ? `<div class="difficulty">⭐ ${project.difficulty}</div>` : '';
-      const lastUpdated = project.date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      const lastUpdated = project.date.toLocaleDateString();
       const thumb = `thumbnails/${project.name}.jpg`;
 
       const card = document.createElement('div');
@@ -470,32 +275,23 @@
           <a href="${project.path}">Open Project</a>
         </div>
       `;
-
       projectsContainer.appendChild(card);
     });
 
-    // Update pagination controls
     pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
     prevPageBtn.disabled = currentPage <= 1;
-    prevPageBtn.setAttribute('aria-disabled', prevPageBtn.disabled);
     nextPageBtn.disabled = currentPage >= totalPages;
-    nextPageBtn.setAttribute('aria-disabled', nextPageBtn.disabled);
   }
 
-  // Apply search and filter then render
   function applyFilters() {
     const searchTerm = searchInput.value.trim().toLowerCase();
-    const diffFilter = filterDifficulty.value;
+    const diffFilter = filterDifficulty.value.toLowerCase();
 
     filteredProjects = allProjects.filter(project => {
-      // Search matches name or any tag
       const matchesSearch = searchTerm === '' ||
         project.name.toLowerCase().includes(searchTerm) ||
         project.tags.some(tag => tag.includes(searchTerm));
-
-      // Difficulty filter
-      const matchesDiff = diffFilter === '' || project.difficulty.toLowerCase() === diffFilter.toLowerCase();
-
+      const matchesDiff = diffFilter === '' || project.difficulty.toLowerCase() === diffFilter;
       return matchesSearch && matchesDiff;
     });
 
@@ -503,23 +299,14 @@
     renderProjects();
   }
 
-  // Event listeners
-
-  searchInput.addEventListener('input', () => {
-    applyFilters();
-  });
-
-  filterDifficulty.addEventListener('change', () => {
-    applyFilters();
-  });
+  searchInput.addEventListener('input', applyFilters);
+  filterDifficulty.addEventListener('change', applyFilters);
 
   btnGrid.addEventListener('click', () => {
     if (currentView !== 'grid') {
       currentView = 'grid';
       btnGrid.classList.add('active');
-      btnGrid.setAttribute('aria-pressed', 'true');
       btnList.classList.remove('active');
-      btnList.setAttribute('aria-pressed', 'false');
       renderProjects();
     }
   });
@@ -528,9 +315,7 @@
     if (currentView !== 'list') {
       currentView = 'list';
       btnList.classList.add('active');
-      btnList.setAttribute('aria-pressed', 'true');
       btnGrid.classList.remove('active');
-      btnGrid.setAttribute('aria-pressed', 'false');
       renderProjects();
     }
   });
@@ -559,7 +344,6 @@
     body.setAttribute('data-theme', next);
   }
 
-  // Initial load
   loadProjects();
 </script>
 </body>
