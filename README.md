@@ -11,23 +11,58 @@ To add custom car models to your Open.MP server using the DL version (which supp
 ---
 
 ### 2. **Convert Models to Objects**
-   Since Open.MP DL doesn't support custom vehicles, you'll convert car models into **attachable objects**:
+Since Open.MP DL doesn't support custom vehicles, you'll convert car models into **attachable objects** (i.e., standard world objects that visually replace the vehicle). This ensures compatibility while preserving custom visuals.
 
-   #### Tools Needed:
-   - **Kam's Scripts** (for 3ds Max): Export models to `.dff`/`.txd`
-   - **ZModeler 3**: Adjust model scale/position
-   - **TXD Workshop**: Manage textures
+#### Tools Needed:
+- **ZModeler 3**: Import and prepare models
+- **TXD Workshop**: Manage and edit textures
+- *(Optional)* **Kam's Scripts** (for 3ds Max): If using 3ds Max for exporting `.dff`/`.txd`
 
-   #### Conversion Steps:
-   1. **Import Model**:
-      - Open the downloaded car model in ZModeler 3.
-      - Adjust scale to match GTA SA's vehicle size (reference existing vehicles).
-   2. **Positioning**:
-      - Center the model at origin `(0,0,0)` and align wheels to the ground.
-      - Export as `.dff`.
-   3. **Texture Handling**:
-      - Use TXD Workshop to create a `.txd` file with all textures.
-      - Ensure texture paths in the `.dff` match the `.txd` names.
+---
+
+#### Conversion Steps (Vehicle → Object):
+
+1. **Import the Car Model**:
+   - Open ZModeler 3.
+   - Load the downloaded car model (typically in `.dff`, `.obj`, or `.3ds` format).
+   - Make sure all parts are visible (body, wheels, accessories).
+
+2. **Prepare the Model**:
+   - **Remove extra functionality**:
+     - Delete unused parts (e.g., damaged versions, LODs, engine animations).
+     - Strip out any dummy helpers for wheels, doors, lights — they're unnecessary for object mode.
+   - **Center the model**:
+     - Position the vehicle so that its center point is at the origin `(0, 0, 0)`.
+     - Align it so the wheels rest exactly on the ground plane (Z = 0).
+   - **Scale the model**:
+     - Use reference from original GTA SA vehicles (e.g., import an Infernus into ZModeler and match size).
+     - A common mistake is models being too large or small in-game — fix this here.
+   - **Merge all geometry into one object**:
+     - Combine car parts into a single mesh to improve performance and compatibility.
+
+3. **Assign Materials and Textures**:
+   - Ensure materials are properly mapped.
+   - If your model uses multiple textures, consider combining them into one texture sheet to simplify `.txd` handling.
+
+4. **Export as `.dff`**:
+   - In ZModeler 3:
+     - File → Export → GTA SA (*.dff)
+     - Make sure export settings are for “object” type (not vehicle).
+   - Save as `modelname.dff` (e.g., `elegy_custom.dff`)
+
+5. **Create `.txd` (Texture Dictionary)**:
+   - Open **TXD Workshop**.
+   - Create a new `.txd` file (File → New).
+   - Import all textures used in the model.
+     - Match texture names exactly with material references from `.dff`.
+   - Save as `modelname.txd` (e.g., `elegy_custom.txd`).
+
+6. **Test Locally (Optional)**:
+   - You can load the object in SA-MP Map Editor or MTA to confirm the model displays correctly, using a dummy object ID.
+
+---
+
+> ✅ **Result**: You now have a `.dff` and `.txd` file representing a car model as an *object*, ready to be used with `AddSimpleModel` in Open.MP.
 
 ---
 
