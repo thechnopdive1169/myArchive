@@ -4,87 +4,137 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TechnopDive Projects</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      color: #222;
       margin: 0;
-      padding: 2rem;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     header {
-      background-color: #1e1e1e;
-      color: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
+      padding: 2rem;
       text-align: center;
+      backdrop-filter: blur(8px);
+      background-color: rgba(0, 0, 0, 0.4);
+      border-bottom: 2px solid rgba(255,255,255,0.1);
     }
 
-    h1 {
+    header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5rem;
       margin-bottom: 0.5rem;
     }
 
-    p {
-      margin-top: 0;
+    header p {
       color: #ccc;
-    }
-
-    .projects {
-      margin-top: 2rem;
-    }
-
-    .projects ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .projects li {
-      background-color: #fff;
-      margin-bottom: 1rem;
-      padding: 1rem;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .projects a {
-      text-decoration: none;
-      color: #007acc;
-      font-weight: bold;
       font-size: 1.1rem;
     }
 
-    .projects a:hover {
+    .projects {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .project-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .project-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .project-card a {
+      color: #00ffff;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .project-card a:hover {
       text-decoration: underline;
     }
 
     footer {
-      margin-top: 4rem;
       text-align: center;
+      padding: 2rem;
       font-size: 0.9rem;
-      color: #666;
+      color: #aaa;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 3rem;
+    }
+
+    footer a {
+      color: #00bcd4;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media screen and (max-width: 500px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
+
+      header p {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>TechnopDive</h1>
-    <p>Game Developer & HTML5 Experimenter</p>
+    <p>Game Developer & HTML5 Experiments</p>
   </header>
 
   <section class="projects">
-    <h2>My Projects</h2>
-    <ul>
-      <li><a href="3D Cube Collector .html">3D Cube Collector</a></li>
-      <li><a href="3D Snake Battle Royale .html">3D Snake Battle Royale</a></li>
-      <li><a href="CYBERPUNK CITY .html">CYBERPUNK CITY</a></li>
-      <li><a href="Dominion of Otherworldly Monsters .html">Dominion of Otherworldly Monsters</a></li>
-      <li><a href="POLICE PURSUIT .html">POLICE PURSUIT</a></li>
-    </ul>
+    <div class="project-card">
+      <a href="3D Cube Collector .html">3D Cube Collector</a>
+    </div>
+    <div class="project-card">
+      <a href="3D Snake Battle Royale .html">3D Snake Battle Royale</a>
+    </div>
+    <div class="project-card">
+      <a href="CYBERPUNK CITY .html">CYBERPUNK CITY</a>
+    </div>
+    <div class="project-card">
+      <a href="Dominion of Otherworldly Monsters .html">Dominion of Otherworldly Monsters</a>
+    </div>
+    <div class="project-card">
+      <a href="POLICE PURSUIT .html">POLICE PURSUIT</a>
+    </div>
   </section>
 
   <footer>
-    &copy; 2025 TechnopDive | <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repository</a>
+    &copy; 2025 TechnopDive | 
+    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repository</a>
   </footer>
 </body>
 </html>
