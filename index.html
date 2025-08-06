@@ -64,14 +64,77 @@
       padding: 0.5rem 1rem;
       cursor: pointer;
       border-radius: 8px;
+      user-select: none;
     }
 
-    .projects {
+    /* Controls Container */
+    #controls {
+      max-width: 1200px;
+      margin: 1rem auto 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    #controls > * {
+      font-size: 1rem;
+    }
+
+    /* Grid/List toggle buttons */
+    #viewToggle button {
+      background: var(--card);
+      border: 1.5px solid var(--link);
+      color: var(--link);
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+    }
+
+    #viewToggle button.active {
+      background: var(--link);
+      color: var(--bg);
+    }
+
+    /* Search and filters */
+    #searchInput {
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--link);
+      background: var(--card);
+      color: var(--text);
+      min-width: 220px;
+    }
+
+    #filterDifficulty {
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      border: 1.5px solid var(--link);
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    /* Projects container grid/list styles */
+    .projects.grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
-      padding: 2rem;
+      padding: 2rem 1rem;
       max-width: 1200px;
+      margin: auto;
+    }
+
+    .projects.list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 2rem 1rem;
+      max-width: 900px;
       margin: auto;
     }
 
@@ -85,6 +148,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      cursor: default;
     }
 
     .project-card:hover {
@@ -92,7 +156,23 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
     }
 
-    .project-card img {
+    /* In list view, layout changes */
+    .projects.list .project-card {
+      flex-direction: row;
+      align-items: flex-start;
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    .projects.list .project-card img {
+      width: 180px;
+      height: 100px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    /* In grid view, image fills width */
+    .projects.grid .project-card img {
       width: 100%;
       height: 160px;
       object-fit: cover;
@@ -102,12 +182,25 @@
 
     .project-card h3 {
       margin: 0.2rem 0;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* Title aligned left in list view */
+    .projects.list .project-card h3 {
+      text-align: left;
     }
 
     .project-card p {
       font-size: 0.9rem;
       opacity: 0.8;
       text-align: center;
+      margin: 0.25rem 0;
+    }
+
+    /* Description left aligned in list view */
+    .projects.list .project-card p {
+      text-align: left;
     }
 
     .project-card a {
@@ -115,6 +208,44 @@
       text-decoration: none;
       font-weight: bold;
       margin-top: 0.5rem;
+      user-select: none;
+    }
+
+    /* Tags & difficulty styling */
+    .tags {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Left aligned in list */
+    .projects.list .tags {
+      justify-content: flex-start;
+    }
+
+    .tag {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      color: var(--link);
+      font-weight: bold;
+      user-select: none;
+    }
+
+    .difficulty {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      background: rgba(255,255,255,0.1);
+      color: gold;
+      user-select: none;
     }
 
     footer {
@@ -123,36 +254,33 @@
       font-size: 0.9rem;
       opacity: 0.6;
     }
-  .tags {
-    margin-top: 0.5rem;
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
 
-  .tag {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 4px 10px;
-    font-size: 0.75rem;
-    border-radius: 4px;
-    text-transform: uppercase;
-    color: var(--link);
-    font-weight: bold;
-  }
+    /* Pagination styles */
+    #pagination {
+      max-width: 1200px;
+      margin: 1rem auto 3rem auto;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      user-select: none;
+    }
 
-  .difficulty {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-top: 4px;
-    background: rgba(255,255,255,0.1);
-    color: gold;
-  }
-</style>
+    #pagination button {
+      background: var(--card);
+      border: 1.5px solid var(--link);
+      color: var(--link);
+      padding: 0.3rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      min-width: 50px;
+    }
 
+    #pagination button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  </style>
 </head>
 <body data-theme="dark">
   <header>
@@ -161,30 +289,65 @@
     <button class="toggle" onclick="toggleTheme()">🌙 / ☀️</button>
   </header>
 
-  <section class="projects" id="projects">
+  <div id="controls" aria-label="Project controls">
+    <div id="viewToggle" role="group" aria-label="Toggle grid or list view">
+      <button id="btnGrid" class="active" aria-pressed="true" title="Grid View">Grid</button>
+      <button id="btnList" aria-pressed="false" title="List View">List</button>
+    </div>
+
+    <input type="search" id="searchInput" placeholder="Search by tag or name…" aria-label="Search projects by tag or name" />
+
+    <select id="filterDifficulty" aria-label="Filter projects by difficulty">
+      <option value="">All Difficulty</option>
+      <option value="Easy">Easy</option>
+      <option value="Medium">Medium</option>
+      <option value="Hard">Hard</option>
+    </select>
+  </div>
+
+  <section class="projects grid" id="projects" aria-live="polite" aria-busy="true">
     <p>Loading projects...</p>
   </section>
 
+  <nav id="pagination" aria-label="Project pagination" role="navigation" style="display:none;">
+    <button id="prevPage" disabled aria-disabled="true" aria-label="Previous page">← Prev</button>
+    <span id="pageInfo" aria-live="polite" aria-atomic="true"></span>
+    <button id="nextPage" disabled aria-disabled="true" aria-label="Next page">Next →</button>
+  </nav>
+
   <footer>
     &copy; 2025 TechnopDive |
-    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repo</a>
+    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank" rel="noopener noreferrer">GitHub Repo</a>
   </footer>
 
 <script>
   const projectsContainer = document.getElementById('projects');
+  const searchInput = document.getElementById('searchInput');
+  const filterDifficulty = document.getElementById('filterDifficulty');
+  const btnGrid = document.getElementById('btnGrid');
+  const btnList = document.getElementById('btnList');
+  const pagination = document.getElementById('pagination');
+  const prevPageBtn = document.getElementById('prevPage');
+  const nextPageBtn = document.getElementById('nextPage');
+  const pageInfo = document.getElementById('pageInfo');
+
+  let allProjects = [];  // Store all loaded projects
+  let filteredProjects = [];
+  let currentPage = 1;
+  const projectsPerPage = 10;
+  let currentView = 'grid'; // 'grid' or 'list'
 
   async function loadProjects() {
+    projectsContainer.setAttribute('aria-busy', 'true');
     try {
       const repo = 'thechnopdive1169/myArchive';
 
-      // Load metadata from project-data.json if available; else fallback to hardcoded metadata
       let projectMeta = {};
       try {
         const metaRes = await fetch('project-data.json');
         if (metaRes.ok) {
           projectMeta = await metaRes.json();
         } else {
-          // fallback hardcoded metadata
           projectMeta = {
             "3D Cube Collector .html": {
               desc: "Collect spinning cubes in a 3D space using mouse controls.",
@@ -218,7 +381,6 @@
         projectMeta = {};
       }
 
-      // Fetch repo tree (recursive)
       const repoRes = await fetch(`https://api.github.com/repos/${repo}/git/trees/main?recursive=1`);
       if (!repoRes.ok) throw new Error('Failed to fetch repo tree');
       const repoTree = await repoRes.json();
@@ -226,57 +388,169 @@
       const allFiles = repoTree.tree;
       const htmlFiles = allFiles.filter(item => item.path.endsWith('.html'));
 
-      // Fetch latest commit date for each HTML file
+      // Get commit dates in parallel, but rate-limiting might be needed for many files.
+      // For demo, keep as is, but in production consider caching.
       const projects = await Promise.all(htmlFiles.map(async (file) => {
         const commitRes = await fetch(`https://api.github.com/repos/${repo}/commits?path=${encodeURIComponent(file.path)}&per_page=1`);
-        if (!commitRes.ok) {
-          return { path: file.path, name: file.path.split('/').pop(), date: new Date(0) };
+        let date = new Date(0);
+        if (commitRes.ok) {
+          const commitData = await commitRes.json();
+          date = new Date(commitData[0]?.commit?.committer?.date || 0);
         }
-        const commitData = await commitRes.json();
-        const date = new Date(commitData[0]?.commit?.committer?.date || 0);
         return { path: file.path, name: file.path.split('/').pop(), date };
       }));
 
-      // Sort by date descending
       projects.sort((a, b) => b.date - a.date);
 
-      // Clear projects container
-      projectsContainer.innerHTML = '';
-
-      // Build project cards
-      projects.forEach(project => {
+      // Map projects with metadata for filtering/searching
+      allProjects = projects.map(project => {
         const name = project.name;
-        const url = project.path;
         const shortName = name.replace('.html', '');
         const meta = projectMeta[name] || {};
-        const desc = meta.desc || "No description yet.";
-        const tags = meta.tags || [];
-        const difficulty = meta.difficulty || null;
-        const thumb = `thumbnails/${shortName}.jpg`;
-        const lastUpdated = project.date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-
-        const tagHTML = tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-        const difficultyHTML = difficulty ? `<div class="difficulty">⭐ ${difficulty}</div>` : '';
-
-        const card = document.createElement('div');
-        card.className = 'project-card';
-        card.innerHTML = `
-          <img src="${thumb}" alt="${shortName}" onerror="this.src='https://via.placeholder.com/400x160?text=${encodeURIComponent(shortName)}'">
-          <h3>${shortName}</h3>
-          <p>${desc}</p>
-          ${difficultyHTML}
-          <div class="tags">${tagHTML}</div>
-          <p style="margin-top:0.5rem;font-size:0.8rem;opacity:0.6;">Last updated: ${lastUpdated}</p>
-          <a href="${url}">Open Project</a>
-        `;
-        projectsContainer.appendChild(card);
+        return {
+          path: project.path,
+          name: shortName,
+          desc: meta.desc || "No description yet.",
+          tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
+          difficulty: meta.difficulty || "",
+          date: project.date,
+        };
       });
+
+      // Initially filter and render
+      applyFilters();
 
     } catch (err) {
       projectsContainer.innerHTML = '<p>Error loading projects.</p>';
       console.error(err);
     }
+    projectsContainer.setAttribute('aria-busy', 'false');
   }
+
+  // Render projects for current page & view
+  function renderProjects() {
+    projectsContainer.innerHTML = '';
+    if (filteredProjects.length === 0) {
+      projectsContainer.innerHTML = '<p>No projects match your criteria.</p>';
+      pagination.style.display = 'none';
+      return;
+    }
+
+    pagination.style.display = 'flex';
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+    if(currentPage > totalPages) currentPage = totalPages;
+    if(currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * projectsPerPage;
+    const endIdx = startIdx + projectsPerPage;
+    const projectsToShow = filteredProjects.slice(startIdx, endIdx);
+
+    // Set container class for grid/list
+    projectsContainer.className = `projects ${currentView}`;
+
+    // Build project cards
+    projectsToShow.forEach(project => {
+      const tagHTML = project.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+      const difficultyHTML = project.difficulty ? `<div class="difficulty">⭐ ${project.difficulty}</div>` : '';
+      const lastUpdated = project.date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      const thumb = `thumbnails/${project.name}.jpg`;
+
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.innerHTML = `
+        <img src="${thumb}" alt="${project.name}" onerror="this.src='https://via.placeholder.com/400x160?text=${encodeURIComponent(project.name)}'">
+        <div style="flex:1; display:flex; flex-direction: column;">
+          <h3>${project.name}</h3>
+          <p>${project.desc}</p>
+          ${difficultyHTML}
+          <div class="tags">${tagHTML}</div>
+          <p style="margin-top:0.5rem;font-size:0.8rem;opacity:0.6;">Last updated: ${lastUpdated}</p>
+          <a href="${project.path}">Open Project</a>
+        </div>
+      `;
+
+      projectsContainer.appendChild(card);
+    });
+
+    // Update pagination controls
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    prevPageBtn.disabled = currentPage <= 1;
+    prevPageBtn.setAttribute('aria-disabled', prevPageBtn.disabled);
+    nextPageBtn.disabled = currentPage >= totalPages;
+    nextPageBtn.setAttribute('aria-disabled', nextPageBtn.disabled);
+  }
+
+  // Apply search and filter then render
+  function applyFilters() {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const diffFilter = filterDifficulty.value;
+
+    filteredProjects = allProjects.filter(project => {
+      // Search matches name or any tag
+      const matchesSearch = searchTerm === '' ||
+        project.name.toLowerCase().includes(searchTerm) ||
+        project.tags.some(tag => tag.includes(searchTerm));
+
+      // Difficulty filter
+      const matchesDiff = diffFilter === '' || project.difficulty.toLowerCase() === diffFilter.toLowerCase();
+
+      return matchesSearch && matchesDiff;
+    });
+
+    currentPage = 1;
+    renderProjects();
+  }
+
+  // Event listeners
+
+  searchInput.addEventListener('input', () => {
+    applyFilters();
+  });
+
+  filterDifficulty.addEventListener('change', () => {
+    applyFilters();
+  });
+
+  btnGrid.addEventListener('click', () => {
+    if (currentView !== 'grid') {
+      currentView = 'grid';
+      btnGrid.classList.add('active');
+      btnGrid.setAttribute('aria-pressed', 'true');
+      btnList.classList.remove('active');
+      btnList.setAttribute('aria-pressed', 'false');
+      renderProjects();
+    }
+  });
+
+  btnList.addEventListener('click', () => {
+    if (currentView !== 'list') {
+      currentView = 'list';
+      btnList.classList.add('active');
+      btnList.setAttribute('aria-pressed', 'true');
+      btnGrid.classList.remove('active');
+      btnGrid.setAttribute('aria-pressed', 'false');
+      renderProjects();
+    }
+  });
+
+  prevPageBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderProjects();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  nextPageBtn.addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderProjects();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
 
   function toggleTheme() {
     const body = document.body;
@@ -285,8 +559,8 @@
     body.setAttribute('data-theme', next);
   }
 
+  // Initial load
   loadProjects();
 </script>
-  
 </body>
 </html>
