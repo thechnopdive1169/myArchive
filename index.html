@@ -2,55 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>TechnopDive Projects</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #0f2027;
       --bg-alt: #203a43;
-      --card: rgba(255, 255, 255, 0.05);
+      --card: rgba(255 255 255 / 0.05);
       --text: #fff;
       --link: #00ffff;
     }
-
     [data-theme="light"] {
       --bg: #f0f0f0;
       --bg-alt: #fff;
-      --card: #ffffff;
+      --card: #fff;
       --text: #111;
       --link: #007acc;
     }
-
-    * { box-sizing: border-box; }
-
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
-      font-family: 'Roboto', sans-serif;
+      font-family: "Roboto", sans-serif;
       background: var(--bg);
       color: var(--text);
       transition: background 0.3s, color 0.3s;
     }
-
     header {
       padding: 2rem;
       text-align: center;
       background-color: var(--bg-alt);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255 255 255 / 0.1);
       position: relative;
     }
-
     header h1 {
-      font-family: 'Orbitron', sans-serif;
+      font-family: "Orbitron", sans-serif;
       font-size: 2.5rem;
       margin: 0;
     }
-
     header p {
       opacity: 0.7;
       font-size: 1.1rem;
     }
-
     .toggle {
       position: absolute;
       top: 1.5rem;
@@ -62,7 +57,6 @@
       cursor: pointer;
       border-radius: 8px;
     }
-
     #controls {
       max-width: 1200px;
       margin: 1rem auto 0;
@@ -72,8 +66,10 @@
       justify-content: center;
       gap: 1rem;
     }
-
-    #viewToggle button, #searchInput, #filterDifficulty, #pagination button {
+    #viewToggle button,
+    #searchInput,
+    #filterDifficulty,
+    #pagination button {
       font-size: 1rem;
       padding: 0.3rem 0.8rem;
       border-radius: 6px;
@@ -82,12 +78,10 @@
       color: var(--text);
       cursor: pointer;
     }
-
     #viewToggle button.active {
       background: var(--link);
       color: var(--bg);
     }
-
     .projects.grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -96,7 +90,6 @@
       max-width: 1200px;
       margin: auto;
     }
-
     .projects.list {
       display: flex;
       flex-direction: column;
@@ -105,7 +98,6 @@
       max-width: 900px;
       margin: auto;
     }
-
     .project-card {
       background: var(--card);
       border-radius: 12px;
@@ -113,14 +105,13 @@
       display: flex;
       flex-direction: column;
       transition: 0.3s ease;
+      word-break: break-word;
     }
-
     .projects.list .project-card {
       flex-direction: row;
       align-items: flex-start;
       gap: 1rem;
     }
-
     .projects.grid .project-card img {
       width: 100%;
       height: 160px;
@@ -128,25 +119,39 @@
       border-radius: 8px;
       margin-bottom: 1rem;
     }
-
     .projects.list .project-card img {
       width: 180px;
       height: 100px;
       flex-shrink: 0;
       border-radius: 8px;
     }
-
-    .tags { margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .tag { font-size: 0.75rem; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 4px; }
-    .difficulty { font-size: 0.75rem; background: rgba(255,255,255,0.1); color: gold; padding: 2px 6px; border-radius: 4px; }
-
+    .tags {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .tag {
+      font-size: 0.75rem;
+      background: rgba(255 255 255 / 0.1);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .difficulty {
+      font-size: 0.75rem;
+      background: rgba(255 255 255 / 0.1);
+      color: gold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 0.3rem;
+    }
     footer {
       text-align: center;
       padding: 2rem;
       font-size: 0.9rem;
       opacity: 0.6;
     }
-
     #pagination {
       max-width: 1200px;
       margin: 1rem auto 3rem;
@@ -154,7 +159,6 @@
       justify-content: center;
       gap: 1rem;
     }
-
     #pagination button:disabled {
       opacity: 0.3;
       cursor: default;
@@ -197,155 +201,172 @@
     <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repo</a>
   </footer>
 
-<script>
-  const projectsContainer = document.getElementById('projects');
-  const searchInput = document.getElementById('searchInput');
-  const filterDifficulty = document.getElementById('filterDifficulty');
-  const btnGrid = document.getElementById('btnGrid');
-  const btnList = document.getElementById('btnList');
-  const pagination = document.getElementById('pagination');
-  const prevPageBtn = document.getElementById('prevPage');
-  const nextPageBtn = document.getElementById('nextPage');
-  const pageInfo = document.getElementById('pageInfo');
+  <script>
+    // Your projects data in root directory format:
+    const rawData = {
+      "3D Cube Collector .html": {
+        desc: "Collect spinning cubes in a 3D space using mouse controls.",
+        tags: ["3D", "Arcade"],
+        difficulty: "Easy"
+      },
+      "3D Snake Battle Royale .html": {
+        desc: "Multiplayer snake survival with battle royale mechanics.",
+        tags: ["Multiplayer", "Snake"],
+        difficulty: "Medium"
+      },
+      "CYBERPUNK CITY .html": {
+        desc: "Walk through a glowing futuristic cyber city in first person.",
+        tags: ["FPS", "Sci-Fi"],
+        difficulty: "Medium"
+      },
+      "Dominion of Otherworldly Monsters .html": {
+        desc: "Defend Earth from cosmic creatures in a fast-paced shooter.",
+        tags: ["Shooter", "Monsters"],
+        difficulty: "Hard"
+      },
+      "POLICE PURSUIT .html": {
+        desc: "Evade the police in a retro-style chase simulator.",
+        tags: ["Driving", "Chase"],
+        difficulty: "Easy"
+      }
+    };
 
-  let allProjects = [];
-  let filteredProjects = [];
-  let currentPage = 1;
-  const projectsPerPage = 10;
-  let currentView = 'grid';
+    // Convert rawData object into an array for easier filtering & sorting:
+    let allProjects = Object.entries(rawData).map(([filename, meta]) => ({
+      file: filename,
+      name: filename.replace(/\.html$/i, "").trim(),
+      desc: meta.desc || "No description.",
+      tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
+      difficulty: meta.difficulty || "",
+    }));
 
-  async function loadProjects() {
-    projectsContainer.setAttribute('aria-busy', 'true');
-    try {
-      const res = await fetch('https://raw.githubusercontent.com/thechnopdive1169/myArchive/refs/heads/main/projects.json');
+    // Sort alphabetically by name:
+    allProjects.sort((a, b) => a.name.localeCompare(b.name));
 
-      const rawProjects = await res.json();
+    const projectsContainer = document.getElementById("projects");
+    const searchInput = document.getElementById("searchInput");
+    const filterDifficulty = document.getElementById("filterDifficulty");
+    const btnGrid = document.getElementById("btnGrid");
+    const btnList = document.getElementById("btnList");
+    const pagination = document.getElementById("pagination");
+    const prevPageBtn = document.getElementById("prevPage");
+    const nextPageBtn = document.getElementById("nextPage");
+    const pageInfo = document.getElementById("pageInfo");
 
-      allProjects = rawProjects.map(project => ({
-        path: project.file,
-        name: project.name,
-        desc: project.desc || "No description.",
-        tags: project.tags?.map(tag => tag.toLowerCase()) || [],
-        difficulty: project.difficulty || "",
-        date: new Date(project.date)
-      }));
+    let filteredProjects = [...allProjects];
+    let currentPage = 1;
+    const projectsPerPage = 10;
+    let currentView = "grid";
 
-      allProjects.sort((a, b) => b.date - a.date);
-      applyFilters();
-    } catch (err) {
-      projectsContainer.innerHTML = '<p>Error loading projects.</p>';
-      console.error(err);
+    function renderProjects() {
+      projectsContainer.innerHTML = "";
+      if (filteredProjects.length === 0) {
+        projectsContainer.innerHTML = "<p>No projects match your criteria.</p>";
+        pagination.style.display = "none";
+        return;
+      }
+      pagination.style.display = "flex";
+
+      const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const startIdx = (currentPage - 1) * projectsPerPage;
+      const endIdx = startIdx + projectsPerPage;
+      const projectsToShow = filteredProjects.slice(startIdx, endIdx);
+
+      projectsContainer.className = `projects ${currentView}`;
+
+      projectsToShow.forEach((project) => {
+        const tagsHTML = project.tags.map((t) => `<span class="tag">${t}</span>`).join("");
+        const difficultyHTML = project.difficulty
+          ? `<div class="difficulty">⭐ ${project.difficulty}</div>`
+          : "";
+        // No thumbnail folder, use placeholder:
+        const thumbnail = `https://via.placeholder.com/400x160?text=${encodeURIComponent(
+          project.name
+        )}`;
+
+        const card = document.createElement("div");
+        card.className = "project-card";
+        card.innerHTML = `
+          <img src="${thumbnail}" alt="${project.name} Thumbnail" />
+          <div style="flex:1; display:flex; flex-direction: column;">
+            <h3>${project.name}</h3>
+            <p>${project.desc}</p>
+            ${difficultyHTML}
+            <div class="tags">${tagsHTML}</div>
+            <a href="./${project.file}" target="_blank" rel="noopener noreferrer" style="margin-top:auto;">Open Project</a>
+          </div>
+        `;
+        projectsContainer.appendChild(card);
+      });
+
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
     }
-    projectsContainer.setAttribute('aria-busy', 'false');
-  }
 
-  function renderProjects() {
-    projectsContainer.innerHTML = '';
-    if (filteredProjects.length === 0) {
-      projectsContainer.innerHTML = '<p>No projects match your criteria.</p>';
-      pagination.style.display = 'none';
-      return;
+    function applyFilters() {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const diffFilter = filterDifficulty.value.toLowerCase();
+
+      filteredProjects = allProjects.filter((project) => {
+        const matchesSearch =
+          searchTerm === "" ||
+          project.name.toLowerCase().includes(searchTerm) ||
+          project.tags.some((t) => t.includes(searchTerm));
+        const matchesDiff = diffFilter === "" || project.difficulty.toLowerCase() === diffFilter;
+        return matchesSearch && matchesDiff;
+      });
+      currentPage = 1;
+      renderProjects();
     }
 
-    pagination.style.display = 'flex';
+    searchInput.addEventListener("input", applyFilters);
+    filterDifficulty.addEventListener("change", applyFilters);
 
-    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-    currentPage = Math.max(1, Math.min(currentPage, totalPages));
-    const startIdx = (currentPage - 1) * projectsPerPage;
-    const endIdx = startIdx + projectsPerPage;
-    const projectsToShow = filteredProjects.slice(startIdx, endIdx);
-
-    projectsContainer.className = `projects ${currentView}`;
-
-    projectsToShow.forEach(project => {
-      const tagHTML = project.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
-      const difficultyHTML = project.difficulty ? `<div class="difficulty">⭐ ${project.difficulty}</div>` : '';
-      const lastUpdated = project.date.toLocaleDateString();
-      const thumb = `thumbnails/${project.name}.jpg`;
-
-      const card = document.createElement('div');
-      card.className = 'project-card';
-      card.innerHTML = `
-        <img src="${thumb}" alt="${project.name}" onerror="this.src='https://via.placeholder.com/400x160?text=${encodeURIComponent(project.name)}'">
-        <div style="flex:1; display:flex; flex-direction: column;">
-          <h3>${project.name}</h3>
-          <p>${project.desc}</p>
-          ${difficultyHTML}
-          <div class="tags">${tagHTML}</div>
-          <p style="margin-top:0.5rem;font-size:0.8rem;opacity:0.6;">Last updated: ${lastUpdated}</p>
-          <a href="${project.path}">Open Project</a>
-        </div>
-      `;
-      projectsContainer.appendChild(card);
+    btnGrid.addEventListener("click", () => {
+      if (currentView !== "grid") {
+        currentView = "grid";
+        btnGrid.classList.add("active");
+        btnList.classList.remove("active");
+        renderProjects();
+      }
+    });
+    btnList.addEventListener("click", () => {
+      if (currentView !== "list") {
+        currentView = "list";
+        btnList.classList.add("active");
+        btnGrid.classList.remove("active");
+        renderProjects();
+      }
     });
 
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    prevPageBtn.disabled = currentPage <= 1;
-    nextPageBtn.disabled = currentPage >= totalPages;
-  }
-
-  function applyFilters() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    const diffFilter = filterDifficulty.value.toLowerCase();
-
-    filteredProjects = allProjects.filter(project => {
-      const matchesSearch = searchTerm === '' ||
-        project.name.toLowerCase().includes(searchTerm) ||
-        project.tags.some(tag => tag.includes(searchTerm));
-      const matchesDiff = diffFilter === '' || project.difficulty.toLowerCase() === diffFilter;
-      return matchesSearch && matchesDiff;
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderProjects();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
+    nextPageBtn.addEventListener("click", () => {
+      const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderProjects();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     });
 
-    currentPage = 1;
+    function toggleTheme() {
+      const body = document.body;
+      const current = body.getAttribute("data-theme");
+      const next = current === "light" ? "dark" : "light";
+      body.setAttribute("data-theme", next);
+    }
+
+    // Initial render:
     renderProjects();
-  }
-
-  searchInput.addEventListener('input', applyFilters);
-  filterDifficulty.addEventListener('change', applyFilters);
-
-  btnGrid.addEventListener('click', () => {
-    if (currentView !== 'grid') {
-      currentView = 'grid';
-      btnGrid.classList.add('active');
-      btnList.classList.remove('active');
-      renderProjects();
-    }
-  });
-
-  btnList.addEventListener('click', () => {
-    if (currentView !== 'list') {
-      currentView = 'list';
-      btnList.classList.add('active');
-      btnGrid.classList.remove('active');
-      renderProjects();
-    }
-  });
-
-  prevPageBtn.addEventListener('click', () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderProjects();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  });
-
-  nextPageBtn.addEventListener('click', () => {
-    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderProjects();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  });
-
-  function toggleTheme() {
-    const body = document.body;
-    const current = body.getAttribute('data-theme');
-    const next = current === 'light' ? 'dark' : 'light';
-    body.setAttribute('data-theme', next);
-  }
-
-  loadProjects();
-</script>
+  </script>
 </body>
 </html>
