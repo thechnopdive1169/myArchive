@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Snake Battle Royale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            z-index: 100;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #score {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00ff00;
+        }
+
+        #length {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #00ffff;
+        }
+
+        #highScore {
+            font-size: 18px;
+            color: #ffff00;
+        }
+
+        #leaderboard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            z-index: 100;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            width: 200px;
+        }
+
+        #leaderboard h3 {
+            margin-bottom: 10px;
+            color: #ff00ff;
+            text-align: center;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .leaderboard-entry.player {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            z-index: 200;
+            border: 2px solid #ff4444;
+        }
+
+        #gameOver h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #ff4444;
+        }
+
+        #gameOver p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        #restartBtn {
+            background: #44ff44;
+            color: black;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #restartBtn:hover {
+            background: #66ff66;
+            transform: scale(1.1);
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+
+        #startScreen h1 {
+            font-size: 64px;
+            color: #00ff00;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #00ff00;
+        }
+
+        #startBtn {
+            background: #00ff00;
+            color: black;
+            border: none;
+            padding: 20px 60px;
+            font-size: 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        #startBtn:hover {
+            background: #00ff00;
+            transform: scale(1.1);
+            box-shadow: 0 0 30px #00ff00;
+        }
+
+        .controls {
+            color: white;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .controls kbd {
+            background: #333;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+
+        #skinSelector {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .skin-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .skin-option:hover {
+            transform: scale(1.1);
+        }
+
+        .skin-option.selected {
+            border-color: white;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        #powerUpIndicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff00ff;
+            font-size: 20px;
+            font-weight: bold;
+            display: none;
+            z-index: 100;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .minimap {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #444;
+            border-radius: 10px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ui">
+            <div id="score">Score: 0</div>
+            <div id="length">Length: 3</div>
+            <div id="highScore">High Score: 0</div>
+        </div>
+
+        <div id="leaderboard">
+            <h3>Leaderboard</h3>
+            <div id="leaderboardContent"></div>
+        </div>
+
+        <div id="powerUpIndicator">SPEED BOOST ACTIVE!</div>
+
+        <div class="minimap" id="minimap"></div>
+
+        <div id="instructions">
+            Use <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> to move • Eat pellets to grow • Defeat other snakes
+        </div>
+
+        <div id="startScreen">
+            <h1>3D Snake Battle Royale</h1>
+            <div class="controls">
+                <p>Battle against other snakes to become the longest!</p>
+                <p>Eat pellets to grow and increase your score</p>
+                <p>Make other snakes crash into you to defeat them</p>
+                <p>Collect power-ups for temporary speed boosts</p>
+            </div>
+            
+            <div id="skinSelector">
+                <div class="skin-option selected" data-skin="0" style="background: #00ff00;"></div>
+                <div class="skin-option" data-skin="1" style="background: #ff4444;"></div>
+                <div class="skin-option" data-skin="2" style="background: #4444ff;"></div>
+                <div class="skin-option" data-skin="3" style="background: #ffff44;"></div>
+                <div class="skin-option" data-skin="4" style="background: #ff44ff;"></div>
+            </div>
+            
+            <button id="startBtn">Start Game</button>
+        </div>
+
+        <div id="gameOver">
+            <h2>Game Over!</h2>
+            <p id="finalScore">Final Score: 0</p>
+            <p id="finalLength">Final Length: 3</p>
+            <p id="finalRank">You ranked #1</p>
+            <button id="restartBtn">Play Again</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Game variables
+        let scene, camera, renderer;
+        let playerSnake;
+        let aiSnakes = [];
+        let pellets = [];
+        let powerUps = [];
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameRunning = false;
+        let gameSpeed = 150;
+        let lastMoveTime = 0;
+        let powerUpActive = false;
+        let powerUpEndTime = 0;
+        let gridSize = 40;
+        let cellSize = 1;
+        let selectedSkin = 0;
+        let minimapRenderer, minimapCamera, minimapScene;
+
+        // Snake skins
+        const snakeSkins = [
+            { head: 0x00ff00, body: 0x00aa00, emissiveHead: 0x004400, emissiveBody: 0x002200 },
+            { head: 0xff4444, body: 0xaa0000, emissiveHead: 0x440000, emissiveBody: 0x220000 },
+            { head: 0x4444ff, body: 0x0000aa, emissiveHead: 0x000044, emissiveBody: 0x000022 },
+            { head: 0xffff44, body: 0xaaaa00, emissiveHead: 0x444400, emissiveBody: 0x222200 },
+            { head: 0xff44ff, body: 0xaa00aa, emissiveHead: 0x440044, emissiveBody: 0x220022 }
+        ];
+
+        // Initialize Three.js
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000033, 10, 50);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(15, 20, 15);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('gameContainer').appendChild(renderer.domElement);
+
+            // Minimap setup
+            minimapScene = new THREE.Scene();
+            minimapCamera = new THREE.OrthographicCamera(-gridSize/2, gridSize/2, gridSize/2, -gridSize/2, 1, 100);
+            minimapCamera.position.set(0, 20, 0);
+            minimapCamera.lookAt(0, 0, 0);
+            
+            minimapRenderer = new THREE.WebGLRenderer({ antialias: true });
+            minimapRenderer.setSize(150, 150);
+            minimapRenderer.setClearColor(0x000033);
+            document.getElementById('minimap').appendChild(minimapRenderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            minimapScene.add(ambientLight.clone());
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(10, 30, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -25;
+            directionalLight.shadow.camera.right = 25;
+            directionalLight.shadow.camera.top = 25;
+            directionalLight.shadow.camera.bottom = -25;
+            scene.add(directionalLight);
+
+            // Create ground
+            createGround();
+
+            // Create walls
+            createWalls();
+
+            // Event listeners
+            window.addEventListener('keydown', handleKeyPress);
+            window.addEventListener('resize', onWindowResize);
+
+            // Skin selector
+            document.querySelectorAll('.skin-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.skin-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedSkin = parseInt(this.dataset.skin);
+                });
+            });
+
+            // Update high score display
+            document.getElementById('highScore').textContent = `High Score: ${highScore}`;
+
+            // Start animation
+            animate();
+        }
+
+        function createGround() {
+            const groundGeometry = new THREE.PlaneGeometry(gridSize * cellSize, gridSize * cellSize);
+            const groundMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x111122,
+                transparent: true,
+                opacity: 0.8
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Create grid
+            const gridHelper = new THREE.GridHelper(gridSize * cellSize, gridSize, 0x004444, 0x002222);
+            scene.add(gridHelper);
+
+            // Minimap ground
+            const minimapGround = new THREE.Mesh(groundGeometry, groundMaterial.clone());
+            minimapGround.rotation.x = -Math.PI / 2;
+            minimapScene.add(minimapGround);
+        }
+
+        function createWalls() {
+            const wallMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xff4444,
+                emissive: 0x440000
+            });
+            
+            const wallThickness = 0.5;
+            const wallHeight = 2;
+            const wallLength = gridSize * cellSize;
+
+            // Create walls
+            const positions = [
+                { x: 0, z: gridSize/2, rotY: 0 }, // North
+                { x: gridSize/2, z: 0, rotY: Math.PI/2 }, // East
+                { x: 0, z: -gridSize/2, rotY: 0 }, // South
+                { x: -gridSize/2, z: 0, rotY: Math.PI/2 } // West
+            ];
+
+            positions.forEach(pos => {
+                const wallGeometry = new THREE.BoxGeometry(wallLength, wallHeight, wallThickness);
+                const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                wall.position.set(pos.x, wallHeight/2, pos.z);
+                wall.rotation.y = pos.rotY;
+                wall.castShadow = true;
+                wall.receiveShadow = true;
+                scene.add(wall);
+            });
+        }
+
+        class Snake {
+            constructor(isPlayer = false, skinIndex = 0, startPosition = null) {
+                this.isPlayer = isPlayer;
+                this.segments = [];
+                this.direction = { x: 1, z: 0 };
+                this.skinIndex = skinIndex;
+                this.alive = true;
+                this.speed = isPlayer ? gameSpeed : 200 + Math.random() * 100;
+                this.lastMoveTime = 0;
+                this.color = snakeSkins[skinIndex];
+                
+                // Create initial snake segments
+                const segmentGeometry = new THREE.BoxGeometry(cellSize * 0.9, cellSize * 0.9, cellSize * 0.9);
+                
+                for (let i = 0; i < 3; i++) {
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: i === 0 ? this.color.head : this.color.body,
+                        emissive: i === 0 ? this.color.emissiveHead : this.color.emissiveBody
+                    });
+                    const segment = new THREE.Mesh(segmentGeometry, material);
+                    
+                    if (startPosition) {
+                        segment.position.set(startPosition.x - i * cellSize, cellSize/2, startPosition.z);
+                    } else {
+                        segment.position.set(-i * cellSize, cellSize/2, 0);
+                    }
+                    
+                    segment.castShadow = true;
+                    this.segments.push(segment);
+                    scene.add(segment);
+                }
+                
+                // Add to minimap
+                this.minimapSegments = [];
+                this.segments.forEach(segment => {
+                    const minimapSegment = segment.clone();
+                    minimapSegment.material = segment.material.clone();
+                    minimapScene.add(minimapSegment);
+                    this.minimapSegments.push(minimapSegment);
+                });
+            }
+
+            move() {
+                if (!this.alive) return;
+                
+                const head = this.segments[0];
+                const newHeadPosition = {
+                    x: head.position.x + this.direction.x * cellSize,
+                    z: head.position.z + this.direction.z * cellSize
+                };
+
+                // Check wall collision
+                if (Math.abs(newHeadPosition.x) >= gridSize/2 || Math.abs(newHeadPosition.z) >= gridSize/2) {
+                    this.die();
+                    return;
+                }
+
+                // Create new head
+                const segmentGeometry = new THREE.BoxGeometry(cellSize * 0.9, cellSize * 0.9, cellSize * 0.9);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: this.color.head,
+                    emissive: this.color.emissiveHead
+                });
+                const newHead = new THREE.Mesh(segmentGeometry, material);
+                newHead.position.set(newHeadPosition.x, cellSize/2, newHeadPosition.z);
+                newHead.castShadow = true;
+                this.segments.unshift(newHead);
+                scene.add(newHead);
+                
+                // Add to minimap
+                const minimapNewHead = newHead.clone();
+                minimapNewHead.material = newHead.material.clone();
+                minimapScene.add(minimapNewHead);
+                this.minimapSegments.unshift(minimapNewHead);
+
+                // Remove tail
+                const tail = this.segments.pop();
+                scene.remove(tail);
+                
+                // Remove from minimap
+                const minimapTail = this.minimapSegments.pop();
+                minimapScene.remove(minimapTail);
+            }
+
+            grow() {
+                if (!this.alive) return;
+                
+                const tail = this.segments[this.segments.length - 1];
+                const segmentGeometry = new THREE.BoxGeometry(cellSize * 0.9, cellSize * 0.9, cellSize * 0.9);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: this.color.body,
+                    emissive: this.color.emissiveBody
+                });
+                const newSegment = new THREE.Mesh(segmentGeometry, material);
+                newSegment.position.set(tail.position.x, cellSize/2, tail.position.z);
+                newSegment.castShadow = true;
+                this.segments.push(newSegment);
+                scene.add(newSegment);
+                
+                // Add to minimap
+                const minimapNewSegment = newSegment.clone();
+                minimapNewSegment.material = newSegment.material.clone();
+                minimapScene.add(minimapNewSegment);
+                this.minimapSegments.push(minimapNewSegment);
+            }
+
+            changeDirection(newDirection) {
+                // Prevent 180-degree turns
+                if ((newDirection.x === 1 && this.direction.x === -1) ||
+                    (newDirection.x === -1 && this.direction.x === 1) ||
+                    (newDirection.z === 1 && this.direction.z === -1) ||
+                    (newDirection.z === -1 && this.direction.z === 1)) {
+                    return;
+                }
+                this.direction = newDirection;
+            }
+
+            die() {
+                this.alive = false;
+                
+                // Create pellets from snake body
+                this.segments.forEach((segment, index) => {
+                    if (index > 0) { // Skip head
+                        createPellet(segment.position.x, segment.position.z);
+                    }
+                });
+                
+                // Remove from scene
+                this.segments.forEach(segment => {
+                    scene.remove(segment);
+                });
+                
+                // Remove from minimap
+                this.minimapSegments.forEach(segment => {
+                    minimapScene.remove(segment);
+                });
+            }
+
+            checkSelfCollision() {
+                if (!this.alive || this.segments.length <= 4) return false;
+                
+                const head = this.segments[0];
+                
+                for (let i = 4; i < this.segments.length; i++) {
+                    const segment = this.segments[i];
+                    if (Math.abs(head.position.x - segment.position.x) < 0.5 && 
+                        Math.abs(head.position.z - segment.position.z) < 0.5) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            checkCollisionWithSnake(otherSnake) {
+                if (!this.alive || !otherSnake.alive || this === otherSnake) return false;
+                
+                const head = this.segments[0];
+                
+                for (let segment of otherSnake.segments) {
+                    if (Math.abs(head.position.x - segment.position.x) < 0.5 && 
+                        Math.abs(head.position.z - segment.position.z) < 0.5) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+
+            updateMinimap() {
+                this.segments.forEach((segment, i) => {
+                    if (this.minimapSegments[i]) {
+                        this.minimapSegments[i].position.copy(segment.position);
+                    }
+                });
+            }
+        }
+
+        function createPellet(x, z) {
+            const pelletGeometry = new THREE.SphereGeometry(cellSize * 0.3, 8, 8);
+            const pelletMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x44ff44,
+                emissive: 0x004400
+            });
+            const pellet = new THREE.Mesh(pelletGeometry, pelletMaterial);
+            
+            if (x !== undefined && z !== undefined) {
+                pellet.position.set(x, cellSize/2, z);
+            } else {
+                // Random position within grid
+                let validPosition = false;
+                while (!validPosition) {
+                    pellet.position.x = Math.floor(Math.random() * gridSize) - gridSize/2 + 0.5;
+                    pellet.position.z = Math.floor(Math.random() * gridSize) - gridSize/2 + 0.5;
+                    pellet.position.y = cellSize/2;
+                    
+                    validPosition = true;
+                    // Check if position is not on any snake
+                    for (let snake of [playerSnake, ...aiSnakes]) {
+                        if (snake && snake.alive) {
+                            for (let segment of snake.segments) {
+                                if (Math.abs(segment.position.x - pellet.position.x) < 1 && 
+                                    Math.abs(segment.position.z - pellet.position.z) < 1) {
+                                    validPosition = false;
+                                    break;
+                                }
+                            }
+                            if (!validPosition) break;
+                        }
+                    }
+                }
+            }
+            
+            pellet.castShadow = true;
+            pellets.push(pellet);
+            scene.add(pellet);
+            
+            // Add to minimap
+            const minimapPellet = pellet.clone();
+            minimapPellet.material = pellet.material.clone();
+            minimapScene.add(minimapPellet);
+            pellet.minimapClone = minimapPellet;
+        }
+
+        function createPowerUp() {
+            const powerUpGeometry = new THREE.OctahedronGeometry(cellSize * 0.4);
+            const powerUpMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xff00ff,
+                emissive: 0x440044
+            });
+            const powerUp = new THREE.Mesh(powerUpGeometry, powerUpMaterial);
+            
+            // Random position within grid
+            let validPosition = false;
+            while (!validPosition) {
+                powerUp.position.x = Math.floor(Math.random() * gridSize) - gridSize/2 + 0.5;
+                powerUp.position.z = Math.floor(Math.random() * gridSize) - gridSize/2 + 0.5;
+                powerUp.position.y = cellSize/2;
+                
+                validPosition = true;
+                // Check if position is not on any snake or pellet
+                for (let snake of [playerSnake, ...aiSnakes]) {
+                    if (snake && snake.alive) {
+                        for (let segment of snake.segments) {
+                            if (Math.abs(segment.position.x - powerUp.position.x) < 1 && 
+                                Math.abs(segment.position.z - powerUp.position.z) < 1) {
+                                validPosition = false;
+                                break;
+                            }
+                        }
+                        if (!validPosition) break;
+                    }
+                }
+                
+                if (validPosition) {
+                    for (let pellet of pellets) {
+                        if (Math.abs(pellet.position.x - powerUp.position.x) < 0.5 && 
+                            Math.abs(pellet.position.z - powerUp.position.z) < 0.5) {
+                            validPosition = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            powerUp.castShadow = true;
+            powerUps.push(powerUp);
+            scene.add(powerUp);
+            
+            // Add to minimap
+            const minimapPowerUp = powerUp.clone();
+            minimapPowerUp.material = powerUp.material.clone();
+            minimapScene.add(minimapPowerUp);
+            powerUp.minimapClone = minimapPowerUp;
+        }
+
+        function createAISnakes() {
+            aiSnakes = [];
+            const aiCount = 5; // Number of AI snakes
+            
+            for (let i = 0; i < aiCount; i++) {
+                const skinIndex = (i + 1) % snakeSkins.length; // Avoid using player's skin
+                const startPosition = {
+                    x: (Math.random() - 0.5) * gridSize * 0.8,
+                    z: (Math.random() - 0.5) * gridSize * 0.8
+                };
+                const aiSnake = new Snake(false, skinIndex, startPosition);
+                aiSnakes.push(aiSnake);
+            }
+        }
+
+        function updateAI() {
+            aiSnakes.forEach(snake => {
+                if (!snake.alive) return;
+                
+                // Simple AI: change direction randomly or when approaching walls
+                if (Math.random() < 0.05 || 
+                    Math.abs(snake.segments[0].position.x) > gridSize/2 - 5 ||
+                    Math.abs(snake.segments[0].position.z) > gridSize/2 - 5) {
+                    
+                    const directions = [
+                        { x: 1, z: 0 },
+                        { x: -1, z: 0 },
+                        { x: 0, z: 1 },
+                        { x: 0, z: -1 }
+                    ];
+                    
+                    // Filter out opposite direction
+                    const validDirections = directions.filter(dir => {
+                        return !(dir.x === -snake.direction.x && dir.z === -snake.direction.z);
+                    });
+                    
+                    const newDirection = validDirections[Math.floor(Math.random() * validDirections.length)];
+                    snake.changeDirection(newDirection);
+                }
+                
+                // Move AI snake
+                if (Date.now() - snake.lastMoveTime > snake.speed) {
+                    snake.move();
+                    snake.lastMoveTime = Date.now();
+                }
+            });
+        }
+
+        function handleKeyPress(e) {
+            if (!gameRunning || !playerSnake.alive) return;
+
+            const key = e.key.toLowerCase();
+            
+            if ((key === 'w' || key === 'arrowup') && playerSnake.direction.z !== 1) {
+                playerSnake.changeDirection({ x: 0, z: -1 });
+            } else if ((key === 's' || key === 'arrowdown') && playerSnake.direction.z !== -1) {
+                playerSnake.changeDirection({ x: 0, z: 1 });
+            } else if ((key === 'a' || key === 'arrowleft') && playerSnake.direction.x !== 1) {
+                playerSnake.changeDirection({ x: -1, z: 0 });
+            } else if ((key === 'd' || key === 'arrowright') && playerSnake.direction.x !== -1) {
+                playerSnake.changeDirection({ x: 1, z: 0 });
+            }
+        }
+
+        function checkCollisions() {
+            // Check player self-collision
+            if (playerSnake.alive && playerSnake.checkSelfCollision()) {
+                playerSnake.die();
+                gameOver();
+                return;
+            }
+            
+            // Check player collision with AI snakes
+            if (playerSnake.alive) {
+                for (let aiSnake of aiSnakes) {
+                    if (playerSnake.checkCollisionWithSnake(aiSnake)) {
+                        playerSnake.die();
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+            
+            // Check AI collisions
+            for (let aiSnake of aiSnakes) {
+                if (!aiSnake.alive) continue;
+                
+                // Check self-collision
+                if (aiSnake.checkSelfCollision()) {
+                    aiSnake.die();
+                    continue;
+                }
+                
+                // Check collision with player
+                if (aiSnake.checkCollisionWithSnake(playerSnake)) {
+                    aiSnake.die();
+                    score += 50; // Bonus points for defeating an AI
+                    updateScore();
+                    continue;
+                }
+                
+                // Check collision with other AI snakes
+                for (let otherSnake of aiSnakes) {
+                    if (aiSnake !== otherSnake && aiSnake.checkCollisionWithSnake(otherSnake)) {
+                        aiSnake.die();
+                        break;
+                    }
+                }
+            }
+            
+            // Check pellet collisions
+            for (let snake of [playerSnake, ...aiSnakes]) {
+                if (!snake.alive) continue;
+                
+                const head = snake.segments[0];
+                
+                pellets = pellets.filter(pellet => {
+                    if (Math.abs(head.position.x - pellet.position.x) < 0.5 && 
+                        Math.abs(head.position.z - pellet.position.z) < 0.5) {
+                        snake.grow();
+                        
+                        if (snake.isPlayer) {
+                            score += 10;
+                            updateScore();
+                            
+                            // Increase speed slightly
+                            gameSpeed = Math.max(50, gameSpeed - 1);
+                        }
+                        
+                        // Remove pellet
+                        scene.remove(pellet);
+                        minimapScene.remove(pellet.minimapClone);
+                        
+                        // Create new pellet
+                        createPellet();
+                        
+                        return false;
+                    }
+                    return true;
+                });
+            }
+            
+            // Check power-up collisions
+            if (playerSnake.alive) {
+                const head = playerSnake.segments[0];
+                
+                powerUps = powerUps.filter(powerUp => {
+                    if (Math.abs(head.position.x - powerUp.position.x) < 0.5 && 
+                        Math.abs(head.position.z - powerUp.position.z) < 0.5) {
+                        activatePowerUp();
+                        
+                        // Remove power-up
+                        scene.remove(powerUp);
+                        minimapScene.remove(powerUp.minimapClone);
+                        
+                        return false;
+                    }
+                    return true;
+                });
+            }
+        }
+
+        function activatePowerUp() {
+            powerUpActive = true;
+            powerUpEndTime = Date.now() + 5000; // 5 seconds
+            document.getElementById('powerUpIndicator').style.display = 'block';
+            
+            // Increase speed
+            gameSpeed = Math.max(30, gameSpeed - 30);
+        }
+
+        function updatePowerUp() {
+            if (powerUpActive && Date.now() > powerUpEndTime) {
+                powerUpActive = false;
+                document.getElementById('powerUpIndicator').style.display = 'none';
+                
+                // Restore speed
+                gameSpeed += 30;
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('length').textContent = `Length: ${playerSnake.segments.length}`;
+        }
+
+        function updateLeaderboard() {
+            const leaderboardContent = document.getElementById('leaderboardContent');
+            leaderboardContent.innerHTML = '';
+            
+            // Create array of all snakes with their lengths
+            const allSnakes = [
+                { name: "You", length: playerSnake.alive ? playerSnake.segments.length : 0, isPlayer: true },
+                ...aiSnakes.map((snake, index) => ({
+                    name: `AI ${index + 1}`,
+                    length: snake.alive ? snake.segments.length : 0,
+                    isPlayer: false
+                }))
+            ];
+            
+            // Sort by length (descending)
+            allSnakes.sort((a, b) => b.length - a.length);
+            
+            // Display top 5
+            allSnakes.slice(0, 5).forEach((snake, index) => {
+                const entry = document.createElement('div');
+                entry.className = `leaderboard-entry ${snake.isPlayer ? 'player' : ''}`;
+                entry.innerHTML = `
+                    <span>${index + 1}. ${snake.name}</span>
+                    <span>${snake.length}</span>
+                `;
+                leaderboardContent.appendChild(entry);
+            });
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                document.getElementById('highScore').textContent = `High Score: ${highScore}`;
+            }
+            
+            // Calculate rank
+            const allSnakes = [
+                { name: "You", length: playerSnake.segments.length, isPlayer: true },
+                ...aiSnakes.map((snake, index) => ({
+                    name: `AI ${index + 1}`,
+                    length: snake.alive ? snake.segments.length : 0,
+                    isPlayer: false
+                }))
+            ];
+            
+            allSnakes.sort((a, b) => b.length - a.length);
+            const playerRank = allSnakes.findIndex(snake => snake.isPlayer) + 1;
+            
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            document.getElementById('finalLength').textContent = `Final Length: ${playerSnake.segments.length}`;
+            document.getElementById('finalRank').textContent = `You ranked #${playerRank}`;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function startGame() {
+            // Reset game state
+            score = 0;
+            gameSpeed = 150;
+            powerUpActive = false;
+            powerUpEndTime = 0;
+            
+            // Clear existing snakes
+            if (playerSnake) {
+                playerSnake.segments.forEach(segment => scene.remove(segment));
+                playerSnake.minimapSegments.forEach(segment => minimapScene.remove(segment));
+            }
+            
+            aiSnakes.forEach(snake => {
+                snake.segments.forEach(segment => scene.remove(segment));
+                snake.minimapSegments.forEach(segment => minimapScene.remove(segment));
+            });
+            
+            // Clear pellets and power-ups
+            pellets.forEach(pellet => {
+                scene.remove(pellet);
+                minimapScene.remove(pellet.minimapClone);
+            });
+            
+            powerUps.forEach(powerUp => {
+                scene.remove(powerUp);
+                minimapScene.remove(powerUp.minimapClone);
+            });
+            
+            pellets = [];
+            powerUps = [];
+            
+            // Create new player snake
+            playerSnake = new Snake(true, selectedSkin);
+            
+            // Create AI snakes
+            createAISnakes();
+            
+            // Create initial pellets
+            for (let i = 0; i < 20; i++) {
+                createPellet();
+            }
+            
+            // Create initial power-ups
+            for (let i = 0; i < 2; i++) {
+                createPowerUp();
+            }
+            
+            // Update UI
+            updateScore();
+            document.getElementById('powerUpIndicator').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Start game
+            gameRunning = true;
+            lastMoveTime = Date.now();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Update game logic at fixed intervals
+            if (gameRunning) {
+                if (Date.now() - lastMoveTime > gameSpeed) {
+                    if (playerSnake.alive) {
+                        playerSnake.move();
+                        playerSnake.lastMoveTime = Date.now();
+                    }
+                    lastMoveTime = Date.now();
+                }
+                
+                updateAI();
+                checkCollisions();
+                updatePowerUp();
+                updateLeaderboard();
+            }
+            
+            // Update minimap positions
+            if (playerSnake) {
+                playerSnake.updateMinimap();
+            }
+            
+            aiSnakes.forEach(snake => {
+                snake.updateMinimap();
+            });
+            
+            pellets.forEach(pellet => {
+                if (pellet.minimapClone) {
+                    pellet.minimapClone.position.copy(pellet.position);
+                }
+            });
+            
+            powerUps.forEach(powerUp => {
+                if (powerUp.minimapClone) {
+                    powerUp.minimapClone.position.copy(powerUp.position);
+                }
+            });
+            
+            // Animate objects
+            pellets.forEach(pellet => {
+                pellet.rotation.y += 0.02;
+                pellet.position.y = cellSize/2 + Math.sin(Date.now() * 0.003) * 0.1;
+            });
+            
+            powerUps.forEach(powerUp => {
+                powerUp.rotation.y += 0.03;
+                powerUp.rotation.x += 0.02;
+                powerUp.position.y = cellSize/2 + Math.sin(Date.now() * 0.004) * 0.2;
+            });
+            
+            // Animate snake segments
+            if (playerSnake && playerSnake.alive) {
+                playerSnake.segments.forEach((segment, index) => {
+                    segment.rotation.y += 0.01;
+                    if (index === 0) {
+                        segment.position.y = cellSize/2 + Math.sin(Date.now() * 0.005) * 0.05;
+                    }
+                });
+            }
+            
+            aiSnakes.forEach(snake => {
+                if (snake.alive) {
+                    snake.segments.forEach((segment, index) => {
+                        segment.rotation.y += 0.01;
+                        if (index === 0) {
+                            segment.position.y = cellSize/2 + Math.sin(Date.now() * 0.005 + snake.skinIndex) * 0.05;
+                        }
+                    });
+                }
+            });
+            
+            // Update camera to follow player
+            if (playerSnake && playerSnake.alive && playerSnake.segments.length > 0) {
+                const head = playerSnake.segments[0];
+                camera.position.x = head.position.x + 15;
+                camera.position.z = head.position.z + 15;
+                camera.lookAt(head.position);
+            }
+            
+            renderer.render(scene, camera);
+            minimapRenderer.render(minimapScene, minimapCamera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+        // Initialize game
+        init();
+    </script>
+</body>
+</html>
