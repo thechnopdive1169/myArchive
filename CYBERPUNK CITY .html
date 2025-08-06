@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk City - Debug Mode</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #healthBar {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 300px;
+            height: 30px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        #healthFill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0080, #00ffff);
+            width: 100%;
+            transition: width 0.3s;
+        }
+
+        #money {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        #mission {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 25px;
+            border: 2px solid #ff00ff;
+            border-radius: 10px;
+            max-width: 400px;
+        }
+
+        #mission h3 {
+            color: #ff00ff;
+            margin-bottom: 10px;
+        }
+
+        #minimap {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 200px;
+            height: 200px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0a0a0a, #1a0033);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        #startScreen h1 {
+            font-size: 72px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff0080, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255,0,255,0.5);
+        }
+
+        #startBtn {
+            background: linear-gradient(45deg, #ff0080, #00ffff);
+            border: none;
+            padding: 20px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 30px;
+            font-family: 'Orbitron', monospace;
+            color: #000;
+        }
+
+        #startBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255,0,255,0.8);
+        }
+
+        .control-key {
+            display: inline-block;
+            background: #333;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            border: 1px solid #666;
+        }
+
+        #weaponInfo {
+            position: absolute;
+            bottom: 80px;
+            left: 30px;
+            font-size: 18px;
+            color: #ffff00;
+        }
+
+        #wantedLevel {
+            position: absolute;
+            top: 80px;
+            right: 30px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .star {
+            width: 30px;
+            height: 30px;
+            background: #666;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            transition: all 0.3s;
+        }
+
+        .star.active {
+            background: #ffff00;
+            box-shadow: 0 0 10px #ffff00;
+        }
+
+        /* Debug Panel */
+        #debugPanel {
+            position: absolute;
+            top: 150px;
+            left: 30px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #ff0000;
+            display: none;
+        }
+
+        #debugPanel h3 {
+            color: #ff0000;
+            margin-bottom: 10px;
+        }
+
+        #debugPanel div {
+            margin-bottom: 5px;
+        }
+
+        #errorLog {
+            position: absolute;
+            bottom: 200px;
+            left: 30px;
+            background: rgba(0,0,0,0.9);
+            padding: 15px;
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #ff6666;
+            max-width: 400px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        #fpsCounter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #00ff00;
+        }
+
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+
+        #loadingBar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        #loadingFill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0080, #00ffff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui">
+            <div id="fpsCounter">FPS: 0</div>
+            <div id="money">¤ 0</div>
+            
+            <div id="mission">
+                <h3>Mission: Data Heist</h3>
+                <p>Collect 5 data packets from the city. Avoid the cyber-police!</p>
+            </div>
+            
+            <div id="wantedLevel">
+                <div class="star"></div>
+                <div class="star"></div>
+                <div class="star"></div>
+                <div class="star"></div>
+                <div class="star"></div>
+            </div>
+            
+            <div id="weaponInfo">Weapon: Neural Pistol</div>
+            
+            <div id="healthBar">
+                <div id="healthFill"></div>
+            </div>
+            
+            <div id="controls">
+                <span class="control-key">WASD</span> Move 
+                <span class="control-key">E</span> Enter/Exit Vehicle 
+                <span class="control-key">SPACE</span> Shoot 
+                <span class="control-key">Shift</span> Sprint
+            </div>
+            
+            <canvas id="minimap"></canvas>
+            
+            <!-- Debug Panel -->
+            <div id="debugPanel">
+                <h3>Debug Info</h3>
+                <div id="debugInfo"></div>
+            </div>
+            
+            <!-- Error Log -->
+            <div id="errorLog"></div>
+        </div>
+        
+        <div id="loadingScreen">
+            <h2 style="color: #00ffff; font-family: 'Orbitron', monospace;">LOADING CYBERPUNK CITY...</h2>
+            <div id="loadingBar">
+                <div id="loadingFill"></div>
+            </div>
+            <p id="loadingStatus" style="color: #aaa; margin-top: 10px;">Initializing...</p>
+        </div>
+        
+        <div id="startScreen" style="display: none;">
+            <h1>CYBERPUNK CITY</h1>
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="font-size: 18px; margin-bottom: 10px;">Navigate the neon-lit streets of Neo-Tokyo</p>
+                <p style="font-size: 16px; color: #aaa;">Complete missions, evade police, and rise through the criminal underworld</p>
+            </div>
+            <button id="startBtn">ENTER THE CITY</button>
+            <div style="margin-top: 20px;">
+                <button id="debugToggle" style="background: #ff0000; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Toggle Debug Mode</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Debug Mode
+        let debugMode = false;
+        let errorLog = [];
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 0;
+        let gameInitialized = false;
+
+        // Loading system
+        let loadingProgress = 0;
+        const loadingSteps = [
+            { name: 'Checking Three.js', weight: 10 },
+            { name: 'Initializing Scene', weight: 20 },
+            { name: 'Creating City', weight: 30 },
+            { name: 'Creating Player', weight: 15 },
+            { name: 'Creating NPCs', weight: 15 },
+            { name: 'Creating Objects', weight: 10 }
+        ];
+
+        function updateLoading(stepName, progress) {
+            document.getElementById('loadingStatus').textContent = stepName;
+            document.getElementById('loadingFill').style.width = `${progress}%`;
+        }
+
+        // Error handling
+        function logError(message, error = null) {
+            const errorEntry = {
+                time: new Date().toLocaleTimeString(),
+                message: message,
+                error: error ? error.toString() : null
+            };
+            
+            errorLog.push(errorEntry);
+            if (errorLog.length > 10) errorLog.shift();
+            
+            console.error(message, error);
+            updateErrorLog();
+        }
+
+        function updateErrorLog() {
+            const errorLogDiv = document.getElementById('errorLog');
+            if (errorLog.length > 0) {
+                errorLogDiv.style.display = 'block';
+                errorLogDiv.innerHTML = errorLog.map(entry => 
+                    `<div>[${entry.time}] ${entry.message}${entry.error ? '<br>' + entry.error : ''}</div>`
+                ).join('');
+            } else {
+                errorLogDiv.style.display = 'none';
+            }
+        }
+
+        function updateDebugInfo() {
+            if (!debugMode) return;
+            
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML = `
+                <div>Three.js Version: ${THREE.REVISION}</div>
+                <div>Player Position: (${player ? player.position.x.toFixed(2) : 'N/A'}, ${player ? player.position.y.toFixed(2) : 'N/A'}, ${player ? player.position.z.toFixed(2) : 'N/A'})</div>
+                <div>In Vehicle: ${inVehicle}</div>
+                <div>Vehicle Speed: ${vehicle ? vehicle.userData.speed.toFixed(2) : 'N/A'}</div>
+                <div>NPCs: ${npcs.length}</div>
+                <div>Data Packets: ${dataPackets.length}</div>
+                <div>Bullets: ${bullets.length}</div>
+                <div>Particles: ${particles.length}</div>
+                <div>Buildings: ${buildings.length}</div>
+                <div>Health: ${health}</div>
+                <div>Wanted Level: ${wantedLevel}</div>
+                <div>Mission Progress: ${missionProgress}/${DATA_PACKET_COUNT}</div>
+                <div>Game Running: ${gameRunning}</div>
+            `;
+        }
+
+        function updateFPS() {
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime >= lastTime + 1000) {
+                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                document.getElementById('fpsCounter').textContent = `FPS: ${fps}`;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+        }
+
+        // Game variables
+        let scene, camera, renderer;
+        let player, vehicle = null;
+        let buildings = [];
+        let npcs = [];
+        let dataPackets = [];
+        let police = [];
+        let bullets = [];
+        let particles = [];
+        
+        let money = 0;
+        let health = 100;
+        let wantedLevel = 0;
+        let missionProgress = 0;
+        let inVehicle = false;
+        let gameRunning = false;
+        
+        let keys = {};
+        let clock = new THREE.Clock();
+        
+        // Game settings
+        const CITY_SIZE = 100;
+        const BUILDING_COUNT = 50;
+        const NPC_COUNT = 20;
+        const DATA_PACKET_COUNT = 5;
+        const POLICE_COUNT = 0;
+        
+        // Initialize Three.js
+        function init() {
+            try {
+                updateLoading('Checking Three.js', 10);
+                
+                // Check if Three.js is loaded
+                if (typeof THREE === 'undefined') {
+                    throw new Error('Three.js library not loaded');
+                }
+                
+                console.log('Three.js version:', THREE.REVISION);
+                
+                // Scene setup
+                updateLoading('Initializing Scene', 30);
+                scene = new THREE.Scene();
+                scene.fog = new THREE.Fog(0x0a0a0a, 50, 200);
+                
+                // Camera setup
+                camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    1000
+                );
+                camera.position.set(0, 30, 30);
+                camera.lookAt(0, 0, 0);
+                
+                // Renderer setup
+                const canvas = document.getElementById('gameCanvas');
+                if (!canvas) {
+                    throw new Error('Game canvas not found');
+                }
+                
+                renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                renderer.setClearColor(0x0a0a0a);
+                
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                directionalLight.position.set(50, 100, 50);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.camera.left = -100;
+                directionalLight.shadow.camera.right = 100;
+                directionalLight.shadow.camera.top = 100;
+                directionalLight.shadow.camera.bottom = -100;
+                scene.add(directionalLight);
+                
+                // Create city
+                createCity();
+                
+                // Create player
+                createPlayer();
+                
+                // Create NPCs
+                createNPCs();
+                
+                // Create data packets
+                createDataPackets();
+                
+                // Create vehicles
+                createVehicles();
+                
+                // Event listeners
+                window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+                window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+                window.addEventListener('resize', onWindowResize);
+                
+                updateLoading('Complete', 100);
+                
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                    document.getElementById('startScreen').style.display = 'flex';
+                    gameInitialized = true;
+                }, 500);
+                
+                console.log('Game initialized successfully');
+                
+            } catch (error) {
+                logError('Failed to initialize game', error);
+                updateLoading('Error: ' + error.message, 100);
+                alert('Game initialization failed: ' + error.message);
+            }
+        }
+        
+        function createCity() {
+            try {
+                updateLoading('Creating City', 60);
+                
+                // Ground
+                const groundGeometry = new THREE.PlaneGeometry(CITY_SIZE, CITY_SIZE);
+                const groundMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x111111,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                scene.add(ground);
+                
+                // Grid lines
+                const gridHelper = new THREE.GridHelper(CITY_SIZE, 50, 0x00ffff, 0x003333);
+                scene.add(gridHelper);
+                
+                // Buildings
+                for (let i = 0; i < BUILDING_COUNT; i++) {
+                    const width = Math.random() * 10 + 5;
+                    const height = Math.random() * 30 + 10;
+                    const depth = Math.random() * 10 + 5;
+                    
+                    const geometry = new THREE.BoxGeometry(width, height, depth);
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: new THREE.Color().setHSL(Math.random() * 0.1 + 0.5, 0.8, 0.3),
+                        emissive: new THREE.Color().setHSL(Math.random() * 0.1 + 0.5, 0.8, 0.1)
+                    });
+                    
+                    const building = new THREE.Mesh(geometry, material);
+                    building.position.set(
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8,
+                        height / 2,
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8
+                    );
+                    building.castShadow = true;
+                    building.receiveShadow = true;
+                    
+                    // Add neon lights to buildings
+                    const lightGeometry = new THREE.BoxGeometry(width + 0.2, 0.2, depth + 0.2);
+                    const lightMaterial = new THREE.MeshBasicMaterial({ 
+                        color: new THREE.Color().setHSL(Math.random(), 1, 0.5),
+                        emissive: new THREE.Color().setHSL(Math.random(), 1, 0.5)
+                    });
+                    const neonLight = new THREE.Mesh(lightGeometry, lightMaterial);
+                    neonLight.position.copy(building.position);
+                    neonLight.position.y = height;
+                    scene.add(neonLight);
+                    
+                    buildings.push(building);
+                    scene.add(building);
+                }
+                
+                console.log(`Created ${buildings.length} buildings`);
+                
+            } catch (error) {
+                logError('Failed to create city', error);
+            }
+        }
+        
+        function createPlayer() {
+            try {
+                updateLoading('Creating Player', 75);
+                
+                // Use BoxGeometry instead of CapsuleGeometry for compatibility
+                const geometry = new THREE.BoxGeometry(1, 2, 1);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: 0x00ffff,
+                    emissive: 0x004444
+                });
+                player = new THREE.Mesh(geometry, material);
+                player.position.set(0, 1, 0);
+                player.castShadow = true;
+                scene.add(player);
+                
+                console.log('Player created successfully');
+                
+            } catch (error) {
+                logError('Failed to create player', error);
+            }
+        }
+        
+        function createNPCs() {
+            try {
+                updateLoading('Creating NPCs', 90);
+                
+                for (let i = 0; i < NPC_COUNT; i++) {
+                    // Use BoxGeometry instead of CapsuleGeometry for compatibility
+                    const geometry = new THREE.BoxGeometry(1, 2, 1);
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: new THREE.Color().setHSL(Math.random(), 0.8, 0.5),
+                        emissive: new THREE.Color().setHSL(Math.random(), 0.8, 0.2)
+                    });
+                    const npc = new THREE.Mesh(geometry, material);
+                    npc.position.set(
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8,
+                        1,
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8
+                    );
+                    npc.castShadow = true;
+                    
+                    npc.userData = {
+                        direction: new THREE.Vector3(
+                            (Math.random() - 0.5) * 2,
+                            0,
+                            (Math.random() - 0.5) * 2
+                        ).normalize(),
+                        speed: 0.05 + Math.random() * 0.05
+                    };
+                    
+                    npcs.push(npc);
+                    scene.add(npc);
+                }
+                
+                console.log(`Created ${npcs.length} NPCs`);
+                
+            } catch (error) {
+                logError('Failed to create NPCs', error);
+            }
+        }
+        
+        function createDataPackets() {
+            try {
+                for (let i = 0; i < DATA_PACKET_COUNT; i++) {
+                    const geometry = new THREE.OctahedronGeometry(1);
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: 0xff00ff,
+                        emissive: 0x440044,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const packet = new THREE.Mesh(geometry, material);
+                    packet.position.set(
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8,
+                        2,
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8
+                    );
+                    packet.castShadow = true;
+                    
+                    dataPackets.push(packet);
+                    scene.add(packet);
+                }
+                
+                console.log(`Created ${dataPackets.length} data packets`);
+                
+            } catch (error) {
+                logError('Failed to create data packets', error);
+            }
+        }
+        
+        function createVehicles() {
+            try {
+                // Create a few vehicles around the city
+                for (let i = 0; i < 5; i++) {
+                    const geometry = new THREE.BoxGeometry(3, 1.5, 6);
+                    const material = new THREE.MeshPhongMaterial({ 
+                        color: new THREE.Color().setHSL(Math.random(), 0.8, 0.3),
+                        emissive: new THREE.Color().setHSL(Math.random(), 0.8, 0.1)
+                    });
+                    const car = new THREE.Mesh(geometry, material);
+                    car.position.set(
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8,
+                        0.75,
+                        (Math.random() - 0.5) * CITY_SIZE * 0.8
+                    );
+                    car.castShadow = true;
+                    car.receiveShadow = true;
+                    
+                    // Add wheels
+                    const wheelGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.3, 8);
+                    const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x222222 });
+                    
+                    const wheelPositions = [
+                        { x: -1.2, z: 2 },
+                        { x: 1.2, z: 2 },
+                        { x: -1.2, z: -2 },
+                        { x: 1.2, z: -2 }
+                    ];
+                    
+                    wheelPositions.forEach(pos => {
+                        const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                        wheel.rotation.z = Math.PI / 2;
+                        wheel.position.set(pos.x, 0.3, pos.z);
+                        car.add(wheel);
+                    });
+                    
+                    car.userData = {
+                        isVehicle: true,
+                        speed: 0,
+                        maxSpeed: 0.5,
+                        acceleration: 0.02
+                    };
+                    
+                    scene.add(car);
+                }
+                
+                console.log('Created vehicles');
+                
+            } catch (error) {
+                logError('Failed to create vehicles', error);
+            }
+        }
+        
+        function updatePlayer(delta) {
+            try {
+                if (!player || !gameRunning) return;
+                
+                if (inVehicle && vehicle) {
+                    // Vehicle controls
+                    if (keys['w']) {
+                        vehicle.userData.speed = Math.min(vehicle.userData.speed + vehicle.userData.acceleration, vehicle.userData.maxSpeed);
+                    } else if (keys['s']) {
+                        vehicle.userData.speed = Math.max(vehicle.userData.speed - vehicle.userData.acceleration, -vehicle.userData.maxSpeed * 0.5);
+                    } else {
+                        vehicle.userData.speed *= 0.95;
+                    }
+                    
+                    if (keys['a']) {
+                        vehicle.rotation.y += 0.03;
+                    }
+                    if (keys['d']) {
+                        vehicle.rotation.y -= 0.03;
+                    }
+                    
+                    // Move vehicle
+                    vehicle.position.x += Math.sin(vehicle.rotation.y) * vehicle.userData.speed;
+                    vehicle.position.z += Math.cos(vehicle.rotation.y) * vehicle.userData.speed;
+                    
+                    // Update player position to match vehicle
+                    player.position.copy(vehicle.position);
+                    player.position.y += 1;
+                } else {
+                    // Walking controls
+                    const speed = keys['shift'] ? 0.3 : 0.15;
+                    let moved = false;
+                    
+                    if (keys['w']) {
+                        player.position.z -= speed;
+                        moved = true;
+                    }
+                    if (keys['s']) {
+                        player.position.z += speed;
+                        moved = true;
+                    }
+                    if (keys['a']) {
+                        player.position.x -= speed;
+                        moved = true;
+                    }
+                    if (keys['d']) {
+                        player.position.x += speed;
+                        moved = true;
+                    }
+                    
+                    // Animate player
+                    if (moved) {
+                        player.rotation.y = Math.atan2(
+                            player.position.x - (player.position.x + (keys['a'] ? -1 : keys['d'] ? 1 : 0)),
+                            player.position.z - (player.position.z + (keys['w'] ? -1 : keys['s'] ? 1 : 0))
+                        );
+                    }
+                }
+                
+                // Keep player in bounds
+                player.position.x = Math.max(-CITY_SIZE/2, Math.min(CITY_SIZE/2, player.position.x));
+                player.position.z = Math.max(-CITY_SIZE/2, Math.min(CITY_SIZE/2, player.position.z));
+                
+                // Enter/exit vehicle
+                if (keys['e']) {
+                    keys['e'] = false; // Prevent repeated triggers
+                    
+                    if (!inVehicle) {
+                        // Check for nearby vehicles
+                        scene.traverse((object) => {
+                            if (object.userData.isVehicle && !vehicle) {
+                                const distance = player.position.distanceTo(object.position);
+                                if (distance < 3) {
+                                    vehicle = object;
+                                    inVehicle = true;
+                                    player.visible = false;
+                                    console.log('Entered vehicle');
+                                }
+                            }
+                        });
+                    } else {
+                        // Exit vehicle
+                        inVehicle = false;
+                        player.visible = true;
+                        player.position.copy(vehicle.position);
+                        player.position.y = 1;
+                        vehicle = null;
+                        console.log('Exited vehicle');
+                    }
+                }
+                
+                // Shooting
+                if (keys[' '] && !inVehicle) {
+                    keys[' '] = false; // Prevent rapid fire
+                    
+                    const bulletGeometry = new THREE.SphereGeometry(0.1);
+                    const bulletMaterial = new THREE.MeshBasicMaterial({ 
+                        color: 0xffff00,
+                        emissive: 0xffff00
+                    });
+                    const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+                    bullet.position.copy(player.position);
+                    bullet.position.y += 1;
+                    
+                    const direction = new THREE.Vector3(
+                        Math.sin(player.rotation.y),
+                        0,
+                        Math.cos(player.rotation.y)
+                    );
+                    bullet.userData = {
+                        velocity: direction.multiplyScalar(1),
+                        life: 100
+                    };
+                    
+                    bullets.push(bullet);
+                    scene.add(bullet);
+                }
+                
+            } catch (error) {
+                logError('Failed to update player', error);
+            }
+        }
+        
+        function updateNPCs(delta) {
+            try {
+                npcs.forEach(npc => {
+                    // Move NPC
+                    npc.position.x += npc.userData.direction.x * npc.userData.speed;
+                    npc.position.z += npc.userData.direction.z * npc.userData.speed;
+                    
+                    // Random direction change
+                    if (Math.random() < 0.01) {
+                        npc.userData.direction = new THREE.Vector3(
+                            (Math.random() - 0.5) * 2,
+                            0,
+                            (Math.random() - 0.5) * 2
+                        ).normalize();
+                    }
+                    
+                    // Keep in bounds
+                    if (Math.abs(npc.position.x) > CITY_SIZE/2) {
+                        npc.userData.direction.x *= -1;
+                    }
+                    if (Math.abs(npc.position.z) > CITY_SIZE/2) {
+                        npc.userData.direction.z *= -1;
+                    }
+                    
+                    // Animate
+                    npc.rotation.y = Math.atan2(npc.userData.direction.x, npc.userData.direction.z);
+                });
+                
+            } catch (error) {
+                logError('Failed to update NPCs', error);
+            }
+        }
+        
+        function updateDataPackets(delta) {
+            try {
+                dataPackets = dataPackets.filter(packet => {
+                    // Animate packet
+                    packet.rotation.y += 0.02;
+                    packet.rotation.x += 0.01;
+                    packet.position.y = 2 + Math.sin(Date.now() * 0.002) * 0.5;
+                    
+                    // Check collection
+                    const distance = player.position.distanceTo(packet.position);
+                    if (distance < 2) {
+                        scene.remove(packet);
+                        missionProgress++;
+                        money += 100;
+                        updateUI();
+                        
+                        if (missionProgress >= DATA_PACKET_COUNT) {
+                            completeMission();
+                        }
+                        
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+            } catch (error) {
+                logError('Failed to update data packets', error);
+            }
+        }
+        
+        function updateBullets(delta) {
+            try {
+                bullets = bullets.filter(bullet => {
+                    bullet.position.add(bullet.userData.velocity);
+                    bullet.userData.life--;
+                    
+                    // Check collisions with NPCs
+                    npcs.forEach(npc => {
+                        const distance = bullet.position.distanceTo(npc.position);
+                        if (distance < 1) {
+                            // Create explosion effect
+                            createExplosion(npc.position);
+                            
+                            // Remove NPC
+                            scene.remove(npc);
+                            npcs = npcs.filter(n => n !== npc);
+                            
+                            // Remove bullet
+                            scene.remove(bullet);
+                            money += 50;
+                            updateUI();
+                            
+                            // Increase wanted level
+                            if (wantedLevel < 5) {
+                                wantedLevel++;
+                                updateWantedLevel();
+                            }
+                        }
+                    });
+                    
+                    if (bullet.userData.life <= 0) {
+                        scene.remove(bullet);
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+            } catch (error) {
+                logError('Failed to update bullets', error);
+            }
+        }
+        
+        function createExplosion(position) {
+            try {
+                for (let i = 0; i < 20; i++) {
+                    const geometry = new THREE.SphereGeometry(0.2);
+                    const material = new THREE.MeshBasicMaterial({ 
+                        color: new THREE.Color().setHSL(Math.random() * 0.1, 1, 0.5),
+                        transparent: true,
+                        opacity: 1
+                    });
+                    const particle = new THREE.Mesh(geometry, material);
+                    particle.position.copy(position);
+                    
+                    particle.userData = {
+                        velocity: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.5,
+                            Math.random() * 0.5,
+                            (Math.random() - 0.5) * 0.5
+                        ),
+                        life: 30
+                    };
+                    
+                    particles.push(particle);
+                    scene.add(particle);
+                }
+                
+            } catch (error) {
+                logError('Failed to create explosion', error);
+            }
+        }
+        
+        function updateParticles(delta) {
+            try {
+                particles = particles.filter(particle => {
+                    particle.position.add(particle.userData.velocity);
+                    particle.userData.velocity.y -= 0.02;
+                    particle.userData.life--;
+                    
+                    particle.material.opacity = particle.userData.life / 30;
+                    
+                    if (particle.userData.life <= 0) {
+                        scene.remove(particle);
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+            } catch (error) {
+                logError('Failed to update particles', error);
+            }
+        }
+        
+        function updateCamera() {
+            try {
+                if (inVehicle && vehicle) {
+                    // Third-person vehicle camera
+                    const offset = new THREE.Vector3(
+                        Math.sin(vehicle.rotation.y) * 15,
+                        10,
+                        Math.cos(vehicle.rotation.y) * 15
+                    );
+                    camera.position.lerp(vehicle.position.clone().add(offset), 0.1);
+                    camera.lookAt(vehicle.position);
+                } else if (player) {
+                    // Third-person player camera
+                    const offset = new THREE.Vector3(
+                        Math.sin(player.rotation.y) * 10,
+                        8,
+                        Math.cos(player.rotation.y) * 10
+                    );
+                    camera.position.lerp(player.position.clone().add(offset), 0.1);
+                    camera.lookAt(player.position);
+                }
+                
+            } catch (error) {
+                logError('Failed to update camera', error);
+            }
+        }
+        
+        function updateMinimap() {
+            try {
+                const minimapCanvas = document.getElementById('minimap');
+                const ctx = minimapCanvas.getContext('2d');
+                minimapCanvas.width = 200;
+                minimapCanvas.height = 200;
+                
+                // Clear minimap
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(0, 0, 200, 200);
+                
+                // Draw buildings
+                ctx.fillStyle = '#333';
+                buildings.forEach(building => {
+                    const x = (building.position.x + CITY_SIZE/2) / CITY_SIZE * 200;
+                    const z = (building.position.z + CITY_SIZE/2) / CITY_SIZE * 200;
+                    const size = 5;
+                    ctx.fillRect(x - size/2, z - size/2, size, size);
+                });
+                
+                // Draw data packets
+                ctx.fillStyle = '#ff00ff';
+                dataPackets.forEach(packet => {
+                    const x = (packet.position.x + CITY_SIZE/2) / CITY_SIZE * 200;
+                    const z = (packet.position.z + CITY_SIZE/2) / CITY_SIZE * 200;
+                    ctx.beginPath();
+                    ctx.arc(x, z, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                // Draw player
+                if (player) {
+                    ctx.fillStyle = '#00ffff';
+                    const playerX = (player.position.x + CITY_SIZE/2) / CITY_SIZE * 200;
+                    const playerZ = (player.position.z + CITY_SIZE/2) / CITY_SIZE * 200;
+                    ctx.beginPath();
+                    ctx.arc(playerX, playerZ, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+            } catch (error) {
+                logError('Failed to update minimap', error);
+            }
+        }
+        
+        function updateUI() {
+            try {
+                document.getElementById('money').textContent = `¤ ${money}`;
+                document.getElementById('healthFill').style.width = `${health}%`;
+                
+                const missionText = document.querySelector('#mission p');
+                if (missionText) {
+                    missionText.textContent = `Progress: ${missionProgress}/${DATA_PACKET_COUNT} data packets collected`;
+                }
+                
+            } catch (error) {
+                logError('Failed to update UI', error);
+            }
+        }
+        
+        function updateWantedLevel() {
+            try {
+                const stars = document.querySelectorAll('.star');
+                stars.forEach((star, index) => {
+                    if (index < wantedLevel) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+                
+            } catch (error) {
+                logError('Failed to update wanted level', error);
+            }
+        }
+        
+        function completeMission() {
+            try {
+                money += 1000;
+                updateUI();
+                
+                // Reset mission
+                missionProgress = 0;
+                createDataPackets();
+                
+                // Show completion message
+                const missionDiv = document.getElementById('mission');
+                if (missionDiv) {
+                    missionDiv.innerHTML = '<h3>Mission Complete!</h3><p>Bonus: ¤1000<br>New mission: Collect more data packets!</p>';
+                    setTimeout(() => {
+                        missionDiv.innerHTML = '<h3>Mission: Data Heist</h3><p>Collect 5 data packets from the city. Avoid the cyber-police!</p>';
+                    }, 3000);
+                }
+                
+                console.log('Mission completed');
+                
+            } catch (error) {
+                logError('Failed to complete mission', error);
+            }
+        }
+        
+        function animate() {
+            try {
+                if (!gameRunning) {
+                    requestAnimationFrame(animate);
+                    return;
+                }
+                
+                requestAnimationFrame(animate);
+                
+                const delta = clock.getDelta();
+                
+                updatePlayer(delta);
+                updateNPCs(delta);
+                updateDataPackets(delta);
+                updateBullets(delta);
+                updateParticles(delta);
+                updateCamera();
+                updateMinimap();
+                updateFPS();
+                
+                if (debugMode) {
+                    updateDebugInfo();
+                }
+                
+                if (renderer && scene && camera) {
+                    renderer.render(scene, camera);
+                }
+                
+            } catch (error) {
+                logError('Animation loop error', error);
+            }
+        }
+        
+        function onWindowResize() {
+            try {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                
+            } catch (error) {
+                logError('Window resize error', error);
+            }
+        }
+        
+        // Start game
+        document.getElementById('startBtn').addEventListener('click', () => {
+            try {
+                if (!gameInitialized) {
+                    logError('Game not initialized yet');
+                    return;
+                }
+                
+                document.getElementById('startScreen').style.display = 'none';
+                gameRunning = true;
+                
+                // Start animation loop
+                animate();
+                
+            } catch (error) {
+                logError('Failed to start game', error);
+            }
+        });
+        
+        // Debug toggle
+        document.getElementById('debugToggle').addEventListener('click', () => {
+            debugMode = !debugMode;
+            document.getElementById('debugPanel').style.display = debugMode ? 'block' : 'none';
+            console.log(`Debug mode: ${debugMode}`);
+        });
+        
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            logError('Global error', event.error);
+        });
+        
+        // Initialize game when page loads
+        window.addEventListener('load', () => {
+            console.log('Page loaded, initializing game...');
+            init();
+        });
+        
+        console.log('Cyberpunk City game loaded');
+    </script>
+</body>
+</html>
