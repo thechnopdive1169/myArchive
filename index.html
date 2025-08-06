@@ -6,135 +6,189 @@
   <title>TechnopDive Projects</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Roboto&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #0f2027;
+      --bg-alt: #203a43;
+      --card: rgba(255, 255, 255, 0.05);
+      --text: #fff;
+      --link: #00ffff;
+    }
+
+    [data-theme="light"] {
+      --bg: #f0f0f0;
+      --bg-alt: #fff;
+      --card: #ffffff;
+      --text: #111;
+      --link: #007acc;
+    }
+
     * {
       box-sizing: border-box;
     }
 
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      background-size: 400% 400%;
-      animation: gradientBG 15s ease infinite;
-      color: #fff;
-    }
-
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
     }
 
     header {
       padding: 2rem;
       text-align: center;
-      backdrop-filter: blur(8px);
-      background-color: rgba(0, 0, 0, 0.4);
-      border-bottom: 2px solid rgba(255,255,255,0.1);
+      background-color: var(--bg-alt);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      position: relative;
     }
 
     header h1 {
       font-family: 'Orbitron', sans-serif;
       font-size: 2.5rem;
-      margin-bottom: 0.5rem;
+      margin: 0;
     }
 
     header p {
-      color: #ccc;
+      color: var(--text);
+      opacity: 0.7;
       font-size: 1.1rem;
+    }
+
+    .toggle {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: none;
+      border: 2px solid var(--text);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 8px;
     }
 
     .projects {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.5rem;
       padding: 2rem;
       max-width: 1200px;
-      margin: 0 auto;
+      margin: auto;
     }
 
     .project-card {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--card);
       border: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
       border-radius: 12px;
-      padding: 1.5rem;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      padding: 1rem;
+      transition: 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .project-card:hover {
       transform: scale(1.03);
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    .project-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .project-card h3 {
+      margin: 0.2rem 0;
+    }
+
+    .project-card p {
+      font-size: 0.9rem;
+      opacity: 0.8;
+      text-align: center;
     }
 
     .project-card a {
-      color: #00ffff;
+      color: var(--link);
       text-decoration: none;
-      font-size: 1.2rem;
       font-weight: bold;
-    }
-
-    .project-card a:hover {
-      text-decoration: underline;
+      margin-top: 0.5rem;
     }
 
     footer {
       text-align: center;
       padding: 2rem;
       font-size: 0.9rem;
-      color: #aaa;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      margin-top: 3rem;
-    }
-
-    footer a {
-      color: #00bcd4;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    @media screen and (max-width: 500px) {
-      header h1 {
-        font-size: 1.8rem;
-      }
-
-      header p {
-        font-size: 1rem;
-      }
+      opacity: 0.6;
     }
   </style>
 </head>
-<body>
+<body data-theme="dark">
   <header>
     <h1>TechnopDive</h1>
-    <p>Game Developer & HTML5 Experiments</p>
+    <p>Game Developer & HTML5 Projects</p>
+    <button class="toggle" onclick="toggleTheme()">🌙 / ☀️</button>
   </header>
 
-  <section class="projects">
-    <div class="project-card">
-      <a href="3D Cube Collector .html">3D Cube Collector</a>
-    </div>
-    <div class="project-card">
-      <a href="3D Snake Battle Royale .html">3D Snake Battle Royale</a>
-    </div>
-    <div class="project-card">
-      <a href="CYBERPUNK CITY .html">CYBERPUNK CITY</a>
-    </div>
-    <div class="project-card">
-      <a href="Dominion of Otherworldly Monsters .html">Dominion of Otherworldly Monsters</a>
-    </div>
-    <div class="project-card">
-      <a href="POLICE PURSUIT .html">POLICE PURSUIT</a>
-    </div>
+  <section class="projects" id="projects">
+    <p>Loading projects...</p>
   </section>
 
   <footer>
-    &copy; 2025 TechnopDive | 
-    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repository</a>
+    &copy; 2025 TechnopDive |
+    <a href="https://github.com/thechnopdive1169/myArchive" target="_blank">GitHub Repo</a>
   </footer>
+
+  <script>
+    const projectDescriptions = {
+      "3D Cube Collector .html": "Collect spinning cubes in a 3D space using mouse controls.",
+      "3D Snake Battle Royale .html": "Multiplayer snake survival with battle royale mechanics.",
+      "CYBERPUNK CITY .html": "Walk through a glowing futuristic cyber city in first person.",
+      "Dominion of Otherworldly Monsters .html": "Defend Earth from cosmic creatures in a fast-paced shooter.",
+      "POLICE PURSUIT .html": "Evade the police in a retro-style chase simulator."
+    };
+
+    const projectsContainer = document.getElementById('projects');
+
+    fetch('https://api.github.com/repos/thechnopdive1169/myArchive/contents/')
+      .then(res => res.json())
+      .then(data => {
+        const htmlFiles = data.filter(file => file.name.endsWith('.html'));
+
+        projectsContainer.innerHTML = ''; // Clear loading
+
+        htmlFiles.forEach(file => {
+          const name = file.name;
+          const shortName = name.replace('.html', '').trim();
+          const desc = projectDescriptions[name] || 'No description yet.';
+          const thumb = `thumbnails/${shortName}.jpg`;
+
+          const card = document.createElement('div');
+          card.className = 'project-card';
+
+          card.innerHTML = `
+            <img src="${thumb}" alt="${shortName}" onerror="this.src='https://via.placeholder.com/400x160?text=${encodeURIComponent(shortName)}'">
+            <h3>${shortName}</h3>
+            <p>${desc}</p>
+            <a href="${name}">Open Project</a>
+          `;
+
+          projectsContainer.appendChild(card);
+        });
+      })
+      .catch(err => {
+        projectsContainer.innerHTML = '<p>Error loading projects.</p>';
+        console.error(err);
+      });
+
+    function toggleTheme() {
+      const body = document.body;
+      const current = body.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', next);
+    }
+  </script>
 </body>
 </html>
