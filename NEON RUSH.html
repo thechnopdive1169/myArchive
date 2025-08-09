@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Rush - Cyber Racing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a0a2e, #16213e, #0f3460);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        .game-container {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            width: 750px;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            width: 100%;
+        }
+
+        .stat {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .energy-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 0, 255, 0.5);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff00ff, #ff00aa);
+            width: 100%;
+            transition: width 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+        }
+
+        .nitro-meter {
+            width: 100%;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .nitro-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #00aa00);
+            width: 100%;
+            transition: width 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+        }
+
+        .game-content {
+            display: flex;
+            width: 100%;
+        }
+
+        #gameCanvas {
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 10px;
+            display: block;
+            background: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        .game-controls {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin-left: 20px;
+            height: 600px;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #00ffff, #0099cc);
+            border: none;
+            color: #000;
+            font-weight: bold;
+            padding: 15px 25px;
+            margin: 5px 0;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 255, 0.4);
+            font-family: 'Orbitron', monospace;
+            width: 150px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.6);
+            background: linear-gradient(45deg, #00ffff, #00aadd);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .instructions {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .instructions h3 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .instructions ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            color: #fff;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+        }
+
+        .instructions li:before {
+            content: "▶";
+            color: #ff00ff;
+            margin-right: 8px;
+        }
+
+        .speed-control {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            padding: 10px;
+            margin-top: 15px;
+            text-align: center;
+            color: #00ffff;
+            font-size: 0.9em;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid rgba(255, 0, 255, 0.5);
+            display: none;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+        }
+
+        .game-over h2 {
+            color: #ff00ff;
+            font-size: 2em;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .final-score {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .drone-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2em;
+            animation: pulse 1s infinite alternate;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0% { color: #ff0000; opacity: 0.7; }
+            100% { color: #ff0000; opacity: 1; }
+        }
+
+        .nitro-indicator {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            font-size: 1.2em;
+            color: #00ff00;
+            display: none;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .readme-changelog {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .info-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            color: #00ffff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .info-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.9);
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 800px;
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            color: #00ffff;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .close-btn {
+            font-size: 2em;
+            color: #ff00ff;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #ff66ff;
+        }
+
+        .modal-body {
+            line-height: 1.6;
+        }
+
+        .modal-body h3 {
+            color: #ff00ff;
+            margin: 20px 0 10px;
+            font-size: 1.3em;
+        }
+
+        .modal-body p, .modal-body li {
+            margin-bottom: 10px;
+        }
+
+        .modal-body ul {
+            padding-left: 20px;
+        }
+
+        .changelog-entry {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .changelog-date {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .changelog-list {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+
+        .changelog-list li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+        }
+
+        .changelog-list li:before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #ff00ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">NEON RUSH</h1>
+            <div class="drone-indicator" id="droneIndicator">🔴</div>
+            <div class="nitro-indicator" id="nitroIndicator">NITRO!</div>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat">Score: <span id="score">0</span></div>
+            <div class="stat">Speed: <span id="speed">1</span></div>
+            <div class="stat">Best: <span id="bestScore">0</span></div>
+        </div>
+
+        <div class="energy-meter">
+            <div class="energy-fill" id="energyFill"></div>
+        </div>
+
+        <div class="nitro-meter">
+            <div class="nitro-fill" id="nitroFill"></div>
+        </div>
+
+        <div class="game-content">
+            <canvas id="gameCanvas" width="500" height="600"></canvas>
+            
+            <div class="game-controls">
+                <div>
+                    <button class="control-btn" onclick="startGame()">START</button>
+                    <button class="control-btn" onclick="pauseGame()">PAUSE</button>
+                    <button class="control-btn" onclick="resetGame()">RESET</button>
+                </div>
+                
+                <div class="instructions">
+                    <h3>CONTROLS</h3>
+                    <ul>
+                        <li>← → or A/D to move</li>
+                        <li>SPACE for nitro</li>
+                        <li>W/S for speed control</li>
+                        <li>Collect energy orbs</li>
+                        <li>Avoid drones & barriers</li>
+                    </ul>
+                </div>
+                
+                <div class="speed-control">
+                    W: Speed Up | S: Slow Down
+                </div>
+            </div>
+        </div>
+
+        <div class="readme-changelog">
+            <div class="info-btn" onclick="showReadme()">README</div>
+            <div class="info-btn" onclick="showChangelog()">CHANGELOG</div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverTitle">💥 SYSTEM FAILURE!</h2>
+            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+            <button class="control-btn" onclick="restartGame()">RESTART</button>
+        </div>
+    </div>
+
+    <!-- README Modal -->
+    <div id="readmeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">NEON RUSH - README</h2>
+                <span class="close-btn" onclick="closeModal('readmeModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>🌌 ABOUT</h3>
+                <p>Neon Rush is a cyberpunk racing game set in a dystopian future where you navigate through neon-lit cityscapes, avoiding surveillance drones and collecting energy orbs to power your vehicle.</p>
+                
+                <h3>🎮 GAMEPLAY</h3>
+                <p>Race through the cyberpunk highway while avoiding obstacles and surveillance drones. Collect energy orbs to maintain your vehicle's energy and use nitro boosts for speed bursts. The longer you survive, the higher your score!</p>
+                
+                <h3>🕹️ CONTROLS</h3>
+                <ul>
+                    <li><strong>Arrow Keys (← →) or A/D:</strong> Move left and right</li>
+                    <li><strong>SPACE:</strong> Activate nitro boost</li>
+                    <li><strong>W/S:</strong> Increase/decrease base speed</li>
+                    <li><strong>Start/Pause/Reset:</strong> Control game state</li>
+                </ul>
+                
+                <h3>🎯 OBJECTIVES</h3>
+                <ul>
+                    <li>Avoid colliding with drones and obstacles</li>
+                    <li>Collect blue energy orbs to maintain energy levels</li>
+                    <li>Use nitro strategically to escape difficult situations</li>
+                    <li>Achieve the highest score possible</li>
+                </ul>
+                
+                <h3>⚡ POWER-UPS</h3>
+                <ul>
+                    <li><strong>Energy Orbs:</strong> Blue orbs that restore your vehicle's energy</li>
+                    <li><strong>Nitro Boost:</strong> Limited supply for speed bursts</li>
+                </ul>
+                
+                <h3>🚨 OBSTACLES</h3>
+                <ul>
+                    <li><strong>Surveillance Drones:</strong> Red drones that track your movement</li>
+                    <li><strong>Cyber Barriers:</strong> Static obstacles in your path</li>
+                    <li><strong>Speed Traps:</strong> Areas that slow down your vehicle</li>
+                </ul>
+                
+                <h3>💡 TIPS</h3>
+                <ul>
+                    <li>Balance speed and control - faster isn't always better</li>
+                    <li>Save nitro for emergency situations</li>
+                    <li>Watch for patterns in drone movements</li>
+                    <li>Collect energy orbs whenever possible</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Changelog Modal -->
+    <div id="changelogModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">NEON RUSH - CHANGELOG</h2>
+                <span class="close-btn" onclick="closeModal('changelogModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="changelog-entry">
+                    <div class="changelog-date">Version 1.2 - Current Release</div>
+                    <ul class="changelog-list">
+                        <li>Fixed W/S speed control location and visibility</li>
+                        <li>Moved speed control text to right panel with proper styling</li>
+                        <li>Improved UI organization and layout</li>
+                    </ul>
+                </div>
+                
+                <div class="changelog-entry">
+                    <div class="changelog-date">Version 1.1 - Previous Release</div>
+                    <ul class="changelog-list">
+                        <li>Redesigned cyber bike with more detailed futuristic appearance</li>
+                        <li>Balanced energy orb spawn rate for better gameplay</li>
+                        <li>Redesigned control buttons with improved styling</li>
+                        <li>Moved instructions to right panel for better visibility</li>
+                        <li>Improved UI layout and organization</li>
+                        <li>Enhanced visual effects for all game elements</li>
+                    </ul>
+                </div>
+                
+                <div class="changelog-entry">
+                    <div class="changelog-date">Version 1.0 - Major Release</div>
+                    <ul class="changelog-list">
+                        <li>Complete game redesign with cyberpunk theme</li>
+                        <li>Replaced police with surveillance drones</li>
+                        <li>Added energy collection system</li>
+                        <li>Implemented nitro boost mechanic</li>
+                        <li>Expanded to 5 lanes for more strategic gameplay</li>
+                        <li>Added cyber barriers and speed traps</li>
+                        <li>Created README and changelog system</li>
+                        <li>Enhanced visual effects with neon aesthetics</li>
+                        <li>Added cyberpunk UI elements and styling</li>
+                        <li>Implemented modal system for game information</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game variables
+        let gameRunning = false;
+        let gamePaused = false;
+        let score = 0;
+        let baseGameSpeed = 2;
+        let currentGameSpeed = 2;
+        let bestScore = localStorage.getItem('bestScore') || 0;
+        let energyLevel = 100;
+        let nitroLevel = 100;
+        let isUsingNitro = false;
+        let lastObstacleSpawnTime = 0;
+        let lastDroneSpawnTime = 0;
+        let lastEnergySpawnTime = 0;
+
+        // Road configuration
+        const roadLeft = 30;
+        const roadRight = 470;
+        const laneWidth = (roadRight - roadLeft) / 5;
+        const laneCenters = [];
+        for (let i = 0; i < 5; i++) {
+            laneCenters.push(roadLeft + laneWidth * i + laneWidth/2);
+        }
+
+        // Update best score display
+        document.getElementById('bestScore').textContent = bestScore;
+
+        // Player vehicle (cyber bike)
+        const player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height - 100,
+            width: 30,
+            height: 80,
+            speed: 6,
+            nitroSpeed: 12,
+            color: '#00ffff'
+        };
+
+        // Game objects arrays
+        let obstacles = [];
+        let drones = [];
+        let energyOrbs = [];
+        let roadLines = [];
+
+        // Initialize road lines
+        for (let i = 0; i < 10; i++) {
+            roadLines.push({
+                x: roadLeft + laneWidth,
+                y: i * 80,
+                width: 5,
+                height: 40,
+                color: '#00ffff'
+            });
+            roadLines.push({
+                x: roadLeft + laneWidth * 2,
+                y: i * 80,
+                width: 5,
+                height: 40,
+                color: '#00ffff'
+            });
+            roadLines.push({
+                x: roadLeft + laneWidth * 3,
+                y: i * 80,
+                width: 5,
+                height: 40,
+                color: '#00ffff'
+            });
+            roadLines.push({
+                x: roadLeft + laneWidth * 4,
+                y: i * 80,
+                width: 5,
+                height: 40,
+                color: '#00ffff'
+            });
+        }
+
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Modal functions
+        function showReadme() {
+            document.getElementById('readmeModal').style.display = 'block';
+        }
+
+        function showChangelog() {
+            document.getElementById('changelogModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Draw functions
+        function drawCyberBike(x, y, width, height, color) {
+            // Bike body with neon glow
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 15;
+            
+            // Main frame
+            ctx.fillStyle = color;
+            ctx.fillRect(x + width/4, y + height * 0.3, width/2, height * 0.4);
+            
+            // Front fairing
+            ctx.beginPath();
+            ctx.moveTo(x + width/4, y + height * 0.3);
+            ctx.lineTo(x + width/3, y);
+            ctx.lineTo(x + 2*width/3, y);
+            ctx.lineTo(x + 3*width/4, y + height * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Seat
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x + width/3, y + height * 0.2, width/3, height * 0.2);
+            
+            // Rear section
+            ctx.fillStyle = color;
+            ctx.fillRect(x + width/4, y + height * 0.7, width/2, height * 0.2);
+            
+            // Neon wheels with detail
+            ctx.shadowColor = '#ff00ff';
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.7, width/3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.9, width/3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Wheel rims
+            ctx.shadowColor = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.7, width/4, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.9, width/4, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Handlebars
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x + width/3, y + height * 0.1);
+            ctx.lineTo(x + width/3, y - 5);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + 2*width/3, y + height * 0.1);
+            ctx.lineTo(x + 2*width/3, y - 5);
+            ctx.stroke();
+            
+            // Handlebar connectors
+            ctx.beginPath();
+            ctx.moveTo(x + width/3, y - 5);
+            ctx.lineTo(x + 2*width/3, y - 5);
+            ctx.stroke();
+            
+            // Engine details
+            ctx.fillStyle = '#444';
+            ctx.fillRect(x + width/3, y + height * 0.4, width/3, height * 0.15);
+            
+            // Exhaust pipes
+            ctx.fillStyle = '#666';
+            ctx.fillRect(x + width/4 - 3, y + height * 0.8, 6, height * 0.15);
+            ctx.fillRect(x + 3*width/4 - 3, y + height * 0.8, 6, height * 0.15);
+            
+            // Nitro effect
+            if (isUsingNitro) {
+                ctx.shadowColor = '#00ff00';
+                const gradient = ctx.createLinearGradient(x + width/4 - 5, y + height, x + 3*width/4 + 5, y + height + 30);
+                gradient.addColorStop(0, 'rgba(0, 255, 0, 0.8)');
+                gradient.addColorStop(1, 'rgba(0, 255, 0, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x + width/4 - 5, y + height, width/2 + 10, 30);
+                
+                // Nitro flames
+                ctx.fillStyle = '#00ff00';
+                ctx.beginPath();
+                ctx.moveTo(x + width/3, y + height);
+                ctx.lineTo(x + width/2.5, y + height + 15);
+                ctx.lineTo(x + width/2, y + height + 10);
+                ctx.lineTo(x + width/1.7, y + height + 15);
+                ctx.lineTo(x + 2*width/3, y + height);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function drawObstacle(x, y, width, height) {
+            // Cyber barrier with neon glow
+            ctx.shadowColor = '#ff00ff';
+            ctx.shadowBlur = 10;
+            
+            // Main barrier
+            ctx.fillStyle = '#444';
+            ctx.fillRect(x, y, width, height);
+            
+            // Neon details
+            ctx.fillStyle = '#ff00ff';
+            ctx.fillRect(x, y, width, 5);
+            ctx.fillRect(x, y + height - 5, width, 5);
+            ctx.fillRect(x, y, 5, height);
+            ctx.fillRect(x + width - 5, y, 5, height);
+            
+            // Grid pattern
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 1;
+            for (let i = 10; i < width; i += 10) {
+                ctx.beginPath();
+                ctx.moveTo(x + i, y);
+                ctx.lineTo(x + i, y + height);
+                ctx.stroke();
+            }
+            for (let i = 10; i < height; i += 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, y + i);
+                ctx.lineTo(x + width, y + i);
+                ctx.stroke();
+            }
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function drawDrone(x, y, width, height) {
+            // Drone with red glow
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 15;
+            
+            // Main body
+            ctx.fillStyle = '#333';
+            ctx.fillRect(x + width/4, y, width/2, height * 0.4);
+            
+            // Wings
+            ctx.fillStyle = '#555';
+            ctx.fillRect(x, y + height * 0.2, width, height * 0.2);
+            
+            // Red light
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(x + width/2, y + height * 0.3, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Propellers
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x + width/4, y + height * 0.3, 8, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(x + 3*width/4, y + height * 0.3, 8, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function drawEnergyOrb(x, y, radius) {
+            // Energy orb with blue glow
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 20;
+            
+            // Outer glow
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 2);
+            gradient.addColorStop(0, 'rgba(0, 255, 255, 0.8)');
+            gradient.addColorStop(1, 'rgba(0, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, radius * 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner orb
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.arc(x - radius/3, y - radius/3, radius/3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function drawRoad() {
+            // Road background
+            ctx.fillStyle = '#111';
+            ctx.fillRect(roadLeft, 0, roadRight - roadLeft, canvas.height);
+            
+            // Road edges with neon glow
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 10;
+            ctx.fillStyle = '#00ffff';
+            ctx.fillRect(roadLeft - 5, 0, 5, canvas.height);
+            ctx.fillRect(roadRight, 0, 5, canvas.height);
+            
+            // Shoulder areas
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#0a0a2e';
+            ctx.fillRect(0, 0, roadLeft - 5, canvas.height);
+            ctx.fillRect(roadRight + 5, 0, canvas.width - roadRight - 5, canvas.height);
+            
+            // Lane lines
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 5;
+            roadLines.forEach(line => {
+                ctx.fillStyle = line.color;
+                ctx.fillRect(line.x, line.y, line.width, line.height);
+            });
+            
+            // Reset shadow
+            ctx.shadowBlur = 0;
+        }
+
+        function updateRoadLines() {
+            roadLines.forEach(line => {
+                line.y += currentGameSpeed;
+                if (line.y > canvas.height) {
+                    line.y = -40;
+                }
+            });
+        }
+
+        function createObstacle() {
+            const currentTime = Date.now();
+            if (currentTime - lastObstacleSpawnTime < 3000) return; // 3 seconds cooldown
+            
+            // Random lane
+            const laneIndex = Math.floor(Math.random() * 5);
+            const x = laneCenters[laneIndex] - 25; // Center obstacle in lane
+            
+            obstacles.push({
+                x: x,
+                y: -80,
+                width: 50,
+                height: 80
+            });
+            
+            lastObstacleSpawnTime = currentTime;
+        }
+
+        function createDrone() {
+            const currentTime = Date.now();
+            if (currentTime - lastDroneSpawnTime < 4000) return; // 4 seconds cooldown
+            
+            // Random lane
+            const laneIndex = Math.floor(Math.random() * 5);
+            const x = laneCenters[laneIndex] - 25; // Center drone in lane
+            
+            drones.push({
+                x: x,
+                y: -80,
+                width: 50,
+                height: 50,
+                speed: currentGameSpeed + 1.5,
+                targetX: x,
+                oscillation: 0
+            });
+            
+            lastDroneSpawnTime = currentTime;
+        }
+
+        function createEnergyOrb() {
+            const currentTime = Date.now();
+            // Reduced cooldown from 5 seconds to 2.5 seconds for better balance
+            if (currentTime - lastEnergySpawnTime < 2500) return; 
+            
+            // Random lane
+            const laneIndex = Math.floor(Math.random() * 5);
+            const x = laneCenters[laneIndex]; // Center orb in lane
+            
+            energyOrbs.push({
+                x: x,
+                y: -30,
+                radius: 15,
+                collected: false
+            });
+            
+            lastEnergySpawnTime = currentTime;
+        }
+
+        function updateObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += currentGameSpeed;
+                
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                    score += 10;
+                }
+            });
+            
+            // Random chance to create obstacle
+            if (Math.random() < 0.02) {
+                createObstacle();
+            }
+        }
+
+        function updateDrones() {
+            drones.forEach((drone, index) => {
+                // Oscillating movement
+                drone.oscillation += 0.05;
+                drone.x = drone.targetX + Math.sin(drone.oscillation) * 20;
+                
+                drone.y += drone.speed;
+                
+                if (drone.y > canvas.height) {
+                    drones.splice(index, 1);
+                    score += 15;
+                }
+            });
+            
+            // Random chance to create drone
+            if (Math.random() < 0.01) {
+                createDrone();
+            }
+        }
+
+        function updateEnergyOrbs() {
+            energyOrbs.forEach((orb, index) => {
+                if (!orb.collected) {
+                    orb.y += currentGameSpeed * 0.7; // Orbs move slower
+                    
+                    // Check collection
+                    const dx = player.x + player.width/2 - orb.x;
+                    const dy = player.y + player.height/2 - orb.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < player.width/2 + orb.radius) {
+                        orb.collected = true;
+                        energyLevel = Math.min(100, energyLevel + 25); // Increased from 20 to 25
+                        score += 25;
+                    }
+                }
+                
+                // Remove if off screen or collected
+                if (orb.y > canvas.height + orb.radius || orb.collected) {
+                    energyOrbs.splice(index, 1);
+                }
+            });
+            
+            // Increased chance to create energy orb for better balance
+            if (Math.random() < 0.015) { // Increased from 0.008 to 0.015
+                createEnergyOrb();
+            }
+        }
+
+        function updateNitro() {
+            if (keys[' '] && nitroLevel > 0) {
+                isUsingNitro = true;
+                nitroLevel -= 2;
+                currentGameSpeed = Math.min(currentGameSpeed + 0.15, 10);
+                document.getElementById('nitroIndicator').style.display = 'block';
+            } else {
+                isUsingNitro = false;
+                nitroLevel = Math.min(nitroLevel + 0.7, 100);
+                currentGameSpeed = Math.max(currentGameSpeed - 0.05, baseGameSpeed);
+                document.getElementById('nitroIndicator').style.display = 'none';
+            }
+            
+            // Update nitro meter
+            document.getElementById('nitroFill').style.width = nitroLevel + '%';
+        }
+
+        function updateEnergy() {
+            // Reduced energy depletion rate for better balance
+            energyLevel -= 0.05; // Reduced from 0.1 to 0.05
+            
+            // Game over if energy reaches 0
+            if (energyLevel <= 0) {
+                gameOver('energy');
+            }
+            
+            // Update energy meter
+            document.getElementById('energyFill').style.width = energyLevel + '%';
+        }
+
+        function updateSpeedControl() {
+            // W key to speed up
+            if (keys['w'] || keys['W']) {
+                baseGameSpeed = Math.min(baseGameSpeed + 0.02, 6);
+            }
+            // S key to slow down
+            if (keys['s'] || keys['S']) {
+                baseGameSpeed = Math.max(baseGameSpeed - 0.02, 1);
+            }
+            
+            // Gradually adjust current speed to base speed when not using nitro
+            if (!isUsingNitro) {
+                if (currentGameSpeed > baseGameSpeed) {
+                    currentGameSpeed = Math.max(currentGameSpeed - 0.02, baseGameSpeed);
+                } else if (currentGameSpeed < baseGameSpeed) {
+                    currentGameSpeed = Math.min(currentGameSpeed + 0.02, baseGameSpeed);
+                }
+            }
+        }
+
+        function checkCollision() {
+            // Check collision with obstacles
+            obstacles.forEach(obstacle => {
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
+                    gameOver('collision');
+                }
+            });
+            
+            // Check collision with drones
+            drones.forEach(drone => {
+                if (player.x < drone.x + drone.width &&
+                    player.x + player.width > drone.x &&
+                    player.y < drone.y + drone.height &&
+                    player.y + player.height > drone.y) {
+                    gameOver('collision');
+                }
+            });
+        }
+
+        function updatePlayer() {
+            const currentSpeed = isUsingNitro ? player.nitroSpeed : player.speed;
+            
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.x -= currentSpeed;
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.x += currentSpeed;
+            }
+            
+            if (player.x < roadLeft) player.x = roadLeft;
+            if (player.x > roadRight - player.width) player.x = roadRight - player.width;
+        }
+
+        function updateGame() {
+            if (!gameRunning || gamePaused) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            updateRoadLines();
+            updateObstacles();
+            updateDrones();
+            updateEnergyOrbs();
+            updateNitro();
+            updateEnergy();
+            updateSpeedControl();
+            updatePlayer();
+            checkCollision();
+            
+            drawRoad();
+            
+            // Draw energy orbs first (behind everything else)
+            energyOrbs.forEach(orb => {
+                if (!orb.collected) {
+                    drawEnergyOrb(orb.x, orb.y, orb.radius);
+                }
+            });
+            
+            drawCyberBike(player.x, player.y, player.width, player.height, player.color);
+            
+            obstacles.forEach(obstacle => {
+                drawObstacle(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+            
+            drones.forEach(drone => {
+                drawDrone(drone.x, drone.y, drone.width, drone.height);
+            });
+            
+            score += 1;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = Math.floor(currentGameSpeed);
+            
+            // Show drone indicator if drones are active
+            document.getElementById('droneIndicator').style.display = drones.length > 0 ? 'block' : 'none';
+            
+            requestAnimationFrame(updateGame);
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gamePaused = false;
+                updateGame();
+            } else if (gamePaused) {
+                gamePaused = false;
+                updateGame();
+            }
+        }
+
+        function pauseGame() {
+            gamePaused = !gamePaused;
+            if (!gamePaused && gameRunning) {
+                updateGame();
+            }
+        }
+
+        function resetGame() {
+            gameRunning = false;
+            gamePaused = false;
+            score = 0;
+            baseGameSpeed = 2;
+            currentGameSpeed = 2;
+            energyLevel = 100;
+            nitroLevel = 100;
+            isUsingNitro = false;
+            lastObstacleSpawnTime = 0;
+            lastDroneSpawnTime = 0;
+            lastEnergySpawnTime = 0;
+            obstacles = [];
+            drones = [];
+            energyOrbs = [];
+            player.x = canvas.width / 2 - 15;
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = currentGameSpeed;
+            document.getElementById('energyFill').style.width = '100%';
+            document.getElementById('nitroFill').style.width = '100%';
+            document.getElementById('droneIndicator').style.display = 'none';
+            document.getElementById('nitroIndicator').style.display = 'none';
+            document.getElementById('gameOver').style.display = 'none';
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRoad();
+            drawCyberBike(player.x, player.y, player.width, player.height, player.color);
+        }
+
+        function gameOver(reason) {
+            gameRunning = false;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('bestScore', bestScore);
+                document.getElementById('bestScore').textContent = bestScore;
+            }
+            
+            document.getElementById('finalScore').textContent = score;
+            
+            if (reason === 'energy') {
+                document.getElementById('gameOverTitle').textContent = '⚡ ENERGY DEPLETED!';
+            } else {
+                document.getElementById('gameOverTitle').textContent = '💥 SYSTEM FAILURE!';
+            }
+            
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function restartGame() {
+            resetGame();
+            startGame();
+        }
+
+        // Initialize game
+        resetGame();
+    </script>
+</body>
+</html>
