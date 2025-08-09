@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Maze Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            color: white;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #gameInfo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .info-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .timer {
+            font-size: 20px;
+            color: #00ff88;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            pointer-events: all;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .menu-content {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .menu-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-subtitle {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,255,136,0.4);
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+
+        .game-over-content {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .game-over-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .win-title {
+            color: #00ff88;
+        }
+
+        .lose-title {
+            color: #ff6b6b;
+        }
+
+        .final-score {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        #instructions {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 250px;
+        }
+
+        .instruction-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .instruction-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        #debug {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            z-index: 150;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui">
+            <div id="gameInfo">
+                <div class="info-panel">
+                    <div class="score">Score: <span id="scoreValue">0</span></div>
+                </div>
+                <div class="info-panel">
+                    <div class="timer">Time: <span id="timerValue">0:00</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="controls">
+            <button class="control-btn" onclick="showHint()">💡 Hint</button>
+            <button class="control-btn" onclick="respawn()">🔄 Respawn</button>
+            <button class="control-btn" onclick="newMaze()">🎲 New Maze</button>
+            <button class="control-btn" onclick="toggleDebug()">🐛 Debug</button>
+        </div>
+
+        <div id="instructions">
+            <div class="instruction-title">Controls:</div>
+            <div class="instruction-text">🎮 WASD - Move</div>
+            <div class="instruction-text">🏃 Arrow Keys - Move</div>
+            <div class="instruction-text">💡 Collect gold coins</div>
+            <div class="instruction-text">👹 Avoid red enemies</div>
+            <div class="instruction-text">🎯 Reach the red exit</div>
+        </div>
+
+        <div id="debug" class="hidden">
+            <div>2D Maze Game Debug</div>
+            <div>FPS: <span id="fps">0</span></div>
+            <div>Position: <span id="position">0, 0</span></div>
+            <div>Grid: <span id="grid">0, 0</span></div>
+            <div>Move Attempts: <span id="moveAttempts">0</span></div>
+            <div>Successful Moves: <span id="successfulMoves">0</span></div>
+        </div>
+
+        <div id="menu">
+            <div class="menu-content">
+                <h1 class="menu-title">🎮 2D Maze Game</h1>
+                <p class="menu-subtitle">Navigate through the maze, collect coins, and reach the exit!</p>
+                <button class="play-btn" onclick="startGame()">🚀 Start Game</button>
+            </div>
+        </div>
+
+        <div id="gameOver">
+            <div class="game-over-content">
+                <h2 class="game-over-title" id="gameOverTitle">Game Over</h2>
+                <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+                <div class="final-score">Time: <span id="finalTime">0:00</span></div>
+                <button class="play-btn" onclick="restartGame()">🔄 Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let scene, camera, renderer, controls;
+        let maze = null;
+        let player = null;
+        let playerPosition = [0, 0.5, 0];
+        let score = 0;
+        let gameState = 'menu'; // menu, playing, won, lost
+        let timeElapsed = 0;
+        let showHint = false;
+        let hintPath = [];
+        let pathfinder = null;
+        let debugMode = false;
+        let keys = new Set();
+        let moveSpeed = 0.15;
+        let cellSize = 1.5;
+        let wallThickness = 0.2;
+        let wallHeight = 0.5;
+
+        // Debug info
+        let debugInfo = {
+            fps: 0,
+            frameCount: 0,
+            lastTime: performance.now(),
+            moveAttempts: 0,
+            successfulMoves: 0
+        };
+
+        // Maze generation algorithm
+        class MazeCell {
+            constructor(x, y, z) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.walls = {
+                    north: true,
+                    south: true,
+                    east: true,
+                    west: true,
+                    top: true,
+                    bottom: true,
+                };
+                this.visited = false;
+                this.isStart = false;
+                this.isEnd = false;
+                this.hasCollectible = false;
+                this.hasEnemy = false;
+            }
+        }
+
+        class MazeGenerator {
+            constructor(width = 8, height = 8, depth = 1) {
+                this.width = width;
+                this.height = height;
+                this.depth = depth;
+                this.maze = this.initializeMaze();
+            }
+
+            initializeMaze() {
+                const maze = [];
+                
+                for (let y = 0; y < this.depth; y++) {
+                    const layer = [];
+                    for (let z = 0; z < this.height; z++) {
+                        for (let x = 0; x < this.width; x++) {
+                            layer.push(new MazeCell(x, y, z));
+                        }
+                    }
+                    maze.push(layer);
+                }
+                
+                return maze;
+            }
+
+            getNeighbors(x, y, z) {
+                const neighbors = [];
+                const directions = [
+                    { dx: 0, dy: 0, dz: -1 }, // north
+                    { dx: 0, dy: 0, dz: 1 },  // south
+                    { dx: 1, dy: 0, dz: 0 },  // east
+                    { dx: -1, dy: 0, dz: 0 }, // west
+                    { dx: 0, dy: 1, dz: 0 },  // up
+                    { dx: 0, dy: -1, dz: 0 }, // down
+                ];
+
+                for (const dir of directions) {
+                    const nx = x + dir.dx;
+                    const ny = y + dir.dy;
+                    const nz = z + dir.dz;
+
+                    if (
+                        nx >= 0 && nx < this.width &&
+                        ny >= 0 && ny < this.depth &&
+                        nz >= 0 && nz < this.height
+                    ) {
+                        neighbors.push({ x: nx, y: ny, z: nz });
+                    }
+                }
+
+                return neighbors;
+            }
+
+            removeWall(current, next) {
+                const dx = next.x - current.x;
+                const dy = next.y - current.y;
+                const dz = next.z - current.z;
+
+                if (dx === 1) {
+                    current.walls.east = false;
+                    next.walls.west = false;
+                } else if (dx === -1) {
+                    current.walls.west = false;
+                    next.walls.east = false;
+                } else if (dy === 1) {
+                    current.walls.top = false;
+                    next.walls.bottom = false;
+                } else if (dy === -1) {
+                    current.walls.bottom = false;
+                    next.walls.top = false;
+                } else if (dz === 1) {
+                    current.walls.south = false;
+                    next.walls.north = false;
+                } else if (dz === -1) {
+                    current.walls.north = false;
+                    next.walls.south = false;
+                }
+            }
+
+            generateLayer(y) {
+                const stack = [];
+                const startCell = this.maze[y][0];
+                startCell.visited = true;
+                stack.push(startCell);
+
+                while (stack.length > 0) {
+                    const current = stack[stack.length - 1];
+                    const neighbors = this.getNeighbors(current.x, current.y, current.z)
+                        .filter(n => !this.maze[n.y][n.z * this.width + n.x].visited);
+
+                    if (neighbors.length > 0) {
+                        const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                        const nextCell = this.maze[next.y][next.z * this.width + next.x];
+                        
+                        this.removeWall(current, nextCell);
+                        nextCell.visited = true;
+                        stack.push(nextCell);
+                    } else {
+                        stack.pop();
+                    }
+                }
+            }
+
+            connectLayers() {
+                // Ensure at least one connection between each consecutive layer
+                for (let y = 0; y < this.depth - 1; y++) {
+                    const minConnections = Math.max(3, Math.floor(this.width * this.height / 6));
+                    const connections = Math.floor(Math.random() * minConnections) + minConnections;
+                    
+                    for (let i = 0; i < connections; i++) {
+                        const x = Math.floor(Math.random() * this.width);
+                        const z = Math.floor(Math.random() * this.height);
+                        
+                        const currentCell = this.maze[y][z * this.width + x];
+                        const nextCell = this.maze[y + 1][z * this.width + x];
+                        
+                        currentCell.walls.top = false;
+                        nextCell.walls.bottom = false;
+                    }
+                }
+            }
+
+            placeCollectiblesAndEnemies() {
+                const totalCells = this.width * this.height * this.depth;
+                const collectibleCount = Math.floor(totalCells * 0.1);
+                const enemyCount = Math.floor(totalCells * 0.05);
+
+                // Place collectibles
+                for (let i = 0; i < collectibleCount; i++) {
+                    let x, y, z;
+                    do {
+                        x = Math.floor(Math.random() * this.width);
+                        y = Math.floor(Math.random() * this.depth);
+                        z = Math.floor(Math.random() * this.height);
+                    } while (
+                        this.maze[y][z * this.width + x].isStart ||
+                        this.maze[y][z * this.width + x].isEnd ||
+                        this.maze[y][z * this.width + x].hasCollectible
+                    );
+                    
+                    this.maze[y][z * this.width + x].hasCollectible = true;
+                }
+
+                // Place enemies
+                for (let i = 0; i < enemyCount; i++) {
+                    let x, y, z;
+                    do {
+                        x = Math.floor(Math.random() * this.width);
+                        y = Math.floor(Math.random() * this.depth);
+                        z = Math.floor(Math.random() * this.height);
+                    } while (
+                        this.maze[y][z * this.width + x].isStart ||
+                        this.maze[y][z * this.width + x].isEnd ||
+                        this.maze[y][z * this.width + x].hasEnemy ||
+                        this.maze[y][z * this.width + x].hasCollectible
+                    );
+                    
+                    this.maze[y][z * this.width + x].hasEnemy = true;
+                }
+            }
+
+            generate() {
+                // Generate each layer
+                for (let y = 0; y < this.depth; y++) {
+                    this.generateLayer(y);
+                }
+
+                // Connect layers
+                this.connectLayers();
+
+                // Set start and end points
+                this.maze[0][0].isStart = true;
+                this.maze[this.depth - 1][(this.height - 1) * this.width + (this.width - 1)].isEnd = true;
+
+                // Place collectibles and enemies
+                this.placeCollectiblesAndEnemies();
+
+                return {
+                    width: this.width,
+                    height: this.height,
+                    depth: this.depth,
+                    cells: this.maze,
+                    start: { x: 0, y: 0, z: 0 },
+                    end: { x: this.width - 1, y: this.depth - 1, z: this.height - 1 },
+                };
+            }
+        }
+
+        // Pathfinder algorithm
+        class Pathfinder {
+            constructor(maze) {
+                this.maze = maze;
+            }
+
+            heuristic(a, b) {
+                return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
+            }
+
+            getNeighbors(node) {
+                const neighbors = [];
+                const directions = [
+                    { dx: 0, dy: 0, dz: -1 }, // north
+                    { dx: 0, dy: 0, dz: 1 },  // south
+                    { dx: 1, dy: 0, dz: 0 },  // east
+                    { dx: -1, dy: 0, dz: 0 }, // west
+                    { dx: 0, dy: 1, dz: 0 },  // up
+                    { dx: 0, dy: -1, dz: 0 }, // down
+                ];
+
+                for (const dir of directions) {
+                    const nx = node.x + dir.dx;
+                    const ny = node.y + dir.dy;
+                    const nz = node.z + dir.dz;
+
+                    if (
+                        nx >= 0 && nx < this.maze.width &&
+                        ny >= 0 && ny < this.maze.depth &&
+                        nz >= 0 && nz < this.maze.height
+                    ) {
+                        const currentCell = this.maze.cells[node.y][node.z * this.maze.width + node.x];
+                        const canMove = this.canMoveTo(currentCell, dir.dx, dir.dy, dir.dz);
+                        
+                        if (canMove) {
+                            neighbors.push({
+                                x: nx,
+                                y: ny,
+                                z: nz,
+                                g: 0,
+                                h: 0,
+                                f: 0,
+                                parent: node,
+                            });
+                        }
+                    }
+                }
+
+                return neighbors;
+            }
+
+            canMoveTo(cell, dx, dy, dz) {
+                if (dx === 1 && cell.walls.east) return false;
+                if (dx === -1 && cell.walls.west) return false;
+                if (dy === 1 && cell.walls.top) return false;
+                if (dy === -1 && cell.walls.bottom) return false;
+                if (dz === 1 && cell.walls.south) return false;
+                if (dz === -1 && cell.walls.north) return false;
+                return true;
+            }
+
+            findPath(start, end) {
+                const openList = [];
+                const closedList = new Set();
+
+                const startNode = {
+                    x: start.x,
+                    y: start.y,
+                    z: start.z,
+                    g: 0,
+                    h: this.heuristic(start, end),
+                    f: this.heuristic(start, end),
+                    parent: null,
+                };
+
+                openList.push(startNode);
+
+                while (openList.length > 0) {
+                    let currentIndex = 0;
+                    for (let i = 1; i < openList.length; i++) {
+                        if (openList[i].f < openList[currentIndex].f) {
+                            currentIndex = i;
+                        }
+                    }
+
+                    const currentNode = openList[currentIndex];
+
+                    if (currentNode.x === end.x && currentNode.y === end.y && currentNode.z === end.z) {
+                        const path = [];
+                        let current = currentNode;
+                        while (current !== null) {
+                            path.unshift({ x: current.x, y: current.y, z: current.z });
+                            current = current.parent;
+                        }
+                        return path;
+                    }
+
+                    openList.splice(currentIndex, 1);
+                    closedList.add(`${currentNode.x},${currentNode.y},${currentNode.z}`);
+
+                    const neighbors = this.getNeighbors(currentNode);
+                    for (const neighbor of neighbors) {
+                        const neighborKey = `${neighbor.x},${neighbor.y},${neighbor.z}`;
+
+                        if (closedList.has(neighborKey)) {
+                            continue;
+                        }
+
+                        const tentativeG = currentNode.g + 1;
+
+                        let existingNode = openList.find(n => `${n.x},${n.y},${n.z}` === neighborKey);
+                        if (!existingNode) {
+                            neighbor.g = tentativeG;
+                            neighbor.h = this.heuristic(neighbor, end);
+                            neighbor.f = neighbor.g + neighbor.h;
+                            neighbor.parent = currentNode;
+                            openList.push(neighbor);
+                        } else if (tentativeG < existingNode.g) {
+                            existingNode.g = tentativeG;
+                            existingNode.f = existingNode.g + existingNode.h;
+                            existingNode.parent = currentNode;
+                        }
+                    }
+                }
+
+                return [];
+            }
+
+            getHintPath(currentPos, steps = 5) {
+                const fullPath = this.findPath(currentPos, this.maze.end);
+                if (fullPath.length === 0) {
+                    return [];
+                }
+
+                return fullPath.slice(1, Math.min(steps + 1, fullPath.length));
+            }
+        }
+
+        // Initialize Three.js
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Controls setup
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableRotate = false;
+            controls.enableZoom = true;
+            controls.maxDistance = 40;
+            controls.minDistance = 10;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(0, 15, 0);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1.0, 100);
+            pointLight.position.set(0, 10, 0);
+            scene.add(pointLight);
+
+            // Event listeners
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+
+            // Start render loop
+            animate();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onKeyDown(event) {
+            keys.add(event.key.toLowerCase());
+        }
+
+        function onKeyUp(event) {
+            keys.delete(event.key.toLowerCase());
+        }
+
+        function createMazeGeometry() {
+            // Clear existing maze
+            const objectsToRemove = [];
+            scene.traverse((child) => {
+                if (child.userData.isMaze || child.userData.isPlayer || child.userData.isHint) {
+                    objectsToRemove.push(child);
+                }
+            });
+            objectsToRemove.forEach(obj => scene.remove(obj));
+
+            if (!maze) return;
+
+            // Create maze geometry
+            const wallGeometry = new THREE.BoxGeometry(cellSize, wallHeight, wallThickness);
+            const floorGeometry = new THREE.BoxGeometry(cellSize, 0.1, cellSize);
+            const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x404040 });
+            const floorMaterial = new THREE.MeshLambertMaterial({ color: 0xe0e0e0 });
+            const startMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+            const endMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+
+            maze.cells.flat().forEach(cell => {
+                const position = new THREE.Vector3(cell.x * cellSize, 0, cell.z * cellSize);
+
+                // Floor
+                const floor = new THREE.Mesh(floorGeometry, cell.isStart ? startMaterial : cell.isEnd ? endMaterial : floorMaterial);
+                floor.position.set(position.x, -wallHeight/2, position.z);
+                floor.userData.isMaze = true;
+                scene.add(floor);
+
+                // Walls
+                if (cell.walls.north) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(position.x, 0, position.z - cellSize/2);
+                    wall.userData.isMaze = true;
+                    scene.add(wall);
+                }
+
+                if (cell.walls.south) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(position.x, 0, position.z + cellSize/2);
+                    wall.userData.isMaze = true;
+                    scene.add(wall);
+                }
+
+                if (cell.walls.east) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(position.x + cellSize/2, 0, position.z);
+                    wall.rotation.y = Math.PI / 2;
+                    wall.userData.isMaze = true;
+                    scene.add(wall);
+                }
+
+                if (cell.walls.west) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(position.x - cellSize/2, 0, position.z);
+                    wall.rotation.y = Math.PI / 2;
+                    wall.userData.isMaze = true;
+                    scene.add(wall);
+                }
+
+                // Collectibles
+                if (cell.hasCollectible) {
+                    const collectibleGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
+                    const collectibleMaterial = new THREE.MeshLambertMaterial({ color: 0xffd700 });
+                    const collectible = new THREE.Mesh(collectibleGeometry, collectibleMaterial);
+                    collectible.position.set(position.x, 0.1, position.z);
+                    collectible.userData.isMaze = true;
+                    collectible.userData.isCollectible = true;
+                    collectible.userData.cell = cell;
+                    scene.add(collectible);
+                }
+
+                // Enemies
+                if (cell.hasEnemy) {
+                    const enemyGeometry = new THREE.CylinderGeometry(0.25, 0.25, 0.1, 16);
+                    const enemyMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+                    const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
+                    enemy.position.set(position.x, 0.1, position.z);
+                    enemy.userData.isMaze = true;
+                    enemy.userData.isEnemy = true;
+                    enemy.userData.cell = cell;
+                    scene.add(enemy);
+                }
+            });
+
+            // Position camera for 2D view
+            const centerX = maze.width * cellSize / 2;
+            const centerZ = maze.height * cellSize / 2;
+            camera.position.set(centerX, 20, centerZ);
+            camera.lookAt(centerX, 0, centerZ);
+            controls.target.set(centerX, 0, centerZ);
+            controls.update();
+        }
+
+        function createPlayer() {
+            if (player) {
+                scene.remove(player);
+            }
+
+            const playerGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.1, 16);
+            const playerMaterial = new THREE.MeshLambertMaterial({ color: 0x00ccff });
+            player = new THREE.Mesh(playerGeometry, playerMaterial);
+            player.position.set(playerPosition[0] * cellSize + cellSize/2, 0.2, playerPosition[2] * cellSize + cellSize/2);
+            player.userData.isPlayer = true;
+            scene.add(player);
+        }
+
+        function updatePlayer() {
+            if (gameState !== 'playing' || !player || !maze) return;
+
+            const newPosition = player.position.clone();
+            let moved = false;
+
+            // Handle movement
+            if (keys.has('w') || keys.has('arrowup')) {
+                newPosition.z -= moveSpeed;
+                moved = true;
+            }
+            if (keys.has('s') || keys.has('arrowdown')) {
+                newPosition.z += moveSpeed;
+                moved = true;
+            }
+            if (keys.has('a') || keys.has('arrowleft')) {
+                newPosition.x -= moveSpeed;
+                moved = true;
+            }
+            if (keys.has('d') || keys.has('arrowright')) {
+                newPosition.x += moveSpeed;
+                moved = true;
+            }
+
+            if (moved) {
+                debugInfo.moveAttempts++;
+
+                // Convert to grid coordinates
+                const gridX = Math.round(newPosition.x / cellSize);
+                const gridZ = Math.round(newPosition.z / cellSize);
+                const currentGridX = Math.round(player.position.x / cellSize);
+                const currentGridZ = Math.round(player.position.z / cellSize);
+
+                // Check if movement is valid
+                if (canMoveTo(gridX, gridZ)) {
+                    player.position.copy(newPosition);
+                    playerPosition = [gridX, 0, gridZ];
+                    debugInfo.successfulMoves++;
+
+                    // Check for collectibles and enemies
+                    checkCellInteraction(gridX, gridZ);
+
+                    // Update hint path if showing
+                    if (showHint && pathfinder) {
+                        hintPath = pathfinder.getHintPath({ x: gridX, y: 0, z: gridZ }, 5);
+                        updateHintPath();
+                    }
+                }
+            }
+
+            // Update debug info
+            updateDebugInfo();
+        }
+
+        function canMoveTo(x, z) {
+            if (x < 0 || x >= maze.width || z < 0 || z >= maze.height) {
+                return false;
+            }
+
+            const currentGridX = Math.round(playerPosition[0]);
+            const currentGridZ = Math.round(playerPosition[2]);
+
+            // If we're in the same cell, allow movement
+            if (x === currentGridX && z === currentGridZ) {
+                return true;
+            }
+
+            // Check walls
+            const currentCell = maze.cells[0][currentGridZ * maze.width + currentGridX];
+            const dx = x - currentGridX;
+            const dz = z - currentGridZ;
+
+            if (Math.abs(dx) + Math.abs(dz) === 1) {
+                if (dx === 1 && currentCell.walls.east) return false;
+                if (dx === -1 && currentCell.walls.west) return false;
+                if (dz === 1 && currentCell.walls.south) return false;
+                if (dz === -1 && currentCell.walls.north) return false;
+            }
+
+            return true;
+        }
+
+        function checkCellInteraction(x, z) {
+            const cell = maze.cells[0][z * maze.width + x];
+            
+            if (cell.hasCollectible) {
+                score += 100;
+                cell.hasCollectible = false;
+                updateScore();
+                
+                // Remove collectible from scene
+                scene.traverse((child) => {
+                    if (child.userData.isCollectible && child.userData.cell === cell) {
+                        scene.remove(child);
+                    }
+                });
+            }
+            
+            if (cell.hasEnemy) {
+                gameOver(false);
+            }
+            
+            if (cell.isEnd) {
+                gameOver(true);
+            }
+        }
+
+        function updateHintPath() {
+            // Remove existing hint objects
+            const hintObjects = [];
+            scene.traverse((child) => {
+                if (child.userData.isHint) {
+                    hintObjects.push(child);
+                }
+            });
+            hintObjects.forEach(obj => scene.remove(obj));
+
+            // Add new hint objects
+            if (showHint && hintPath.length > 0) {
+                const hintGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.05, 16);
+                const hintMaterial = new THREE.MeshLambertMaterial({ color: 0x00ff88 });
+
+                hintPath.forEach(pos => {
+                    const hint = new THREE.Mesh(hintGeometry, hintMaterial);
+                    hint.position.set(pos.x * cellSize + cellSize/2, 0.05, pos.z * cellSize + cellSize/2);
+                    hint.userData.isHint = true;
+                    scene.add(hint);
+                });
+            }
+        }
+
+        function updateDebugInfo() {
+            if (!debugMode) return;
+
+            debugInfo.frameCount++;
+            const now = performance.now();
+            if (now - debugInfo.lastTime >= 1000) {
+                debugInfo.fps = Math.round((debugInfo.frameCount * 1000) / (now - debugInfo.lastTime));
+                debugInfo.frameCount = 0;
+                debugInfo.lastTime = now;
+            }
+
+            document.getElementById('fps').textContent = debugInfo.fps;
+            document.getElementById('position').textContent = `${player.position.x.toFixed(1)}, ${player.position.z.toFixed(1)}`;
+            document.getElementById('grid').textContent = `${playerPosition[0]}, ${playerPosition[2]}`;
+            document.getElementById('moveAttempts').textContent = debugInfo.moveAttempts;
+            document.getElementById('successfulMoves').textContent = debugInfo.successfulMoves;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            updatePlayer();
+
+            // Animate collectibles
+            scene.traverse((child) => {
+                if (child.userData.isCollectible) {
+                    child.rotation.y += 0.02;
+                    child.position.y = 0.1 + Math.sin(Date.now() * 0.003) * 0.05;
+                }
+                if (child.userData.isEnemy) {
+                    child.rotation.y += 0.01;
+                }
+                if (child.userData.isPlayer) {
+                    const scale = 1 + Math.sin(Date.now() * 0.003) * 0.1;
+                    child.scale.set(scale, scale, scale);
+                }
+            });
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Game control functions
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            gameState = 'playing';
+            score = 0;
+            timeElapsed = 0;
+            showHint = false;
+            hintPath = [];
+            
+            generateNewMaze();
+            updateScore();
+            startTimer();
+        }
+
+        function generateNewMaze() {
+            const generator = new MazeGenerator(8, 8, 1);
+            maze = generator.generate();
+            pathfinder = new Pathfinder(maze);
+            
+            playerPosition = [maze.start.x, maze.start.y + 0.5, maze.start.z];
+            
+            createMazeGeometry();
+            createPlayer();
+        }
+
+        function gameOver(won) {
+            gameState = won ? 'won' : 'lost';
+            document.getElementById('gameOver').style.display = 'flex';
+            document.getElementById('gameOverTitle').textContent = won ? '🎉 Congratulations!' : '💀 Game Over';
+            document.getElementById('gameOverTitle').className = won ? 'game-over-title win-title' : 'game-over-title lose-title';
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTime').textContent = formatTime(timeElapsed);
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            startGame();
+        }
+
+        function showHint() {
+            if (gameState !== 'playing' || !pathfinder) return;
+            
+            showHint = true;
+            const currentPos = { x: playerPosition[0], y: 0, z: playerPosition[2] };
+            hintPath = pathfinder.getHintPath(currentPos, 5);
+            updateHintPath();
+            
+            setTimeout(() => {
+                showHint = false;
+                hintPath = [];
+                updateHintPath();
+            }, 3000);
+        }
+
+        function respawn() {
+            if (gameState !== 'playing' || !maze) return;
+            
+            playerPosition = [maze.start.x, maze.start.y + 0.5, maze.start.z];
+            createPlayer();
+        }
+
+        function newMaze() {
+            if (gameState !== 'playing') return;
+            
+            generateNewMaze();
+            score = 0;
+            timeElapsed = 0;
+            updateScore();
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            document.getElementById('debug').classList.toggle('hidden', !debugMode);
+        }
+
+        function updateScore() {
+            document.getElementById('scoreValue').textContent = score;
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                if (gameState === 'playing') {
+                    timeElapsed++;
+                    document.getElementById('timerValue').textContent = formatTime(timeElapsed);
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>
