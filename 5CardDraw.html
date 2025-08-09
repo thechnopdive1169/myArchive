@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پوکر 5-Card Draw — نسخه آموزشی</title>
+<style>
+  :root{font-family:sans-serif;background:#0b1220;color:#fff}
+  body{margin:0;padding:0;display:flex;flex-direction:column;min-height:100vh}
+  header{padding:12px;text-align:center;background:#111827;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+  header h1{margin:0;font-size:18px}
+  main{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px;gap:12px}
+  .table{width:100%;max-width:900px;background:#1f2a37;border-radius:12px;padding:12px;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .players{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .panel{flex:1;min-width:260px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
+  .hand-title{font-size:14px;margin-bottom:8px;text-align:center}
+  .cards{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+  .card{width:56px;height:80px;border-radius:8px;background:#fff;color:#111;display:flex;flex-direction:column;justify-content:space-between;padding:6px;font-weight:600;box-shadow:0 6px 12px rgba(0,0,0,.4);user-select:none}
+  .card.red{color:#b30000}
+  .card.back{background:linear-gradient(135deg,#0f4c81,#063a5b);color:#fff;justify-content:center;align-items:center}
+  .card .top,.card .bottom{font-size:14px;display:flex;justify-content:space-between}
+  .card .center{font-size:20px;text-align:center}
+  .card.selected{outline:3px solid #ffd54d;transform:translateY(-6px)}
+  .card.winner{outline:3px solid gold;box-shadow:0 0 10px gold}
+  .controls{text-align:center;margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  button{background:#2563eb;border:none;color:#fff;padding:10px 14px;border-radius:8px;font-weight:600;box-shadow:0 6px 14px rgba(37,99,235,.2)}
+  button.secondary{background:#374151}
+  .status{margin-top:8px;text-align:center;font-size:14px}
+  footer{padding:8px;text-align:center;font-size:12px;color:#cbd5e1}
+</style>
+</head>
+<body>
+<header><h1>پوکر 5-Card Draw — نسخه آموزشی</h1></header>
+<main>
+  <div class="table">
+    <div id="guide" style="text-align:center;margin-bottom:10px;font-size:14px;color:#facc15;">
+      برای شروع «پخش کارت» را بزن.
+    </div>
+    <div class="players">
+      <div class="panel">
+        <div class="hand-title">حریف (CPU)</div>
+        <div class="cards" id="cpuCards"></div>
+        <div class="status" id="cpuStatus"></div>
+      </div>
+      <div class="panel">
+        <div class="hand-title">بازیکن (تو)</div>
+        <div class="cards" id="playerCards"></div>
+        <div class="status" id="playerStatus"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="dealBtn">پخش کارت</button>
+      <button id="drawBtn" class="secondary" disabled>تعویض کارت</button>
+      <button id="resetBtn" class="secondary" disabled>بازنشانی</button>
+    </div>
+  </div>
+</main>
+<footer>راهنما در بالا نشان داده می‌شود. کارت‌های برنده با کادر طلایی مشخص می‌شوند.</footer>
+
+<script>
+const suits = ['♠','♥','♦','♣'];
+const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const guideEl = document.getElementById('guide');
+
+function makeDeck(){
+  const d=[];
+  for(const s of suits) for(const r of ranks) d.push({suit:s,rank:r,hold:false});
+  return d;
+}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+const cpuCardsEl=document.getElementById('cpuCards');
+const playerCardsEl=document.getElementById('playerCards');
+const dealBtn=document.getElementById('dealBtn');
+const drawBtn=document.getElementById('drawBtn');
+const resetBtn=document.getElementById('resetBtn');
+const cpuStatus=document.getElementById('cpuStatus');
+const playerStatus=document.getElementById('playerStatus');
+
+let deck=[], playerHand=[], cpuHand=[], phase='idle';
+
+function renderCard(card,index,clickable,selected=false,winner=false){
+  const el=document.createElement('div');
+  el.className='card';
+  if(card.back) el.classList.add('back');
+  else if(card.suit==='♥'||card.suit==='♦') el.classList.add('red');
+  if(selected) el.classList.add('selected');
+  if(winner) el.classList.add('winner');
+
+  if(card.back){
+    el.innerHTML='<div class="center">🂠</div>';
+  } else {
+    el.innerHTML=`
+      <div class="top"><span>${card.rank}</span><span>${card.suit}</span></div>
+      <div class="center">${card.suit}</div>
+      <div class="bottom"><span>${card.rank}</span><span>${card.suit}</span></div>`;
+  }
+  if(clickable){
+    el.addEventListener('click',()=>toggleHold(index));
+    el.addEventListener('touchstart',()=>toggleHold(index));
+  }
+  return el;
+}
+
+function showHands(hideCpu=true,winnersCpu=[],winnersPlayer=[]){
+  cpuCardsEl.innerHTML='';
+  playerCardsEl.innerHTML='';
+  cpuHand.forEach((c,i)=>{
+    cpuCardsEl.appendChild(renderCard(hideCpu && phase!=='showdown'?{back:true}:c,i,false,false,winnersCpu.includes(i)));
+  });
+  playerHand.forEach((c,i)=>{
+    playerCardsEl.appendChild(renderCard(c,i,true,c.hold,winnersPlayer.includes(i)));
+  });
+}
+
+function toggleHold(i){
+  if(phase!=='dealt')return;
+  playerHand[i].hold=!playerHand[i].hold;
+  showHands();
+}
+
+dealBtn.onclick=()=>{
+  deck=shuffle(makeDeck());
+  playerHand=[]; cpuHand=[];
+  for(let i=0;i<5;i++){
+    playerHand.push({...deck.pop(),hold:false});
+    cpuHand.push({...deck.pop()});
+  }
+  phase='dealt';
+  drawBtn.disabled=false;
+  resetBtn.disabled=true;
+  cpuStatus.textContent=''; playerStatus.textContent='';
+  guideEl.textContent='کارت‌ها پخش شدند — کارت‌هایی که می‌خواهی نگه داری را لمس کن، سپس «تعویض کارت» را بزن.';
+  showHands();
+};
+
+function cpuStrategy(hand){
+  const counts={};
+  hand.forEach(c=>counts[c.rank]=(counts[c.rank]||0)+1);
+  const keep=hand.map(c=>counts[c.rank]>=2 || c.rank==='A'||c.rank==='K');
+  let reasons=[];
+  hand.forEach((c,i)=>{
+    if(keep[i]) reasons.push(`${c.rank}${c.suit} نگه داشته شد چون ${counts[c.rank]>=2?'جفت دارد':'کارت بالاست'}`);
+  });
+  return {keep,reasons};
+}
+
+drawBtn.onclick=()=>{
+  if(phase!=='dealt')return;
+  playerHand=playerHand.map(c=>c.hold?{...c,hold:false}:{...deck.pop(),hold:false});
+  const cpuMove=cpuStrategy(cpuHand);
+  cpuHand=cpuHand.map((c,i)=>cpuMove.keep[i]?c:{...deck.pop()});
+  guideEl.textContent='CPU کارت‌هایی را که ارزشمند می‌دانست نگه داشت و بقیه را تعویض کرد. اکنون کارت‌ها رو می‌شوند.';
+  phase='showdown';
+  drawBtn.disabled=true;
+  resetBtn.disabled=false;
+
+  const pEval=evaluateHand(playerHand);
+  const cEval=evaluateHand(cpuHand);
+  const cmp=compareHands(pEval,cEval);
+
+  let winnersCpu=[], winnersPlayer=[];
+  if(cmp>0){ // player wins
+    winnersPlayer=findWinningCards(playerHand,pEval);
+    guideEl.textContent=`تو برنده شدی چون ${pEval.name} داشتی و CPU ${cEval.name} داشت.`;
+  } else if(cmp<0){
+    winnersCpu=findWinningCards(cpuHand,cEval);
+    guideEl.textContent=`CPU برنده شد چون ${cEval.name} داشت و تو ${pEval.name} داشتی.`;
+  } else {
+    winnersCpu=findWinningCards(cpuHand,cEval);
+    winnersPlayer=findWinningCards(playerHand,pEval);
+    guideEl.textContent=`بازی مساوی شد — هر دو ${pEval.name} داشتید.`;
+  }
+
+  playerStatus.textContent=`${pEval.name}`;
+  cpuStatus.textContent=`${cEval.name}`;
+  showHands(false,winnersCpu,winnersPlayer);
+};
+
+resetBtn.onclick=()=>{
+  phase='idle'; playerHand=[]; cpuHand=[];
+  cpuCardsEl.innerHTML=''; playerCardsEl.innerHTML='';
+  drawBtn.disabled=true; resetBtn.disabled=true;
+  guideEl.textContent='برای شروع «پخش کارت» را بزن.';
+};
+
+function rankValue(r){
+  if(r==='J')return 11;
+  if(r==='Q')return 12;
+  if(r==='K')return 13;
+  if(r==='A')return 14;
+  return parseInt(r,10);
+}
+
+function evaluateHand(hand){
+  const vals=hand.map(c=>rankValue(c.rank)).sort((a,b)=>a-b);
+  const suitsArr=hand.map(c=>c.suit);
+  const counts={};
+  for(const v of vals) counts[v]=(counts[v]||0)+1;
+  const countsVals=Object.values(counts).sort((a,b)=>b-a);
+  const uniqueVals=Object.keys(counts).map(x=>parseInt(x)).sort((a,b)=>b-a);
+  const isFlush=suitsArr.every(s=>s===suitsArr[0]);
+  let isStraight=false;
+  if(vals[4]-vals[0]===4 && new Set(vals).size===5) isStraight=true;
+  if(JSON.stringify(vals)==='[2,3,4,5,14]') isStraight=true;
+
+  let name='', rank=1, tiebreak=[];
+  if(isStraight && isFlush){rank=9;name='استریت فلاش';tiebreak=[vals[4]];}
+  else if(countsVals[0]===4){rank=8;name='چهارگانه';}
+  else if(countsVals[0]===3 && countsVals[1]===2){rank=7;name='فول هاوس';}
+  else if(isFlush){rank=6;name='فلاش';}
+  else if(isStraight){rank=5;name='استریت';}
+  else if(countsVals[0]===3){rank=4;name='سه‌تایی';}
+  else if(countsVals[0]===2 && countsVals[1]===2){rank=3;name='دو جفت';}
+  else if(countsVals[0]===2){rank=2;name='یک جفت';}
+  else {rank=1;name='کارت‌بالا';}
+  return {rank,name};
+}
+
+function compareHands(a,b){
+  if(a.rank!==b.rank) return a.rank>b.rank?1:-1;
+  return 0;
+}
+
+function findWinningCards(hand,evalObj){
+  // بسیار ساده: همه کارت‌هایی که هم‌رتبه با ترکیب هستند رو برگردون
+  let winners=[];
+  if(evalObj.name.includes('جفت')){
+    const counts={};
+    hand.forEach((c,i)=>{counts[c.rank]=(counts[c.rank]||[]);counts[c.rank].push(i);});
+    for(const k in counts){if(counts[k].length>=2) winners.push(...counts[k]);}
+  } else if(evalObj.name.includes('سه‌تایی')){
+    const counts={};
+    hand.forEach((c,i)=>{counts[c.rank]=(counts[c.rank]||[]);counts[c.rank].push(i);});
+    for(const k in counts){if(counts[k].length>=3) winners.push(...counts[k]);}
+  } else if(evalObj.name.includes('چهارگانه')){
+    winners=[0,1,2,3,4];
+  } else if(evalObj.name.includes('استریت') || evalObj.name.includes('فلاش')){
+    winners=[0,1,2,3,4];
+  }
+  return winners;
+}
+</script>
+</body>
+</html>
