@@ -225,31 +225,31 @@
   </footer>
 
   <script>
-let allProjects = [];
-let filteredProjects = [];
-
-fetch('./projects.json')
-  .then(res => res.json())
-  .then(data => {
-    allProjects = Object.entries(data).map(([filename, meta]) => {
-      const name = filename.replace(/\.html$/i, "").trim();
-      const thumbnailFileName = name + ".jpg";
-      return {
-        file: filename.trim(),
-        name,
-        desc: meta.desc || "No description.",
-        tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
-        difficulty: meta.difficulty || "",
-        thumbnail: `./thumbnails/${thumbnailFileName}`
-      };
+  let allProjects = [];
+  let filteredProjects = [];
+  
+  fetch('./projects.json')
+    .then(res => res.json())
+    .then(data => {
+      allProjects = Object.entries(data).map(([filename, meta]) => {
+        const name = filename.replace(/\.html$/i, "").trim();
+        const thumbnailFileName = name + ".jpg";
+        return {
+          file: filename.trim(),
+          name,
+          desc: meta.desc || "No description.",
+          tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
+          difficulty: meta.difficulty || "",
+          thumbnail: `./thumbnails/${thumbnailFileName}`
+        };
+      });
+      allProjects.sort((a, b) => a.name.localeCompare(b.name));
+      filteredProjects = [...allProjects];
+      renderProjects();
+    })
+    .catch(err => {
+      document.getElementById("projects").innerHTML = `<p>Error loading projects: ${err}</p>`;
     });
-    allProjects.sort((a, b) => a.name.localeCompare(b.name));
-    filteredProjects = [...allProjects];
-    renderProjects();
-  })
-  .catch(err => {
-    document.getElementById("projects").innerHTML = `<p>Error loading projects: ${err}</p>`;
-  });
 
     allProjects.sort((a, b) => a.name.localeCompare(b.name));
 
