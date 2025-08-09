@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Game Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <canvas id="gameCanvas" style="width: 800px; height: 600px; border: 1px solid black;"></canvas>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        try {
+            // Test basic Three.js setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 800/600, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+            renderer.setSize(800, 600);
+            
+            // Add a simple cube
+            const geometry = new THREE.BoxGeometry();
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            
+            camera.position.z = 5;
+            
+            // Simple animation
+            function animate() {
+                requestAnimationFrame(animate);
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            output.innerHTML = '<p style=\"color: green;\">✓ Three.js test successful! Cube should be rotating.</p>';
+            
+        } catch (error) {
+            output.innerHTML = '<p style=\"color: red;\">✗ Error: ' + error.message + '</p>';
+            console.error('Test error:', error);
+        }
+    </script>
+</body>
+</html>
