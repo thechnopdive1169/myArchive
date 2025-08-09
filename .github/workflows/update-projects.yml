@@ -1,13 +1,15 @@
 name: Update Projects List
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   update-list:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Generate projects.json
         run: |
           echo '{' > projects.json
@@ -15,14 +17,21 @@ jobs:
             name=$(basename "$file")
             echo "  \"$name\": {\"desc\": \"\",\"tags\": [],\"difficulty\": \"\"}," >> projects.json
           done
+          # Remove trailing comma from last entry
           sed -i '$ s/,$//' projects.json
           echo '}' >> projects.json
-        - name: Commit changes
-          run: |
-            git config --local user.email "github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git add projects.json
-            git commit -m "Auto-update projects.json" || echo "No changes to commit"
+
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add projects.json
+          # Commit only if there are changes
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-update projects.json"
             git push
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          else
+            echo "No changes to commit"
+          fi
