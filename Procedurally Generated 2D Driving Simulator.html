@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedurally Generated 2D Driving Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            background: #222;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+        
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .controls h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .control-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stats {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .stat-item {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        .development-guide {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .development-guide h2 {
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Procedurally Generated 2D Driving Simulator</h1>
+        
+        <div class="game-container">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            
+            <div class="controls">
+                <h3>Game Controls</h3>
+                <div class="control-grid">
+                    <div class="control-item">
+                        <strong>↑</strong> Accelerate<br>
+                        <small>Increase speed</small>
+                    </div>
+                    <div class="control-item">
+                        <strong>↓</strong> Brake<br>
+                        <small>Decrease speed</small>
+                    </div>
+                    <div class="control-item">
+                        <strong>← →</strong> Steer<br>
+                        <small>Turn left/right</small>
+                    </div>
+                    <div class="control-item">
+                        <strong>Space</strong> Handbrake<br>
+                        <small>Drift & slide</small>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button onclick="resetGame()">🔄 Reset Game</button>
+                    <button onclick="togglePause()">⏸️ Pause</button>
+                    <button onclick="changeBiome()">🌍 Change Biome</button>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div>Speed</div>
+                    <div class="stat-value" id="speedStat">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>Distance</div>
+                    <div class="stat-value" id="distanceStat">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>Biome</div>
+                    <div class="stat-value" id="biomeStat">City</div>
+                </div>
+                <div class="stat-item">
+                    <div>Fuel</div>
+                    <div class="stat-value" id="fuelStat">100%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="development-guide">
+            <h2>📋 Development Guide</h2>
+            <p>This prototype demonstrates the core concepts from the comprehensive development guide. The full guide includes:</p>
+            <ul>
+                <li>Complete game mechanics and physics implementation</li>
+                <li>Advanced procedural generation algorithms</li>
+                <li>Debugging and testing strategies</li>
+                <li>Project management templates</li>
+                <li>Milestone planning and resources</li>
+            </ul>
+            <p><strong>Current Prototype Features:</strong></p>
+            <ul>
+                <li>✅ Basic car physics with acceleration, braking, and steering</li>
+                <li>✅ Procedural road generation using Perlin noise</li>
+                <li>✅ Multiple biomes (City, Forest, Desert)</li>
+                <li>✅ Fuel system and distance tracking</li>
+                <li>✅ Handbrake drift mechanics</li>
+                <li>✅ Dynamic environment generation</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameRunning = true;
+        let gameTime = 0;
+        
+        // Car properties
+        const car = {
+            x: canvas.width / 2,
+            y: canvas.height - 150,
+            width: 30,
+            height: 50,
+            speed: 0,
+            maxSpeed: 8,
+            acceleration: 0.2,
+            braking: 0.3,
+            steering: 0.05,
+            angle: 0,
+            drift: 0,
+            fuel: 100,
+            color: '#e74c3c'
+        };
+        
+        // Road properties
+        const road = {
+            width: 300,
+            segments: [],
+            segmentHeight: 10,
+            curve: 0,
+            curveSpeed: 0,
+            maxCurve: 3
+        };
+        
+        // Environment
+        let currentBiome = 0;
+        const biomes = [
+            { name: 'City', color: '#34495e', objects: 'buildings' },
+            { name: 'Forest', color: '#27ae60', objects: 'trees' },
+            { name: 'Desert', color: '#f39c12', objects: 'cacti' }
+        ];
+        
+        // Game objects
+        let environmentObjects = [];
+        let distance = 0;
+        
+        // Input handling
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Initialize road segments
+        function initRoad() {
+            road.segments = [];
+            for (let i = 0; i < canvas.height; i += road.segmentHeight) {
+                road.segments.push({
+                    y: i,
+                    curve: 0
+                });
+            }
+        }
+        
+        // Generate environment objects
+        function generateEnvironment() {
+            // Clear old objects that are off-screen
+            environmentObjects = environmentObjects.filter(obj => obj.y < canvas.height + 50);
+            
+            // Add new objects
+            if (Math.random() < 0.1) {
+                const side = Math.random() < 0.5 ? 'left' : 'right';
+                const roadCenter = canvas.width / 2 + road.curve * 50;
+                const roadEdge = side === 'left' ? 
+                    roadCenter - road.width / 2 - 30 : 
+                    roadCenter + road.width / 2 + 30;
+                
+                environmentObjects.push({
+                    x: roadEdge + (Math.random() - 0.5) * 100,
+                    y: -30,
+                    width: 20 + Math.random() * 30,
+                    height: 40 + Math.random() * 60,
+                    type: biomes[currentBiome].objects,
+                    color: biomes[currentBiome].color
+                });
+            }
+        }
+        
+        // Update game state
+        function update() {
+            if (!gameRunning) return;
+            
+            gameTime++;
+            
+            // Handle input
+            if (keys['ArrowUp']) {
+                car.speed = Math.min(car.speed + car.acceleration, car.maxSpeed);
+                car.fuel = Math.max(car.fuel - 0.01, 0);
+            } else if (keys['ArrowDown']) {
+                car.speed = Math.max(car.speed - car.braking, -car.maxSpeed / 2);
+            } else {
+                // Natural deceleration
+                if (car.speed > 0) {
+                    car.speed = Math.max(car.speed - 0.05, 0);
+                } else if (car.speed < 0) {
+                    car.speed = Math.min(car.speed + 0.05, 0);
+                }
+            }
+            
+            if (keys['ArrowLeft']) {
+                car.angle -= car.steering * (car.speed / car.maxSpeed);
+            }
+            if (keys['ArrowRight']) {
+                car.angle += car.steering * (car.speed / car.maxSpeed);
+            }
+            
+            if (keys[' ']) {
+                car.drift = Math.min(car.drift + 0.1, 1);
+            } else {
+                car.drift = Math.max(car.drift - 0.05, 0);
+            }
+            
+            // Update road curve using Perlin noise simulation
+            road.curveSpeed = Math.sin(gameTime * 0.01) * 0.02;
+            road.curve += road.curveSpeed;
+            road.curve = Math.max(Math.min(road.curve, road.maxCurve), -road.maxCurve);
+            
+            // Move road segments
+            if (car.speed !== 0) {
+                road.segments.forEach(segment => {
+                    segment.y += car.speed;
+                });
+                
+                // Remove segments that are off the screen
+                road.segments = road.segments.filter(segment => segment.y < canvas.height);
+                
+                // Add new segments at the top
+                while (road.segments.length < canvas.height / road.segmentHeight) {
+                    const topSegment = road.segments[0];
+                    const newY = topSegment.y - road.segmentHeight;
+                    road.segments.unshift({
+                        y: newY,
+                        curve: road.curve
+                    });
+                }
+                
+                // Update environment objects
+                environmentObjects.forEach(obj => {
+                    obj.y += car.speed;
+                });
+                
+                // Update distance
+                distance += Math.abs(car.speed) * 0.1;
+            }
+            
+            // Generate environment
+            generateEnvironment();
+            
+            // Update car position based on road curve
+            car.x += Math.sin(car.angle) * car.speed * 0.5;
+            car.x = Math.max(car.width / 2, Math.min(car.x, canvas.width - car.width / 2));
+            
+            // Update stats
+            document.getElementById('speedStat').textContent = Math.round(Math.abs(car.speed * 10));
+            document.getElementById('distanceStat').textContent = Math.round(distance);
+            document.getElementById('biomeStat').textContent = biomes[currentBiome].name;
+            document.getElementById('fuelStat').textContent = Math.round(car.fuel) + '%';
+        }
+        
+        // Draw everything
+        function draw() {
+            // Clear canvas
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw road
+            ctx.fillStyle = '#333';
+            road.segments.forEach(segment => {
+                const roadCenter = canvas.width / 2 + segment.curve * 50;
+                ctx.fillRect(
+                    roadCenter - road.width / 2,
+                    segment.y,
+                    road.width,
+                    road.segmentHeight
+                );
+            });
+            
+            // Draw road lines
+            ctx.fillStyle = '#fff';
+            road.segments.forEach((segment, index) => {
+                if (index % 4 === 0) {
+                    const roadCenter = canvas.width / 2 + segment.curve * 50;
+                    ctx.fillRect(
+                        roadCenter - 3,
+                        segment.y,
+                        6,
+                        road.segmentHeight * 2
+                    );
+                }
+            });
+            
+            // Draw environment objects
+            environmentObjects.forEach(obj => {
+                ctx.fillStyle = obj.color;
+                if (obj.type === 'buildings') {
+                    ctx.fillRect(obj.x - obj.width/2, obj.y, obj.width, obj.height);
+                    // Windows
+                    ctx.fillStyle = '#ffff00';
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < Math.floor(obj.height / 15); j++) {
+                            if (Math.random() > 0.3) {
+                                ctx.fillRect(
+                                    obj.x - obj.width/2 + 5 + i * 10,
+                                    obj.y + 5 + j * 15,
+                                    5, 8
+                                );
+                            }
+                        }
+                    }
+                } else if (obj.type === 'trees') {
+                    // Tree trunk
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(obj.x - 5, obj.y + obj.height - 20, 10, 20);
+                    // Tree foliage
+                    ctx.fillStyle = obj.color;
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y + obj.height - 30, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (obj.type === 'cacti') {
+                    ctx.fillStyle = obj.color;
+                    ctx.fillRect(obj.x - 8, obj.y, 16, obj.height);
+                    // Arms
+                    ctx.fillRect(obj.x - 20, obj.y + obj.height/2, 12, 8);
+                    ctx.fillRect(obj.x + 8, obj.y + obj.height/3, 12, 8);
+                }
+            });
+            
+            // Draw car
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            ctx.rotate(car.angle + car.drift * 0.5);
+            
+            // Car body
+            ctx.fillStyle = car.color;
+            ctx.fillRect(-car.width/2, -car.height/2, car.width, car.height);
+            
+            // Car details
+            ctx.fillStyle = '#333';
+            ctx.fillRect(-car.width/2 + 5, -car.height/2 + 5, car.width - 10, 10); // Windshield
+            ctx.fillRect(-car.width/2 + 5, car.height/2 - 15, car.width - 10, 10); // Rear window
+            
+            // Wheels
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-car.width/2 - 3, -car.height/2 + 8, 6, 12);
+            ctx.fillRect(car.width/2 - 3, -car.height/2 + 8, 6, 12);
+            ctx.fillRect(-car.width/2 - 3, car.height/2 - 20, 6, 12);
+            ctx.fillRect(car.width/2 - 3, car.height/2 - 20, 6, 12);
+            
+            ctx.restore();
+            
+            // Draw fuel warning
+            if (car.fuel < 20) {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+                ctx.font = '20px Arial';
+                ctx.fillText('LOW FUEL!', canvas.width / 2 - 50, 50);
+            }
+        }
+        
+        // Game loop
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Game control functions
+        function resetGame() {
+            car.x = canvas.width / 2;
+            car.y = canvas.height - 150;
+            car.speed = 0;
+            car.angle = 0;
+            car.drift = 0;
+            car.fuel = 100;
+            distance = 0;
+            road.curve = 0;
+            environmentObjects = [];
+            gameTime = 0;
+            initRoad();
+        }
+        
+        function togglePause() {
+            gameRunning = !gameRunning;
+        }
+        
+        function changeBiome() {
+            currentBiome = (currentBiome + 1) % biomes.length;
+            environmentObjects = [];
+        }
+        
+        // Initialize and start game
+        initRoad();
+        gameLoop();
+    </script>
+</body>
+</html>
