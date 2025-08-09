@@ -1,0 +1,26 @@
+name: Update Projects List
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  update-list:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Generate projects.json
+        run: |
+          echo '{' > projects.json
+          find . -maxdepth 1 -name "*.html" ! -name "index.html" | while read file; do
+            name=$(basename "$file")
+            echo "  \"$name\": {\"desc\": \"\",\"tags\": [],\"difficulty\": \"\"}," >> projects.json
+          done
+          sed -i '$ s/,$//' projects.json
+          echo '}' >> projects.json
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add projects.json
+          git commit -m "Auto-update projects.json" || echo "No changes"
+          git push
