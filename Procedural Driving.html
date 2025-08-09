@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedural 2D Driving Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+        }
+        
+        canvas {
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #B0E0E6 100%);
+            display: block;
+        }
+        
+        .game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .score-panel, .speed-panel {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .controls h3 {
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+        
+        .controls p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            border: 2px solid #FFD700;
+        }
+        
+        .game-over h2 {
+            color: #FF6B6B;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+        
+        .game-over p {
+            margin: 10px 0;
+            font-size: 20px;
+        }
+        
+        .game-over button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #FF6B6B, #FFD700);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .game-over button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.5);
+        }
+        
+        .road-info {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="game-ui">
+            <div class="score-panel">
+                Score: <span id="score">0</span>
+            </div>
+            <div class="speed-panel">
+                Speed: <span id="speed">0</span> km/h
+            </div>
+        </div>
+        
+        <div class="road-info">
+            Road Type: <span id="roadType">Highway</span>
+        </div>
+        
+        <div class="controls">
+            <h3>Controls</h3>
+            <p>← → Arrow Keys: Steer | ↑ ↓ Arrow Keys: Accelerate/Brake</p>
+            <p>Spacebar: Handbrake | R: Restart Game</p>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Your Score: <span id="finalScore">0</span></p>
+            <p>Distance: <span id="distance">0</span> km</p>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameRunning = true;
+        let score = 0;
+        let distance = 0;
+        let roadType = "Highway";
+        
+        // Road generation variables
+        let roadSegments = [];
+        let roadOffset = 0;
+        let roadCurvature = 0;
+        let roadCurvatureChange = 0;
+        let roadWidth = 200;
+        let roadCenter = canvas.width / 2;
+        
+        // Car properties
+        const car = {
+            x: canvas.width / 2,
+            y: canvas.height - 150,
+            width: 30,
+            height: 60,
+            speed: 0,
+            maxSpeed: 12,
+            acceleration: 0.2,
+            deceleration: 0.1,
+            steering: 0,
+            maxSteering: 5,
+            color: '#FF4136',
+            angle: 0
+        };
+        
+        // Obstacles
+        let obstacles = [];
+        let obstacleTimer = 0;
+        
+        // Environment
+        let environment = [];
+        let environmentTimer = 0;
+        
+        // Controls
+        const keys = {};
+        
+        // Event listeners
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            
+            if (e.key === 'r' || e.key === 'R') {
+                restartGame();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Initialize road
+        function initRoad() {
+            roadSegments = [];
+            for (let i = 0; i < 30; i++) {
+                roadSegments.push({
+                    y: i * 40,
+                    center: canvas.width / 2,
+                    width: roadWidth
+                });
+            }
+        }
+        
+        // Generate road segments
+        function generateRoad() {
+            // Remove segments that are off-screen
+            roadSegments = roadSegments.filter(segment => segment.y < canvas.height + 100);
+            
+            // Add new segments at the top
+            if (roadSegments.length < 30) {
+                const lastSegment = roadSegments[0];
+                const newCenter = lastSegment.center + roadCurvature;
+                
+                // Keep road within canvas bounds
+                const boundedCenter = Math.max(roadWidth / 2 + 50, Math.min(canvas.width - roadWidth / 2 - 50, newCenter));
+                
+                roadSegments.unshift({
+                    y: lastSegment.y - 40,
+                    center: boundedCenter,
+                    width: roadWidth
+                });
+                
+                // Randomly change curvature
+                if (Math.random() < 0.05) {
+                    roadCurvatureChange = (Math.random() - 0.5) * 0.4;
+                }
+                
+                roadCurvature += roadCurvatureChange;
+                roadCurvature *= 0.95; // Dampening
+                
+                // Occasionally change road type
+                if (Math.random() < 0.01) {
+                    changeRoadType();
+                }
+            }
+            
+            // Move road segments down
+            roadSegments.forEach(segment => {
+                segment.y += car.speed;
+            });
+            
+            roadOffset += car.speed;
+        }
+        
+        // Change road type
+        function changeRoadType() {
+            const types = ["Highway", "Country Road", "Mountain Pass", "City Street", "Desert Highway"];
+            roadType = types[Math.floor(Math.random() * types.length)];
+            
+            // Adjust road properties based on type
+            switch(roadType) {
+                case "Country Road":
+                    roadWidth = 180;
+                    break;
+                case "Mountain Pass":
+                    roadWidth = 160;
+                    roadCurvatureChange = (Math.random() - 0.5) * 0.8;
+                    break;
+                case "City Street":
+                    roadWidth = 220;
+                    break;
+                case "Desert Highway":
+                    roadWidth = 240;
+                    break;
+                default:
+                    roadWidth = 200;
+            }
+            
+            document.getElementById('roadType').textContent = roadType;
+        }
+        
+        // Generate obstacles
+        function generateObstacles() {
+            obstacleTimer++;
+            
+            if (obstacleTimer > 60 - Math.min(score / 100, 40)) {
+                obstacleTimer = 0;
+                
+                // Find a valid road segment to place obstacle
+                const validSegments = roadSegments.filter(segment => 
+                    segment.y > 100 && segment.y < canvas.height - 200
+                );
+                
+                if (validSegments.length > 0) {
+                    const segment = validSegments[Math.floor(Math.random() * validSegments.length)];
+                    const lane = Math.random() < 0.5 ? -1 : 1;
+                    const offset = (Math.random() * 0.6 + 0.2) * (segment.width / 2) * lane;
+                    
+                    obstacles.push({
+                        x: segment.center + offset,
+                        y: segment.y,
+                        width: 30,
+                        height: 50,
+                        type: Math.random() < 0.7 ? "car" : "barrier",
+                        color: Math.random() < 0.7 ? getRandomCarColor() : '#FF851B'
+                    });
+                }
+            }
+            
+            // Move obstacles down
+            obstacles.forEach(obstacle => {
+                obstacle.y += car.speed;
+            });
+            
+            // Remove obstacles that are off-screen
+            obstacles = obstacles.filter(obstacle => obstacle.y < canvas.height + 100);
+        }
+        
+        // Get random car color
+        function getRandomCarColor() {
+            const colors = ['#0074D9', '#FF4136', '#2ECC40', '#FFDC00', '#B10DC9', '#FF851B'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Generate environment
+        function generateEnvironment() {
+            environmentTimer++;
+            
+            if (environmentTimer > 20) {
+                environmentTimer = 0;
+                
+                // Add trees, buildings, etc.
+                if (Math.random() < 0.3) {
+                    const side = Math.random() < 0.5 ? "left" : "right";
+                    const x = side === "left" ? 
+                        Math.random() * (canvas.width / 2 - roadWidth / 2 - 50) : 
+                        canvas.width / 2 + roadWidth / 2 + 50 + Math.random() * (canvas.width / 2 - roadWidth / 2 - 50);
+                    
+                    environment.push({
+                        x: x,
+                        y: -50,
+                        width: 30 + Math.random() * 40,
+                        height: 40 + Math.random() * 60,
+                        type: Math.random() < 0.7 ? "tree" : "building",
+                        color: Math.random() < 0.7 ? '#2ECC40' : '#AAAAAA'
+                    });
+                }
+            }
+            
+            // Move environment down
+            environment.forEach(item => {
+                item.y += car.speed;
+            });
+            
+            // Remove items that are off-screen
+            environment = environment.filter(item => item.y < canvas.height + 100);
+        }
+        
+        // Update car
+        function updateCar() {
+            // Acceleration/Braking
+            if (keys['ArrowUp']) {
+                car.speed = Math.min(car.speed + car.acceleration, car.maxSpeed);
+            } else if (keys['ArrowDown']) {
+                car.speed = Math.max(car.speed - car.acceleration * 2, -car.maxSpeed / 2);
+            } else {
+                // Natural deceleration
+                if (car.speed > 0) {
+                    car.speed = Math.max(car.speed - car.deceleration, 0);
+                } else if (car.speed < 0) {
+                    car.speed = Math.min(car.speed + car.deceleration, 0);
+                }
+            }
+            
+            // Handbrake
+            if (keys[' ']) {
+                car.speed *= 0.9;
+            }
+            
+            // Steering
+            if (keys['ArrowLeft']) {
+                car.steering = Math.max(car.steering - 0.3, -car.maxSteering);
+            } else if (keys['ArrowRight']) {
+                car.steering = Math.min(car.steering + 0.3, car.maxSteering);
+            } else {
+                // Return to center
+                if (car.steering > 0) {
+                    car.steering = Math.max(car.steering - 0.2, 0);
+                } else if (car.steering < 0) {
+                    car.steering = Math.min(car.steering + 0.2, 0);
+                }
+            }
+            
+            // Apply steering (only when moving)
+            if (car.speed !== 0) {
+                car.x += car.steering * (car.speed / car.maxSpeed);
+                
+                // Calculate car angle based on steering and speed
+                car.angle = car.steering * 2 * (car.speed / car.maxSpeed);
+            }
+            
+            // Keep car within canvas bounds
+            car.x = Math.max(car.width / 2, Math.min(canvas.width - car.width / 2, car.x));
+            
+            // Update score and distance
+            if (car.speed > 0) {
+                score += Math.floor(car.speed / 4);
+                distance += car.speed / 1000;
+            }
+            
+            // Update UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('speed').textContent = Math.floor(car.speed * 10);
+        }
+        
+        // Check collisions
+        function checkCollisions() {
+            // Find current road segment
+            const currentSegment = roadSegments.find(segment => 
+                Math.abs(segment.y - car.y) < 50
+            );
+            
+            if (currentSegment) {
+                // Check if car is on the road
+                const roadLeft = currentSegment.center - currentSegment.width / 2;
+                const roadRight = currentSegment.center + currentSegment.width / 2;
+                
+                if (car.x - car.width / 2 < roadLeft || car.x + car.width / 2 > roadRight) {
+                    gameOver();
+                }
+            }
+            
+            // Check obstacle collisions
+            obstacles.forEach(obstacle => {
+                if (
+                    car.x - car.width / 2 < obstacle.x + obstacle.width / 2 &&
+                    car.x + car.width / 2 > obstacle.x - obstacle.width / 2 &&
+                    car.y - car.height / 2 < obstacle.y + obstacle.height / 2 &&
+                    car.y + car.height / 2 > obstacle.y - obstacle.height / 2
+                ) {
+                    gameOver();
+                }
+            });
+        }
+        
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('distance').textContent = distance.toFixed(2);
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        // Restart game
+        function restartGame() {
+            gameRunning = true;
+            score = 0;
+            distance = 0;
+            car.x = canvas.width / 2;
+            car.speed = 0;
+            car.steering = 0;
+            car.angle = 0;
+            obstacles = [];
+            environment = [];
+            roadCurvature = 0;
+            roadCurvatureChange = 0;
+            roadWidth = 200;
+            roadType = "Highway";
+            document.getElementById('roadType').textContent = roadType;
+            document.getElementById('gameOver').style.display = 'none';
+            initRoad();
+        }
+        
+        // Draw road
+        function drawRoad() {
+            // Draw road segments
+            for (let i = 0; i < roadSegments.length - 1; i++) {
+                const segment = roadSegments[i];
+                const nextSegment = roadSegments[i + 1];
+                
+                // Road surface
+                ctx.fillStyle = '#555';
+                ctx.beginPath();
+                ctx.moveTo(segment.center - segment.width / 2, segment.y);
+                ctx.lineTo(segment.center + segment.width / 2, segment.y);
+                ctx.lineTo(nextSegment.center + nextSegment.width / 2, nextSegment.y);
+                ctx.lineTo(nextSegment.center - nextSegment.width / 2, nextSegment.y);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Road markings
+                if (i % 2 === 0) {
+                    ctx.strokeStyle = '#FFF';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([20, 20]);
+                    ctx.beginPath();
+                    ctx.moveTo(segment.center, segment.y);
+                    ctx.lineTo(nextSegment.center, nextSegment.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // Road edges
+                ctx.strokeStyle = '#FFF';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(segment.center - segment.width / 2, segment.y);
+                ctx.lineTo(nextSegment.center - nextSegment.width / 2, nextSegment.y);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(segment.center + segment.width / 2, segment.y);
+                ctx.lineTo(nextSegment.center + nextSegment.width / 2, nextSegment.y);
+                ctx.stroke();
+            }
+        }
+        
+        // Draw environment
+        function drawEnvironment() {
+            environment.forEach(item => {
+                ctx.fillStyle = item.color;
+                
+                if (item.type === "tree") {
+                    // Draw tree
+                    ctx.beginPath();
+                    ctx.arc(item.x, item.y, item.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Tree trunk
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(item.x - 5, item.y, 10, item.height / 2);
+                } else {
+                    // Draw building
+                    ctx.fillRect(item.x - item.width / 2, item.y, item.width, item.height);
+                    
+                    // Windows
+                    ctx.fillStyle = '#ADD8E6';
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < Math.floor(item.height / 20); j++) {
+                            if (Math.random() < 0.7) {
+                                ctx.fillRect(
+                                    item.x - item.width / 2 + 10 + i * 15,
+                                    item.y + 10 + j * 20,
+                                    8, 12
+                                );
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Draw obstacles
+        function drawObstacles() {
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                
+                if (obstacle.type === "car") {
+                    // Draw car
+                    ctx.save();
+                    ctx.translate(obstacle.x, obstacle.y);
+                    ctx.fillRect(-obstacle.width / 2, -obstacle.height / 2, obstacle.width, obstacle.height);
+                    
+                    // Car details
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(-obstacle.width / 2 + 5, -obstacle.height / 2 + 5, obstacle.width - 10, 10);
+                    ctx.fillRect(-obstacle.width / 2 + 5, obstacle.height / 2 - 15, obstacle.width - 10, 10);
+                    
+                    // Wheels
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(-obstacle.width / 2 - 3, -obstacle.height / 2 + 5, 6, 12);
+                    ctx.fillRect(obstacle.width / 2 - 3, -obstacle.height / 2 + 5, 6, 12);
+                    ctx.fillRect(-obstacle.width / 2 - 3, obstacle.height / 2 - 17, 6, 12);
+                    ctx.fillRect(obstacle.width / 2 - 3, obstacle.height / 2 - 17, 6, 12);
+                    
+                    ctx.restore();
+                } else {
+                    // Draw barrier
+                    ctx.fillRect(obstacle.x - obstacle.width / 2, obstacle.y - obstacle.height / 2, obstacle.width, obstacle.height);
+                    
+                    // Stripes
+                    ctx.fillStyle = '#FFF';
+                    for (let i = 0; i < obstacle.height; i += 10) {
+                        ctx.fillRect(obstacle.x - obstacle.width / 2, obstacle.y - obstacle.height / 2 + i, obstacle.width, 5);
+                    }
+                }
+            });
+        }
+        
+        // Draw car
+        function drawCar() {
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            ctx.rotate(car.angle * Math.PI / 180);
+            
+            // Car body
+            ctx.fillStyle = car.color;
+            ctx.fillRect(-car.width / 2, -car.height / 2, car.width, car.height);
+            
+            // Car details
+            ctx.fillStyle = '#333';
+            ctx.fillRect(-car.width / 2 + 5, -car.height / 2 + 5, car.width - 10, 10);
+            ctx.fillRect(-car.width / 2 + 5, car.height / 2 - 15, car.width - 10, 10);
+            
+            // Wheels
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-car.width / 2 - 3, -car.height / 2 + 5, 6, 12);
+            ctx.fillRect(car.width / 2 - 3, -car.height / 2 + 5, 6, 12);
+            ctx.fillRect(-car.width / 2 - 3, car.height / 2 - 17, 6, 12);
+            ctx.fillRect(car.width / 2 - 3, car.height / 2 - 17, 6, 12);
+            
+            // Headlights
+            ctx.fillStyle = '#FFFF00';
+            ctx.fillRect(-car.width / 2 + 5, -car.height / 2, 8, 5);
+            ctx.fillRect(car.width / 2 - 13, -car.height / 2, 8, 5);
+            
+            ctx.restore();
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update game elements
+            generateRoad();
+            generateObstacles();
+            generateEnvironment();
+            updateCar();
+            checkCollisions();
+            
+            // Draw game elements
+            drawEnvironment();
+            drawRoad();
+            drawObstacles();
+            drawCar();
+            
+            // Continue game loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Initialize game
+        initRoad();
+        gameLoop();
+    </script>
+</body>
+</html>
