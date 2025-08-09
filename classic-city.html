@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>San Andreas Web - GTA Inspired Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #111827;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .game-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .game-title h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-title p {
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+        
+        .start-screen {
+            background-color: #1f2937;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 28rem;
+            width: 100%;
+        }
+        
+        .start-screen h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .start-screen p {
+            color: #d1d5db;
+            margin-bottom: 1.5rem;
+        }
+        
+        .legend {
+            margin-bottom: 1.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .legend-color {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 9999px;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-start {
+            width: 100%;
+            background-color: #fbbf24;
+            color: #000;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 1rem;
+        }
+        
+        .btn-start:hover {
+            background-color: #f59e0b;
+        }
+        
+        .controls-info {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            text-align: center;
+        }
+        
+        .game-container {
+            position: relative;
+            display: none;
+        }
+        
+        .game-ui {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            z-index: 10;
+        }
+        
+        .game-ui-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-ui-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .game-ui-item {
+            display: flex;
+            align-items: center;
+            margin-right: 1rem;
+        }
+        
+        .game-ui-item:last-child {
+            margin-right: 0;
+        }
+        
+        .minimap {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 8rem;
+            height: 8rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 2px solid #4b5563;
+            border-radius: 0.25rem;
+            z-index: 10;
+        }
+        
+        .minimap-content {
+            padding: 0.5rem;
+        }
+        
+        .minimap-title {
+            font-size: 0.75rem;
+            color: #d1d5db;
+            margin-bottom: 0.25rem;
+        }
+        
+        .minimap-map {
+            width: 100%;
+            height: 5rem;
+            background-color: #1f2937;
+            border-radius: 0.25rem;
+            position: relative;
+        }
+        
+        .minimap-player {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            background-color: #ef4444;
+            border-radius: 9999px;
+            top: 50%;
+            left: 50%;
+        }
+        
+        .mission-info {
+            position: absolute;
+            top: 5rem;
+            left: 1rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            max-width: 24rem;
+            z-index: 10;
+            display: none;
+        }
+        
+        .mission-info h3 {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+        
+        .mission-info p {
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .mission-info .description {
+            color: #d1d5db;
+        }
+        
+        .mission-info .objective {
+            color: #93c5fd;
+        }
+        
+        .mission-info .reward {
+            color: #86efac;
+        }
+        
+        .mission-info .close-hint {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            z-index: 10;
+        }
+        
+        .controls p {
+            margin-bottom: 0.25rem;
+        }
+        
+        .controls p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .controls strong {
+            color: #fbbf24;
+        }
+        
+        #gameCanvas {
+            border: 4px solid #374151;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-title">
+        <h1>San Andreas Web</h1>
+        <p>A web-inspired tribute to GTA San Andreas</p>
+    </div>
+
+    <div id="startScreen" class="start-screen">
+        <h2>Welcome to San Andreas</h2>
+        <p>Explore the city, complete missions, and build your empire in this web-based adventure.</p>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #ef4444;"></div>
+                <span>Player Character</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #fbbf24;"></div>
+                <span>Money & Collectibles</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #3b82f6;"></div>
+                <span>Missions & Objectives</span>
+            </div>
+        </div>
+        
+        <button id="startButton" class="btn-start">Start Game</button>
+        <div class="controls-info">
+            <p>Controls: WASD or Arrow Keys to move</p>
+        </div>
+    </div>
+
+    <div id="gameContainer" class="game-container">
+        <div class="game-ui">
+            <div class="game-ui-row">
+                <div class="game-ui-item">
+                    <span style="color: #f87171;">❤️</span>
+                    <span id="health">100</span>
+                </div>
+                <div class="game-ui-item">
+                    <span style="color: #fbbf24;">💰</span>
+                    <span id="money">$1000</span>
+                </div>
+                <div class="game-ui-item">
+                    <span style="color: #60a5fa;">🏆</span>
+                    <span id="score">0</span>
+                </div>
+            </div>
+            <div id="vehicleStatus" class="game-ui-row" style="display: none;">
+                <div class="game-ui-item">
+                    <span style="color: #4ade80;">🚗</span>
+                    <span id="vehicleType"></span>
+                </div>
+            </div>
+            <div id="missionStatus" class="game-ui-row" style="display: none;">
+                <div class="game-ui-item">
+                    <span style="color: #fbbf24;">📋</span>
+                    <span id="missionTitle" style="font-size: 0.75rem;"></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="missionInfo" class="mission-info">
+            <h3 id="missionInfoTitle">Mission Title</h3>
+            <p id="missionInfoDescription" class="description">Mission Description</p>
+            <p id="missionInfoObjective" class="objective"><strong>Objective:</strong> Mission Objective</p>
+            <p id="missionInfoReward" class="reward"><strong>Reward:</strong> $0</p>
+            <div class="close-hint">
+                <p>Press M to close</p>
+            </div>
+        </div>
+
+        <div class="minimap">
+            <div class="minimap-content">
+                <div class="minimap-title">Minimap</div>
+                <div class="minimap-map">
+                    <div class="minimap-player"></div>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <div class="controls">
+            <p><strong>Movement:</strong> WASD / Arrow Keys</p>
+            <p><strong>Vehicle:</strong> Enter to Enter/Exit • Space for Action</p>
+            <p><strong>Mission:</strong> M to View Missions • Tab for Map</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startScreen = document.getElementById('startScreen');
+            const gameContainer = document.getElementById('gameContainer');
+            const startButton = document.getElementById('startButton');
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // UI elements
+            const healthEl = document.getElementById('health');
+            const moneyEl = document.getElementById('money');
+            const scoreEl = document.getElementById('score');
+            const vehicleStatusEl = document.getElementById('vehicleStatus');
+            const vehicleTypeEl = document.getElementById('vehicleType');
+            const missionStatusEl = document.getElementById('missionStatus');
+            const missionTitleEl = document.getElementById('missionTitle');
+            const missionInfoEl = document.getElementById('missionInfo');
+            const missionInfoTitleEl = document.getElementById('missionInfoTitle');
+            const missionInfoDescriptionEl = document.getElementById('missionInfoDescription');
+            const missionInfoObjectiveEl = document.getElementById('missionInfoObjective');
+            const missionInfoRewardEl = document.getElementById('missionInfoReward');
+            
+            // Game state
+            let gameStarted = false;
+            let playerStats = {
+                health: 100,
+                money: 1000,
+                score: 0,
+                inVehicle: false,
+                vehicleType: ''
+            };
+            let currentMission = null;
+            let showMissionInfo = false;
+            
+            // Game objects
+            let player = {
+                x: 400,
+                y: 300,
+                width: 20,
+                height: 20,
+                speed: 3,
+                color: '#FF0000',
+                inVehicle: false
+            };
+            
+            const vehicles = [
+                { x: 150, y: 280, width: 40, height: 20, color: '#0000FF', speed: 5, type: 'car', occupied: false },
+                { x: 550, y: 280, width: 40, height: 20, color: '#00FF00', speed: 5, type: 'car', occupied: false },
+                { x: 380, y: 150, width: 30, height: 15, color: '#FF00FF', speed: 7, type: 'bike', occupied: false },
+                { x: 380, y: 450, width: 35, height: 18, color: '#FFA500', speed: 6, type: 'car', occupied: false },
+            ];
+            
+            const buildings = [
+                { x: 50, y: 50, width: 100, height: 80, color: '#8B4513' },
+                { x: 200, y: 100, width: 120, height: 100, color: '#A0522D' },
+                { x: 400, y: 50, width: 80, height: 120, color: '#8B4513' },
+                { x: 600, y: 150, width: 100, height: 90, color: '#A0522D' },
+                { x: 100, y: 400, width: 150, height: 80, color: '#8B4513' },
+                { x: 500, y: 450, width: 120, height: 100, color: '#A0522D' },
+            ];
+            
+            const missions = [
+                {
+                    id: 1,
+                    title: "First Job",
+                    description: "Meet your contact at the downtown location",
+                    objective: "Reach the target location",
+                    reward: 500,
+                    completed: false,
+                    targetX: 600,
+                    targetY: 100
+                },
+                {
+                    id: 2,
+                    title: "Package Delivery",
+                    description: "Deliver a package to the client",
+                    objective: "Deliver to the marked location",
+                    reward: 800,
+                    completed: false,
+                    targetX: 150,
+                    targetY: 450
+                },
+                {
+                    id: 3,
+                    title: "Street Race",
+                    description: "Win a street race to earn respect",
+                    objective: "Complete the race circuit",
+                    reward: 1200,
+                    completed: false,
+                    targetX: 400,
+                    targetY: 300
+                }
+            ];
+            
+            const npcs = [
+                { x: 100, y: 150, width: 15, height: 15, color: '#FFC0CB', speed: 1, direction: 1, type: 'civilian', dialog: 'Hey there!' },
+                { x: 300, y: 200, width: 15, height: 15, color: '#90EE90', speed: 0.8, direction: -1, type: 'civilian', dialog: 'Nice weather today!' },
+                { x: 500, y: 350, width: 15, height: 15, color: '#DDA0DD', speed: 1.2, direction: 1, type: 'civilian', dialog: 'Watch out for the cops!' },
+                { x: 200, y: 500, width: 15, height: 15, color: '#F0E68C', speed: 0.5, direction: -1, type: 'shopkeeper', dialog: 'Want to buy something?' },
+                { x: 650, y: 200, width: 15, height: 15, color: '#FF6347', speed: 1.5, direction: 1, type: 'gang', dialog: 'This is our territory!' },
+            ];
+            
+            let currentVehicle = null;
+            let activeMission = missions[0];
+            let keys = {};
+            let nearNPC = null;
+            let showDialog = false;
+            let dialogTimer = null;
+            
+            // Start game
+            startButton.addEventListener('click', () => {
+                startScreen.style.display = 'none';
+                gameContainer.style.display = 'block';
+                gameStarted = true;
+                currentMission = missions[0];
+                updateUI();
+                gameLoop();
+            });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                keys[e.key.toLowerCase()] = true;
+                
+                // Handle mission info toggle
+                if (e.key.toLowerCase() === 'm') {
+                    showMissionInfo = !showMissionInfo;
+                    missionInfoEl.style.display = showMissionInfo ? 'block' : 'none';
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keys[e.key.toLowerCase()] = false;
+            });
+            
+            // Update UI elements
+            function updateUI() {
+                healthEl.textContent = playerStats.health;
+                moneyEl.textContent = `$${playerStats.money}`;
+                scoreEl.textContent = playerStats.score;
+                
+                if (playerStats.inVehicle) {
+                    vehicleStatusEl.style.display = 'flex';
+                    vehicleTypeEl.textContent = `In ${playerStats.vehicleType}`;
+                } else {
+                    vehicleStatusEl.style.display = 'none';
+                }
+                
+                if (currentMission && !currentMission.completed) {
+                    missionStatusEl.style.display = 'flex';
+                    missionTitleEl.textContent = currentMission.title;
+                    
+                    missionInfoTitleEl.textContent = currentMission.title;
+                    missionInfoDescriptionEl.textContent = currentMission.description;
+                    missionInfoObjectiveEl.innerHTML = `<strong>Objective:</strong> ${currentMission.objective}`;
+                    missionInfoRewardEl.innerHTML = `<strong>Reward:</strong> $${currentMission.reward}`;
+                } else {
+                    missionStatusEl.style.display = 'none';
+                }
+            }
+            
+            // Game loop
+            function gameLoop() {
+                if (!gameStarted) return;
+                
+                // Clear canvas
+                ctx.fillStyle = '#228B22'; // Grass color
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw roads
+                ctx.fillStyle = '#696969'; // Road color
+                ctx.fillRect(0, 250, canvas.width, 100); // Horizontal road
+                ctx.fillRect(350, 0, 100, canvas.height); // Vertical road
+                
+                // Draw road lines
+                ctx.fillStyle = '#FFFF00';
+                for (let i = 0; i < canvas.width; i += 40) {
+                    ctx.fillRect(i, 295, 20, 5);
+                }
+                for (let i = 0; i < canvas.height; i += 40) {
+                    ctx.fillRect(395, i, 5, 20);
+                }
+                
+                // Draw buildings
+                buildings.forEach(building => {
+                    ctx.fillStyle = building.color;
+                    ctx.fillRect(building.x, building.y, building.width, building.height);
+                    
+                    // Add windows
+                    ctx.fillStyle = '#87CEEB';
+                    for (let wx = building.x + 10; wx < building.x + building.width - 10; wx += 20) {
+                        for (let wy = building.y + 10; wy < building.y + building.height - 10; wy += 20) {
+                            ctx.fillRect(wx, wy, 8, 8);
+                        }
+                    }
+                });
+                
+                // Draw vehicles
+                vehicles.forEach(vehicle => {
+                    if (!vehicle.occupied) {
+                        ctx.fillStyle = vehicle.color;
+                        ctx.fillRect(vehicle.x, vehicle.y, vehicle.width, vehicle.height);
+                        
+                        // Add vehicle details
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(vehicle.x + 5, vehicle.y + 2, 8, 4); // windshield
+                        ctx.fillRect(vehicle.x + vehicle.width - 13, vehicle.y + 2, 8, 4); // back window
+                        
+                        // Wheels
+                        ctx.fillStyle = '#333333';
+                        ctx.fillRect(vehicle.x + 2, vehicle.y - 2, 6, 3);
+                        ctx.fillRect(vehicle.x + vehicle.width - 8, vehicle.y - 2, 6, 3);
+                        ctx.fillRect(vehicle.x + 2, vehicle.y + vehicle.height - 1, 6, 3);
+                        ctx.fillRect(vehicle.x + vehicle.width - 8, vehicle.y + vehicle.height - 1, 6, 3);
+                    }
+                });
+                
+                // Handle vehicle entry/exit
+                if (keys['enter']) {
+                    if (!player.inVehicle) {
+                        // Try to enter a vehicle
+                        for (let vehicle of vehicles) {
+                            if (!vehicle.occupied &&
+                                player.x < vehicle.x + vehicle.width &&
+                                player.x + player.width > vehicle.x &&
+                                player.y < vehicle.y + vehicle.height &&
+                                player.y + player.height > vehicle.y) {
+                                player.inVehicle = true;
+                                vehicle.occupied = true;
+                                currentVehicle = vehicle;
+                                player.x = vehicle.x;
+                                player.y = vehicle.y;
+                                playerStats.inVehicle = true;
+                                playerStats.vehicleType = vehicle.type;
+                                updateUI();
+                                break;
+                            }
+                        }
+                    } else {
+                        // Exit vehicle
+                        if (currentVehicle) {
+                            player.inVehicle = false;
+                            currentVehicle.occupied = false;
+                            player.x = currentVehicle.x + currentVehicle.width + 5;
+                            player.y = currentVehicle.y;
+                            currentVehicle = null;
+                            playerStats.inVehicle = false;
+                            playerStats.vehicleType = '';
+                            updateUI();
+                        }
+                    }
+                    keys['enter'] = false; // Prevent repeated triggering
+                }
+                
+                // Handle player movement
+                const currentSpeed = player.inVehicle && currentVehicle ? currentVehicle.speed : player.speed;
+                
+                if (keys['w'] || keys['arrowup']) {
+                    const newY = Math.max(0, (currentVehicle ? currentVehicle.y : player.y) - currentSpeed);
+                    if (currentVehicle) {
+                        currentVehicle.y = newY;
+                        player.y = newY;
+                    } else {
+                        player.y = newY;
+                    }
+                }
+                if (keys['s'] || keys['arrowdown']) {
+                    const newY = Math.min(canvas.height - (currentVehicle ? currentVehicle.height : player.height), 
+                                          (currentVehicle ? currentVehicle.y : player.y) + currentSpeed);
+                    if (currentVehicle) {
+                        currentVehicle.y = newY;
+                        player.y = newY;
+                    } else {
+                        player.y = newY;
+                    }
+                }
+                if (keys['a'] || keys['arrowleft']) {
+                    const newX = Math.max(0, (currentVehicle ? currentVehicle.x : player.x) - currentSpeed);
+                    if (currentVehicle) {
+                        currentVehicle.x = newX;
+                        player.x = newX;
+                    } else {
+                        player.x = newX;
+                    }
+                }
+                if (keys['d'] || keys['arrowright']) {
+                    const newX = Math.min(canvas.width - (currentVehicle ? currentVehicle.width : player.width), 
+                                          (currentVehicle ? currentVehicle.x : player.x) + currentSpeed);
+                    if (currentVehicle) {
+                        currentVehicle.x = newX;
+                        player.x = newX;
+                    } else {
+                        player.x = newX;
+                    }
+                }
+                
+                // Draw player (only if not in vehicle)
+                if (!player.inVehicle) {
+                    ctx.fillStyle = player.color;
+                    ctx.fillRect(player.x, player.y, player.width, player.height);
+                    
+                    // Draw player direction indicator
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(player.x + 8, player.y - 5, 4, 8);
+                } else {
+                    // Draw vehicle with player inside
+                    if (currentVehicle) {
+                        ctx.fillStyle = currentVehicle.color;
+                        ctx.fillRect(currentVehicle.x, currentVehicle.y, currentVehicle.width, currentVehicle.height);
+                        
+                        // Add vehicle details
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(currentVehicle.x + 5, currentVehicle.y + 2, 8, 4); // windshield
+                        ctx.fillRect(currentVehicle.x + currentVehicle.width - 13, currentVehicle.y + 2, 8, 4); // back window
+                        
+                        // Wheels
+                        ctx.fillStyle = '#333333';
+                        ctx.fillRect(currentVehicle.x + 2, currentVehicle.y - 2, 6, 3);
+                        ctx.fillRect(currentVehicle.x + currentVehicle.width - 8, currentVehicle.y - 2, 6, 3);
+                        ctx.fillRect(currentVehicle.x + 2, currentVehicle.y + currentVehicle.height - 1, 6, 3);
+                        ctx.fillRect(currentVehicle.x + currentVehicle.width - 8, currentVehicle.y + currentVehicle.height - 1, 6, 3);
+                        
+                        // Show player is inside
+                        ctx.fillStyle = '#FFFF00';
+                        ctx.fillRect(currentVehicle.x + currentVehicle.width/2 - 2, currentVehicle.y + currentVehicle.height/2 - 2, 4, 4);
+                    }
+                }
+                
+                // Draw mission target
+                if (activeMission && !activeMission.completed) {
+                    ctx.fillStyle = '#FFD700'; // Gold color for mission target
+                    ctx.beginPath();
+                    ctx.arc(activeMission.targetX, activeMission.targetY, 15, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Add mission marker symbol
+                    ctx.fillStyle = '#000000';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('!', activeMission.targetX, activeMission.targetY + 5);
+                    
+                    // Check if player reached the mission target
+                    const distance = Math.sqrt(
+                        Math.pow(player.x - activeMission.targetX, 2) + 
+                        Math.pow(player.y - activeMission.targetY, 2)
+                    );
+                    
+                    if (distance < 30) {
+                        // Mission completed!
+                        activeMission.completed = true;
+                        playerStats.money += activeMission.reward;
+                        playerStats.score += 100;
+                        updateUI();
+                        
+                        // Show completion message
+                        ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                        ctx.fillRect(200, 250, 400, 100);
+                        ctx.fillStyle = '#000000';
+                        ctx.font = '24px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Mission Completed!', 400, 290);
+                        ctx.font = '16px Arial';
+                        ctx.fillText(`+$${activeMission.reward}`, 400, 320);
+                        
+                        // Move to next mission after a delay
+                        setTimeout(() => {
+                            const nextMission = missions.find(m => !m.completed);
+                            if (nextMission) {
+                                activeMission = nextMission;
+                                currentMission = nextMission;
+                                updateUI();
+                            }
+                        }, 2000);
+                    }
+                }
+                
+                // Update and draw NPCs
+                npcs.forEach(npc => {
+                    // Simple AI movement
+                    npc.x += npc.speed * npc.direction;
+                    
+                    // Bounce off walls
+                    if (npc.x <= 0 || npc.x >= canvas.width - npc.width) {
+                        npc.direction *= -1;
+                    }
+                    
+                    // Random direction change
+                    if (Math.random() < 0.01) {
+                        npc.direction *= -1;
+                    }
+                    
+                    // Draw NPC
+                    ctx.fillStyle = npc.color;
+                    ctx.fillRect(npc.x, npc.y, npc.width, npc.height);
+                    
+                    // Draw NPC face
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(npc.x + 3, npc.y + 3, 2, 2); // Left eye
+                    ctx.fillRect(npc.x + npc.width - 5, npc.y + 3, 2, 2); // Right eye
+                    ctx.fillRect(npc.x + 5, npc.y + 8, 5, 1); // Mouth
+                    
+                    // Check if player is near NPC
+                    const distance = Math.sqrt(
+                        Math.pow(player.x - npc.x, 2) + 
+                        Math.pow(player.y - npc.y, 2)
+                    );
+                    
+                    if (distance < 40) {
+                        nearNPC = npc;
+                        // Draw interaction hint
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Press SPACE to talk', npc.x + npc.width/2, npc.y - 10);
+                    }
+                });
+                
+                // Handle NPC interaction
+                if (keys[' '] && nearNPC && !showDialog) {
+                    showDialog = true;
+                    if (dialogTimer) clearTimeout(dialogTimer);
+                    
+                    // Show dialog for 3 seconds
+                    dialogTimer = setTimeout(() => {
+                        showDialog = false;
+                        nearNPC = null;
+                    }, 3000);
+                    
+                    keys[' '] = false; // Prevent repeated triggering
+                    
+                    // Special interactions based on NPC type
+                    if (nearNPC.type === 'shopkeeper') {
+                        playerStats.money -= 50;
+                        updateUI();
+                    }
+                }
+                
+                // Draw dialog
+                if (showDialog && nearNPC) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(nearNPC.x - 50, nearNPC.y - 60, 120, 40);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(nearNPC.dialog, nearNPC.x + 10, nearNPC.y - 35);
+                    
+                    if (nearNPC.type === 'shopkeeper') {
+                        ctx.fillText('-$50', nearNPC.x + 10, nearNPC.y - 20);
+                    }
+                }
+                
+                requestAnimationFrame(gameLoop);
+            }
+        });
+    </script>
+</body>
+</html>
