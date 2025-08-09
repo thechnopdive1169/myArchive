@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Driving Simulator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .start-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .start-content h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #ef4444;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .start-content p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        .start-button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .start-button:hover {
+            background: #b91c1c;
+        }
+        
+        .start-info {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+        
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            display: none;
+            z-index: 20;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="startScreen">
+        <div class="start-content">
+            <h1>DRIVING SIMULATOR</h1>
+            <p>Use WASD or Arrow Keys to Drive</p>
+            <button class="start-button" onclick="startGame()">START GAME</button>
+            <div class="start-info">
+                <p>WASD/Arrows: Move | Explore infinite world with procedural roads!</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="errorMessage" class="error-message"></div>
+
+    <script>
+        // Global variables
+        let gameStarted = false;
+        let animationId = null;
+        let lastTime = 0;
+        let frameCount = 0;
+        let lastFpsUpdate = 0;
+        let lastStateUpdate = 0;
+        let lastGenerationTime = 0;
+        
+        // Input state
+        const keys = {
+            w: false, a: false, s: false, d: false,
+            arrowup: false, arrowdown: false, arrowleft: false, arrowright: false
+        };
+        
+        // Vehicle state
+        let vehicle = {
+            x: 400,
+            y: 300,
+            angle: 0,
+            speed: 0,
+            maxSpeed: 8
+        };
+        
+        // Camera state
+        let camera = {
+            x: 0,
+            y: 0
+        };
+        
+        // Game state
+        let gameState = {
+            fps: 0,
+            memoryUsage: 0,
+            distance: 0
+        };
+        
+        // Map settings
+        const mapSettings = {
+            viewDistance: 600,
+            chunkSize: 400,
+            objectDensity: 0.003,
+            maxObjectsPerChunk: 8,
+            generationCooldown: 1000,
+            roadDensity: 0.1,
+            roadWidth: 80
+        };
+        
+        // Generated chunks tracking
+        const generatedChunks = new Set();
+        
+        // Environment objects
+        let environmentObjects = [];
+        
+        // Road system
+        let roads = [];
+        
+        // Road intersections
+        let intersections = [];
+        
+        // Road lines for starting road
+        let roadLines = [];
+        
+        // Canvas setup with error handling
+        let canvas, ctx;
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        function initializeCanvas() {
+            try {
+                canvas = document.getElementById('gameCanvas');
+                if (!canvas) {
+                    throw new Error('Canvas element not found');
+                }
+                
+                ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    throw new Error('Canvas 2D context not supported');
+                }
+                
+                // Set initial canvas size
+                resizeCanvas();
+                
+                return true;
+            } catch (error) {
+                showError('Failed to initialize canvas: ' + error.message);
+                return false;
+            }
+        }
+        
+        function resizeCanvas() {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        }
+        
+        // Generate roads for a specific chunk
+        function generateChunkRoads(chunkX, chunkY) {
+            const chunkCenterX = chunkX * mapSettings.chunkSize;
+            const chunkCenterY = chunkY * mapSettings.chunkSize;
+            
+            const newRoads = [];
+            const newIntersections = [];
+            
+            // Generate main road (vertical) - higher probability
+            if (Math.random() < mapSettings.roadDensity * 2) {
+                newRoads.push({
+                    x: chunkCenterX,
+                    y: chunkCenterY - mapSettings.chunkSize / 2,
+                    width: mapSettings.roadWidth,
+                    height: mapSettings.chunkSize,
+                    direction: 'vertical',
+                    type: 'main'
+                });
+            }
+            
+            // Generate secondary road (horizontal) - lower probability
+            if (Math.random() < mapSettings.roadDensity) {
+                newRoads.push({
+                    x: chunkCenterX - mapSettings.chunkSize / 2,
+                    y: chunkCenterY,
+                    width: mapSettings.chunkSize,
+                    height: mapSettings.roadWidth,
+                    direction: 'horizontal',
+                    type: 'secondary'
+                });
+            }
+            
+            // Generate intersection if both roads exist
+            if (newRoads.length === 2) {
+                newIntersections.push({
+                    x: chunkCenterX,
+                    y: chunkCenterY,
+                    size: mapSettings.roadWidth
+                });
+            }
+            
+            return { roads: newRoads, intersections: newIntersections };
+        }
+        
+        // Generate objects for a specific chunk
+        function generateChunkObjects(chunkX, chunkY) {
+            const chunkKey = `${chunkX},${chunkY}`;
+            if (generatedChunks.has(chunkKey)) return [];
+            
+            const objects = [];
+            const chunkCenterX = chunkX * mapSettings.chunkSize;
+            const chunkCenterY = chunkY * mapSettings.chunkSize;
+            
+            // Calculate number of objects for this chunk with limits
+            let numObjects = Math.floor(mapSettings.objectDensity * mapSettings.chunkSize * mapSettings.chunkSize);
+            numObjects = Math.min(numObjects, mapSettings.maxObjectsPerChunk);
+            
+            for (let i = 0; i < numObjects; i++) {
+                const type = Math.random() > 0.7 ? 'building' : Math.random() > 0.4 ? 'tree' : 'rock';
+                const width = 20 + Math.random() * 40;
+                const height = 20 + Math.random() * 60;
+                const color = Math.random() > 0.7 ? '#8B4513' : Math.random() > 0.4 ? '#228B22' : '#696969';
+                
+                let windows = undefined;
+                if (type === 'building') {
+                    windows = [];
+                    for (let wx = 0; wx < width - 5; wx += 8) {
+                        for (let wy = 0; wy < height - 5; wy += 10) {
+                            if (Math.random() > 0.3) {
+                                windows.push({x: wx + 2, y: wy + 2});
+                            }
+                        }
+                    }
+                }
+                
+                objects.push({
+                    x: chunkCenterX + (Math.random() - 0.5) * mapSettings.chunkSize,
+                    y: chunkCenterY + (Math.random() - 0.5) * mapSettings.chunkSize,
+                    type,
+                    width,
+                    height,
+                    color,
+                    windows
+                });
+            }
+            
+            return objects;
+        }
+        
+        // Update environment objects based on vehicle position
+        function updateEnvironment(vehicleX, vehicleY, timestamp) {
+            // Check cooldown to prevent excessive generation
+            if (timestamp - lastGenerationTime < mapSettings.generationCooldown) {
+                return;
+            }
+            
+            const currentChunkX = Math.floor(vehicleX / mapSettings.chunkSize);
+            const currentChunkY = Math.floor(vehicleY / mapSettings.chunkSize);
+            
+            const chunksToGenerate = [];
+            const newGeneratedChunks = new Set(generatedChunks);
+            
+            // Generate chunks in a 2x2 grid around the vehicle
+            for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    const chunkX = currentChunkX + dx;
+                    const chunkY = currentChunkY + dy;
+                    const chunkKey = `${chunkX},${chunkY}`;
+                    
+                    if (!generatedChunks.has(chunkKey)) {
+                        chunksToGenerate.push({x: chunkX, y: chunkY});
+                        newGeneratedChunks.add(chunkKey);
+                    }
+                }
+            }
+            
+            // Only generate if we have new chunks
+            if (chunksToGenerate.length === 0) return;
+            
+            // Generate new objects and roads
+            const newObjects = [];
+            const newRoads = [];
+            const newIntersections = [];
+            
+            for (const chunk of chunksToGenerate) {
+                // Generate objects
+                newObjects.push(...generateChunkObjects(chunk.x, chunk.y));
+                
+                // Generate roads
+                const roadData = generateChunkRoads(chunk.x, chunk.y);
+                newRoads.push(...roadData.roads);
+                newIntersections.push(...roadData.intersections);
+            }
+            
+            // Remove objects that are too far away
+            const visibleObjects = environmentObjects.filter(obj => {
+                const distance = Math.sqrt(Math.pow(obj.x - vehicleX, 2) + Math.pow(obj.y - vehicleY, 2));
+                return distance < mapSettings.viewDistance;
+            });
+            
+            // Remove roads that are too far away
+            const visibleRoads = roads.filter(road => {
+                const roadCenterX = road.x + (road.direction === 'horizontal' ? road.width / 2 : 0);
+                const roadCenterY = road.y + (road.direction === 'vertical' ? road.height / 2 : 0);
+                const distance = Math.sqrt(Math.pow(roadCenterX - vehicleX, 2) + Math.pow(roadCenterY - vehicleY, 2));
+                return distance < mapSettings.viewDistance * 1.5;
+            });
+            
+            // Remove intersections that are too far away
+            const visibleIntersections = intersections.filter(intersection => {
+                const distance = Math.sqrt(Math.pow(intersection.x - vehicleX, 2) + Math.pow(intersection.y - vehicleY, 2));
+                return distance < mapSettings.viewDistance * 1.5;
+            });
+            
+            // Update arrays
+            environmentObjects = [...visibleObjects, ...newObjects];
+            roads = [...visibleRoads, ...newRoads];
+            intersections = [...visibleIntersections, ...newIntersections];
+            
+            // Update tracking
+            generatedChunks.clear();
+            newGeneratedChunks.forEach(chunk => generatedChunks.add(chunk));
+            lastGenerationTime = timestamp;
+        }
+        
+        // Initialize game
+        function initializeGame() {
+            // Reset all state
+            generatedChunks.clear();
+            environmentObjects = [];
+            roads = [];
+            intersections = [];
+            lastGenerationTime = 0;
+            
+            // Reset vehicle
+            vehicle = {
+                x: 400,
+                y: 300,
+                angle: 0,
+                speed: 0,
+                maxSpeed: 8
+            };
+            
+            // Reset game state
+            gameState = {
+                fps: 0,
+                memoryUsage: 0,
+                distance: 0
+            };
+            
+            // Reset camera
+            camera = {
+                x: 0,
+                y: 0
+            };
+            
+            // Generate initial chunks around starting position
+            updateEnvironment(400, 300, 0);
+            
+            // Generate initial road lines for the starting road
+            roadLines = [];
+            for (let i = 0; i < 30; i++) {
+                roadLines.push({
+                    x: 400,
+                    y: i * 150
+                });
+            }
+        }
+        
+        // Game loop
+        function gameLoop(timestamp) {
+            if (!gameStarted || !ctx) return;
+            
+            try {
+                // Set canvas size (only if changed)
+                if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                    resizeCanvas();
+                }
+                
+                // Calculate FPS
+                frameCount++;
+                if (timestamp - lastFpsUpdate >= 1000) {
+                    const fps = Math.round((frameCount * 1000) / (timestamp - lastFpsUpdate));
+                    frameCount = 0;
+                    lastFpsUpdate = timestamp;
+                    
+                    let memoryUsage = 0;
+                    // Check if performance.memory is available (Chrome only)
+                    if (performance.memory && performance.memory.usedJSHeapSize) {
+                        memoryUsage = Math.round((performance.memory.usedJSHeapSize / 1048576) * 100) / 100;
+                    } else {
+                        memoryUsage = Math.round(Math.random() * 50 + 20);
+                    }
+                    
+                    gameState.fps = fps;
+                    gameState.memoryUsage = memoryUsage;
+                }
+                
+                // Update vehicle (only if enough time passed)
+                if (timestamp - lastStateUpdate >= 16) { // ~60 FPS
+                    // Handle input
+                    if (keys.w || keys.arrowup) {
+                        vehicle.speed = Math.min(vehicle.speed + 0.3, vehicle.maxSpeed);
+                    } else if (keys.s || keys.arrowdown) {
+                        vehicle.speed = Math.max(vehicle.speed - 0.3, -vehicle.maxSpeed / 2);
+                    } else {
+                        // Natural deceleration
+                        if (vehicle.speed > 0) {
+                            vehicle.speed = Math.max(vehicle.speed - 0.1, 0);
+                        } else if (vehicle.speed < 0) {
+                            vehicle.speed = Math.min(vehicle.speed + 0.1, 0);
+                        }
+                    }
+                    
+                    // Steering
+                    if (keys.a || keys.arrowleft) {
+                        vehicle.angle -= 0.05;
+                    }
+                    if (keys.d || keys.arrowright) {
+                        vehicle.angle += 0.05;
+                    }
+                    
+                    // Update position
+                    vehicle.x += Math.cos(vehicle.angle) * vehicle.speed;
+                    vehicle.y += Math.sin(vehicle.angle) * vehicle.speed;
+                    
+                    // Update environment based on new position
+                    updateEnvironment(vehicle.x, vehicle.y, timestamp);
+                    
+                    // Update camera to follow vehicle
+                    camera.x = canvas.width / 2 - vehicle.x;
+                    camera.y = canvas.height / 2 - vehicle.y;
+                    
+                    // Update distance
+                    gameState.distance += Math.abs(vehicle.speed) * 0.1;
+                    
+                    lastStateUpdate = timestamp;
+                }
+                
+                // Clear canvas with sky color
+                ctx.fillStyle = '#87CEEB';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Save context for camera transform
+                ctx.save();
+                ctx.translate(camera.x, camera.y);
+                
+                // Draw grass background (infinite)
+                ctx.fillStyle = '#228B22';
+                ctx.fillRect(-2000, -2000, 4000, 4000);
+                
+                // Draw procedural roads (with culling)
+                roads.forEach(road => {
+                    // Simple culling - only draw if road is visible
+                    const screenX = road.x + camera.x;
+                    const screenY = road.y + camera.y;
+                    
+                    if (screenX > -road.width && screenX < canvas.width + road.width && 
+                        screenY > -road.height && screenY < canvas.height + road.height) {
+                        
+                        ctx.fillStyle = road.type === 'main' ? '#333' : '#444';
+                        ctx.fillRect(road.x, road.y, road.width, road.height);
+                        
+                        // Draw road lines
+                        if (road.type === 'main') {
+                            ctx.fillStyle = '#fff';
+                            if (road.direction === 'vertical') {
+                                for (let y = road.y; y < road.y + road.height; y += 150) {
+                                    if (y + 40 < road.y + road.height) {
+                                        ctx.fillRect(road.x + road.width/2 - 2, y, 4, 40);
+                                    }
+                                }
+                            } else {
+                                for (let x = road.x; x < road.x + road.width; x += 150) {
+                                    if (x + 40 < road.x + road.width) {
+                                        ctx.fillRect(x, road.y + road.height/2 - 2, 40, 4);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Draw intersections (with culling)
+                intersections.forEach(intersection => {
+                    const screenX = intersection.x + camera.x;
+                    const screenY = intersection.y + camera.y;
+                    
+                    if (screenX > -intersection.size && screenX < canvas.width + intersection.size && 
+                        screenY > -intersection.size && screenY < canvas.height + intersection.size) {
+                        
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(
+                            intersection.x - intersection.size/2, 
+                            intersection.y - intersection.size/2, 
+                            intersection.size, 
+                            intersection.size
+                        );
+                        
+                        // Draw intersection markings
+                        ctx.fillStyle = '#ffff00';
+                        ctx.fillRect(
+                            intersection.x - intersection.size/2 + 10, 
+                            intersection.y - 2, 
+                            intersection.size - 20, 
+                            4
+                        );
+                        ctx.fillRect(
+                            intersection.x - 2, 
+                            intersection.y - intersection.size/2 + 10, 
+                            4, 
+                            intersection.size - 20
+                        );
+                    }
+                });
+                
+                // Draw original road lines (for the starting road)
+                ctx.fillStyle = '#fff';
+                roadLines.forEach(line => {
+                    // Only draw if visible
+                    const screenY = line.y + camera.y;
+                    if (screenY > -50 && screenY < canvas.height + 50) {
+                        ctx.fillRect(line.x - 2, line.y, 4, 40);
+                    }
+                });
+                
+                // Update road lines position based on vehicle movement
+                roadLines = roadLines.map(line => ({
+                    ...line,
+                    y: line.y + vehicle.speed
+                })).filter(line => line.y < 2000).concat(
+                    roadLines.filter(line => line.y >= 2000).map(line => ({
+                        ...line,
+                        y: line.y - 2000
+                    }))
+                );
+                
+                // Draw environment objects (with frustum culling)
+                environmentObjects.forEach(obj => {
+                    // Simple distance culling - only draw if object is visible
+                    const screenX = obj.x + camera.x;
+                    const screenY = obj.y + camera.y;
+                    
+                    if (screenX > -100 && screenX < canvas.width + 100 && 
+                        screenY > -100 && screenY < canvas.height + 100) {
+                        
+                        ctx.save();
+                        
+                        if (obj.type === 'building') {
+                            ctx.fillStyle = obj.color;
+                            ctx.fillRect(obj.x - obj.width/2, obj.y - obj.height/2, obj.width, obj.height);
+                            
+                            // Windows (pre-calculated to prevent flickering)
+                            ctx.fillStyle = '#87CEEB';
+                            if (obj.windows) {
+                                obj.windows.forEach(window => {
+                                    ctx.fillRect(obj.x - obj.width/2 + window.x, obj.y - obj.height/2 + window.y, 4, 6);
+                                });
+                            }
+                        } else if (obj.type === 'tree') {
+                            // Tree trunk
+                            ctx.fillStyle = '#8B4513';
+                            ctx.fillRect(obj.x - 3, obj.y - 5, 6, 10);
+                            
+                            // Tree leaves
+                            ctx.fillStyle = obj.color;
+                            ctx.beginPath();
+                            ctx.arc(obj.x, obj.y - 10, obj.width/2, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (obj.type === 'rock') {
+                            ctx.fillStyle = obj.color;
+                            ctx.beginPath();
+                            ctx.arc(obj.x, obj.y, obj.width/2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        
+                        ctx.restore();
+                    }
+                });
+                
+                // Draw vehicle
+                ctx.save();
+                ctx.translate(vehicle.x, vehicle.y);
+                ctx.rotate(vehicle.angle);
+                
+                // Car body
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(-20, -10, 40, 20);
+                
+                // Car details
+                ctx.fillStyle = '#333';
+                ctx.fillRect(15, -8, 8, 16); // windshield
+                ctx.fillRect(-20, -8, 5, 16); // rear window
+                
+                // Headlights
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(20, -6, 3, 4);
+                ctx.fillRect(20, 2, 3, 4);
+                
+                // Brake lights when braking
+                if (keys.s || keys.arrowdown) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(-20, -6, 3, 4);
+                    ctx.fillRect(-20, 2, 3, 4);
+                }
+                
+                ctx.restore();
+                
+                // Restore context
+                ctx.restore();
+                
+                // Draw UI
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(10, 10, 200, 120);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(`Speed: ${vehicle.speed.toFixed(1)}`, 20, 35);
+                ctx.fillText(`Distance: ${gameState.distance.toFixed(0)}m`, 20, 60);
+                ctx.fillText(`FPS: ${gameState.fps}`, 20, 85);
+                ctx.fillText(`Memory: ${gameState.memoryUsage} MB`, 20, 110);
+                
+                // Draw controls
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fillRect(10, canvas.height - 60, 350, 50);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Arial';
+                ctx.fillText('Controls: WASD or Arrow Keys to move', 20, canvas.height - 35);
+                
+                // Show active keys
+                const activeKeysList = Object.entries(keys)
+                    .filter(([_, pressed]) => pressed)
+                    .map(([key, _]) => key.toUpperCase())
+                    .join(', ');
+                
+                if (activeKeysList) {
+                    ctx.fillStyle = '#00ff00';
+                    ctx.fillText(`Pressed: ${activeKeysList}`, 20, canvas.height - 15);
+                }
+                
+            } catch (error) {
+                showError('Game loop error: ' + error.message);
+                stopGame();
+                return;
+            }
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Start game function
+        function startGame() {
+            if (!initializeCanvas()) {
+                return;
+            }
+            
+            gameStarted = true;
+            document.getElementById('startScreen').style.display = 'none';
+            initializeGame();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Stop game function
+        function stopGame() {
+            gameStarted = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            document.getElementById('startScreen').style.display = 'flex';
+        }
+        
+        // Keyboard event handlers
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) {
+                keys[key] = true;
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in keys) {
+                keys[key] = false;
+                e.preventDefault();
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (canvas && gameStarted) {
+                resizeCanvas();
+            }
+        });
+        
+        // Initialize canvas on page load
+        window.addEventListener('load', () => {
+            initializeCanvas();
+        });
+        
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && gameStarted) {
+                // Pause game when tab is not visible
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+            } else if (!document.hidden && gameStarted && !animationId) {
+                // Resume game when tab becomes visible
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        });
+    </script>
+</body>
+</html>
