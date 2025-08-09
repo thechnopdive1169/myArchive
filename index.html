@@ -225,41 +225,15 @@
   </footer>
 
   <script>
-    const rawData = {
-      "3D Cube Collector .html": {
-        desc: "Collect spinning cubes in a 3D space using mouse controls.",
-        tags: ["3D", "Arcade"],
-        difficulty: "Easy"
-      },
-      "3D Snake Battle Royale .html": {
-        desc: "Multiplayer snake survival with battle royale mechanics.",
-        tags: ["Multiplayer", "Snake"],
-        difficulty: "Medium"
-      },
-      "CYBERPUNK CITY .html": {
-        desc: "Walk through a glowing futuristic cyber city in third person.",
-        tags: ["Open-World", "Sci-Fi"],
-        difficulty: "Medium"
-      },
-      "Dominion of Otherworldly Monsters .html": {
-        desc: "Defend Earth from cosmic creatures in a fast-paced shooter.",
-        tags: ["Shooter", "Monsters"],
-        difficulty: "Hard"
-      },
-      "POLICE PURSUIT .html": {
-        desc: "Evade the police in a retro-style chase simulator.",
-        tags: ["Driving", "Chase"],
-        difficulty: "Easy"
-      }
-    };
+let allProjects = [];
+let filteredProjects = [];
 
-    // Normalize projects to array:
-    let allProjects = Object.entries(rawData).map(([filename, meta]) => {
+fetch('./projects.json')
+  .then(res => res.json())
+  .then(data => {
+    allProjects = Object.entries(data).map(([filename, meta]) => {
       const name = filename.replace(/\.html$/i, "").trim();
-      // Find corresponding thumbnail filename (same name + ".jpg") carefully:
-      // Spaces and casing as in your example, so:
       const thumbnailFileName = name + ".jpg";
-
       return {
         file: filename.trim(),
         name,
@@ -269,6 +243,13 @@
         thumbnail: `./thumbnails/${thumbnailFileName}`
       };
     });
+    allProjects.sort((a, b) => a.name.localeCompare(b.name));
+    filteredProjects = [...allProjects];
+    renderProjects();
+  })
+  .catch(err => {
+    document.getElementById("projects").innerHTML = `<p>Error loading projects: ${err}</p>`;
+  });
 
     allProjects.sort((a, b) => a.name.localeCompare(b.name));
 
