@@ -17,10 +17,12 @@ jobs:
           done
           sed -i '$ s/,$//' projects.json
           echo '}' >> projects.json
-      - name: Commit changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add projects.json
-          git commit -m "Auto-update projects.json" || echo "No changes"
-          git push
+        - name: Commit changes
+          run: |
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add projects.json
+            git commit -m "Auto-update projects.json" || echo "No changes to commit"
+            git push
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
