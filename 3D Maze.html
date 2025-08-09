@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Maze Game (Polished)</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #winMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 48px;
+            font-family: Arial, sans-serif;
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="winMessage">🎉 You Win! 🎉</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // Sky blue
+        scene.fog = new THREE.Fog(0x87CEEB, 1, 15); // Fog for depth
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true; // Shadows
+        document.body.appendChild(renderer.domElement);
+
+        // Improved lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 5);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // Player state
+        let playerPos = new THREE.Vector3(1, 0.5, 1); // Start in open path
+        let playerAngle = 0;
+        const playerSpeed = 0.05; // Slower movement
+
+        // Maze layout
+        const maze = [
+            [1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1]
+        ];
+        const goalPos = new THREE.Vector3(3, 0.5, 3);
+
+        // Create walls (with textures)
+        const wallGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const wallMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0xaaaaaa,
+            map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/brick_diffuse.jpg')
+        });
+        const walls = [];
+
+        for (let i = 0; i < maze.length; i++) {
+            for (let j = 0; j < maze[i].length; j++) {
+                if (maze[i][j] === 1) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(i, 0.5, j);
+                    wall.castShadow = true;
+                    wall.receiveShadow = true;
+                    scene.add(wall);
+                    walls.push(wall);
+                }
+            }
+        }
+
+        // Floor (with texture)
+        const floorGeometry = new THREE.PlaneGeometry(10, 10);
+        const floorMaterial = new THREE.MeshLambertMaterial({ 
+            color: 0x888888,
+            map: new THREE.TextureLoader().load('https://threejs.org/examples/textures/grass.jpg')
+        });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Goal (glowing green sphere)
+        const goalGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const goalMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0x00ff00,
+            emissive: 0x00ff00,
+            emissiveIntensity: 0.5
+        });
+        const goal = new THREE.Mesh(goalGeometry, goalMaterial);
+        goal.position.copy(goalPos);
+        scene.add(goal);
+
+        // Camera initial position
+        camera.position.copy(playerPos);
+
+        // Collision detection (re-enabled)
+        function checkCollision(newPos) {
+            const gridX = Math.round(newPos.x);
+            const gridZ = Math.round(newPos.z);
+            if (gridX >= 0 && gridX < maze.length && gridZ >= 0 && gridZ < maze[0].length) {
+                return maze[gridX][gridZ] === 1;
+            }
+            return true; // Out of bounds = wall
+        }
+
+        // Keyboard controls
+        const keys = {};
+        document.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+        document.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+
+        // Game loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Move player (fixed W/S reversal)
+            const moveVector = new THREE.Vector3(
+                Math.sin(playerAngle) * playerSpeed,
+                0,
+                Math.cos(playerAngle) * playerSpeed
+            );
+
+            if (keys['w'] || keys['arrowup']) {
+                const newPos = playerPos.clone().sub(moveVector); // Fixed: W = forward
+                if (!checkCollision(newPos)) playerPos.copy(newPos);
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                const newPos = playerPos.clone().add(moveVector); // Fixed: S = backward
+                if (!checkCollision(newPos)) playerPos.copy(newPos);
+            }
+            if (keys['a'] || keys['arrowleft']) {
+                playerAngle += 0.05;
+                camera.rotation.y = playerAngle;
+            }
+            if (keys['d'] || keys['arrowright']) {
+                playerAngle -= 0.05;
+                camera.rotation.y = playerAngle;
+            }
+
+            // Update camera position
+            camera.position.copy(playerPos);
+
+            // Check win condition
+            if (playerPos.distanceTo(goalPos) < 0.5) {
+                document.getElementById('winMessage').style.display = 'block';
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
