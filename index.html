@@ -225,33 +225,11 @@
   </footer>
 
   <script>
-  let allProjects = [];
-  let filteredProjects = [];
-  
-  fetch('./projects.json')
-    .then(res => res.json())
-    .then(data => {
-      allProjects = Object.entries(data).map(([filename, meta]) => {
-        const name = filename.replace(/\.html$/i, "").trim();
-        const thumbnailFileName = name + ".jpg";
-        return {
-          file: filename.trim(),
-          name,
-          desc: meta.desc || "No description.",
-          tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
-          difficulty: meta.difficulty || "",
-          thumbnail: `./thumbnails/${thumbnailFileName}`
-        };
-      });
-      allProjects.sort((a, b) => a.name.localeCompare(b.name));
-      
-      renderProjects();
-    })
-    .catch(err => {
-      document.getElementById("projects").innerHTML = `<p>Error loading projects: ${err}</p>`;
-    });
-
-    allProjects.sort((a, b) => a.name.localeCompare(b.name));
+    let allProjects = [];
+    let filteredProjects = [];
+    let currentPage = 1;
+    const projectsPerPage = 10;
+    let currentView = "grid";
 
     const projectsContainer = document.getElementById("projects");
     const searchInput = document.getElementById("searchInput");
@@ -263,10 +241,32 @@
     const nextPageBtn = document.getElementById("nextPage");
     const pageInfo = document.getElementById("pageInfo");
 
-    let filteredProjects = [...allProjects];
-    let currentPage = 1;
-    const projectsPerPage = 10;
-    let currentView = "grid";
+    fetch('./projects.json')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        allProjects = Object.entries(data).map(([filename, meta]) => {
+          const name = filename.replace(/\.html$/i, "").trim();
+          const thumbnailFileName = name + ".jpg";
+          return {
+            file: filename.trim(),
+            name,
+            desc: meta.desc || "No description.",
+            tags: meta.tags ? meta.tags.map(t => t.toLowerCase()) : [],
+            difficulty: meta.difficulty || "",
+            thumbnail: `./thumbnails/${thumbnailFileName}`
+          };
+        });
+        allProjects.sort((a, b) => a.name.localeCompare(b.name));
+        filteredProjects = [...allProjects];
+        renderProjects();
+      })
+      .catch(err => {
+        projectsContainer.innerHTML = `<p style="color: red;">Error loading projects: ${err.message}</p>`;
+        pagination.style.display = "none";
+      });
 
     function renderProjects() {
       projectsContainer.innerHTML = "";
@@ -339,6 +339,7 @@
         renderProjects();
       }
     });
+
     btnList.addEventListener("click", () => {
       if (currentView !== "list") {
         currentView = "list";
@@ -355,6 +356,7 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
+
     nextPageBtn.addEventListener("click", () => {
       const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
       if (currentPage < totalPages) {
@@ -370,8 +372,6 @@
       const next = current === "light" ? "dark" : "light";
       body.setAttribute("data-theme", next);
     }
-
-    renderProjects();
   </script>
 </body>
 </html>
