@@ -1,19 +1,36 @@
 {
-  "casino-table-game.html": {"desc": "","tags": [],"difficulty": ""},
-  "5CardDraw.html": {"desc": "","tags": [],"difficulty": ""},
-  "Three js test.html": {"desc": "","tags": [],"difficulty": ""},
-  "3D Snake Battle Royale.html": {"desc": "","tags": [],"difficulty": ""},
-  "Procedural Driving.html": {"desc": "","tags": [],"difficulty": ""},
-  "POLICE PURSUIT.html": {"desc": "","tags": [],"difficulty": ""},
-  "maze-game.html": {"desc": "","tags": [],"difficulty": ""},
-  "classic-city.html": {"desc": "","tags": [],"difficulty": ""},
-  "Educational Poker.html": {"desc": "","tags": [],"difficulty": ""},
-  "NEON RUSH.html": {"desc": "","tags": [],"difficulty": ""},
-  "CYBERPUNK CITY.html": {"desc": "","tags": [],"difficulty": ""},
-  "Driving unlimited.html": {"desc": "","tags": [],"difficulty": ""},
-  "Procedurally Generated 2D Driving.html": {"desc": "","tags": [],"difficulty": ""},
-  "Dominion of Otherworldly Monsters.html": {"desc": "","tags": [],"difficulty": ""},
-  "index.html": {"desc": "","tags": [],"difficulty": ""},
-  "3D Cube Collector.html": {"desc": "","tags": [],"difficulty": ""},
-  "Infinite Labyrinth.html": {"desc": "","tags": [],"difficulty": ""}
+  "casino-table-game.html": {"title": "Coin Flip Casino Table", "desc": "", "tags": []}
+,
+  "5CardDraw.html": {"title": "پوکر 5-Card Draw — نسخه آموزشی", "desc": "", "tags": []}
+,
+  "Three js test.html": {"title": "Simple Game Test", "desc": "", "tags": []}
+,
+  "3D Snake Battle Royale.html": {"title": "3D Snake Battle Royale", "desc": "", "tags": []}
+,
+  "Procedural Driving.html": {"title": "Procedural 2D Driving Simulator", "desc": "", "tags": []}
+,
+  "POLICE PURSUIT.html": {"title": "Speed Racer - Police Pursuit", "desc": "", "tags": []}
+,
+  "maze-game.html": {"title": "2D Maze Game", "desc": "", "tags": []}
+,
+  "classic-city.html": {"title": "Classic City Game", "desc": "", "tags": []}
+,
+  "Educational Poker.html": {"title": "Educational Poker", "desc": "", "tags": []}
+,
+  "NEON RUSH.html": {"title": "Neon Rush - Cyber Racing", "desc": "", "tags": []}
+,
+  "CYBERPUNK CITY.html": {"title": "Cyberpunk City - Debug Mode", "desc": "", "tags": []}
+,
+  "Driving unlimited.html": {"title": "2D Driving Simulator", "desc": "", "tags": []}
+,
+  "Procedurally Generated 2D Driving.html": {"title": "Procedurally Generated 2D Driving Simulator", "desc": "", "tags": []}
+,
+  "Dominion of Otherworldly Monsters.html": {"title": "HTML5 DOOM", "desc": "", "tags": []}
+,
+  "index.html": {"title": "TechnopDive Projects", "desc": "", "tags": []}
+,
+  "3D Cube Collector.html": {"title": "3D Cube Collector", "desc": "", "tags": []}
+,
+  "Infinite Labyrinth.html": {"title": "Neon Maze Runner", "desc": "", "tags": []}
+
 }
