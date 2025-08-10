@@ -29,7 +29,7 @@
 ,
   "index.html": {"title": "TechnopDive Projects", "desc": "TechnopDive's archive of HTML5 games and projects.", "tags": ["html5","games","projects"]}
 ,
-  "3D Cube Collector.html": {"title": "3D Cube Collector", "desc": "", "tags": []}
+  "3D Cube Collector.html": {"title": "3D Cube Collector", "desc": "Collect cubes in a 3D arena while avoiding obstacles and racing against time.", "tags": ["3d","arcade","cube"]}
 ,
   "Infinite Labyrinth.html": {"title": "Neon Maze Runner", "desc": "Escape an endless neon maze while avoiding traps and enemies.", "tags": ["maze","neon","puzzle"]}
 
