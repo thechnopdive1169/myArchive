@@ -249,7 +249,7 @@
     let allProjects = [];
     let filteredProjects = [];
     let currentPage = 1;
-    const projectsPerPage = 10;
+    const projectsPerPage = 20;
     let currentView = "grid";
 
     const projectsContainer = document.getElementById("projects");
@@ -318,7 +318,7 @@
         const card = document.createElement("div");
         card.className = "project-card";
         card.innerHTML = `
-          <img src="${project.thumbnail}" alt="${project.name} Thumbnail" loading="lazy" onerror="this.onerror=null;this.src='https://via.placeholder.com/400x160?text=No+Image';" />
+          <img src="${project.thumbnail}" alt="${project.name} Thumbnail" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/600x400/EEE/31343C';" />
           <div style="flex:1; display:flex; flex-direction: column;">
             <h3>${project.name}</h3>
             <p>${project.desc}</p>
