@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Maze Runner</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 40px rgba(138, 43, 226, 0.3),
+                        inset 0 0 20px rgba(138, 43, 226, 0.1);
+            max-width: 900px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5, #00d2ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 3s linear infinite;
+        }
+        
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .game-info div {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.2), rgba(30, 30, 60, 0.8));
+            padding: 12px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .game-info span {
+            font-weight: 700;
+            color: #00d2ff;
+        }
+        
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #3a7bd5;
+            border-radius: 15px;
+            display: block;
+            margin: 0 auto;
+            background: #0a0a15;
+            box-shadow: 0 0 30px rgba(58, 123, 213, 0.5),
+                        inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            gap: 15px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .instructions {
+            text-align: center;
+            margin-top: 25px;
+            background: rgba(30, 30, 60, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #00d2ff;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(20, 20, 40, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+        
+        .debug-panel {
+            margin-top: 20px;
+            background: rgba(10, 10, 20, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            color: #0f0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9), rgba(118, 75, 162, 0.9));
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .notification.show {
+            opacity: 1;
+        }
+        
+        .power-up-indicator {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 215, 0, 0.9);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+            text-transform: uppercase;
+        }
+        
+        .power-up-indicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Neon Maze Runner</h1>
+            <p>Navigate the labyrinth, collect gems, avoid enemies!</p>
+        </div>
+        
+        <div class="game-info">
+            <div>
+                <span class="icon">🏁</span> Level: <span id="level">1</span>
+            </div>
+            <div>
+                <span class="icon">💎</span> Gems: <span id="gems">0</span>/<span id="totalGems">0</span>
+            </div>
+            <div>
+                <span class="icon">❤️</span> Health: <span id="health">100</span>
+            </div>
+            <div>
+                <span class="icon">⚡</span> Power: <span id="power">0</span>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            <button id="newMazeBtn">New Maze</button>
+            <button id="resetBtn">Reset Game</button>
+            <button id="debugBtn">Toggle Debug</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to Play</h3>
+            <p>Use Arrow Keys or WASD to move through the maze</p>
+            <p>Collect all gems to unlock the exit portal</p>
+            <p>Avoid enemies or lose health points</p>
+            <p>Collect power-ups for special abilities</p>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00ff88;"></div>
+                    <span>Player</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffcc00;"></div>
+                    <span>Gems</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff3366;"></div>
+                    <span>Enemies</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #cc66ff;"></div>
+                    <span>Exit Portal</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00ccff;"></div>
+                    <span>Start Position</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff9900;"></div>
+                    <span>Power-ups</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="debug-panel" id="debugPanel" style="display: none;">
+            <h4>Debug Information</h4>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    <div class="power-up-indicator" id="powerUpIndicator">SPEED BOOST!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game setup
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const notification = document.getElementById('notification');
+            const powerUpIndicator = document.getElementById('powerUpIndicator');
+            
+            // Show notification function
+            function showNotification(message, duration = 2000) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, duration);
+            }
+            
+            // Show power-up indicator
+            function showPowerUpIndicator(message, duration = 3000) {
+                powerUpIndicator.textContent = message;
+                powerUpIndicator.classList.add('show');
+                setTimeout(() => {
+                    powerUpIndicator.classList.remove('show');
+                }, duration);
+            }
+            
+            // Game state
+            const gameState = {
+                level: 1,
+                collectedGems: 0,
+                totalGems: 0,
+                health: 100,
+                power: 0,
+                powerUpActive: false,
+                powerUpTimer: 0,
+                gameRunning: true,
+                debug: false,
+                player: {
+                    x: 1.5,
+                    y: 1.5,
+                    size: 18,
+                    speed: 0.15,
+                    baseSpeed: 0.15,
+                    color: '#00ff88'
+                },
+                start: {
+                    x: 1,
+                    y: 1,
+                    size: 20,
+                    color: '#00ccff'
+                },
+                exit: {
+                    x: 0,
+                    y: 0,
+                    size: 25,
+                    color: '#cc66ff',
+                    active: false
+                },
+                enemies: [],
+                gems: [],
+                powerUps: [],
+                particles: [],
+                maze: [],
+                cellSize: 40,
+                cols: 0,
+                rows: 0,
+                keys: {
+                    up: false,
+                    down: false,
+                    left: false,
+                    right: false
+                }
+            };
+            
+            // Debug log function
+            function debugLog(message) {
+                if (gameState.debug) {
+                    const debugInfo = document.getElementById('debugInfo');
+                    const timestamp = new Date().toLocaleTimeString();
+                    debugInfo.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+                    debugInfo.scrollTop = debugInfo.scrollHeight;
+                }
+            }
+            
+            // Particle class
+            class Particle {
+                constructor(x, y, color, velocity, size, lifetime) {
+                    this.x = x;
+                    this.y = y;
+                    this.color = color;
+                    this.velocity = velocity;
+                    this.size = size;
+                    this.lifetime = lifetime;
+                    this.age = 0;
+                }
+                
+                update() {
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    this.age++;
+                    return this.age < this.lifetime;
+                }
+                
+                draw(ctx) {
+                    const alpha = 1 - (this.age / this.lifetime);
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+            
+            // Create particle explosion
+            function createParticleExplosion(x, y, color, count = 20) {
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count;
+                    const speed = 1 + Math.random() * 2;
+                    const velocity = {
+                        x: Math.cos(angle) * speed,
+                        y: Math.sin(angle) * speed
+                    };
+                    const size = 2 + Math.random() * 3;
+                    const lifetime = 20 + Math.random() * 20;
+                    gameState.particles.push(new Particle(x, y, color, velocity, size, lifetime));
+                }
+            }
+            
+            // Initialize game
+            function initGame() {
+                try {
+                    debugLog(`Initializing game for level ${gameState.level}`);
+                    
+                    // Calculate grid dimensions
+                    gameState.cols = Math.floor(canvas.width / gameState.cellSize);
+                    gameState.rows = Math.floor(canvas.height / gameState.cellSize);
+                    
+                    // Generate maze
+                    generateMaze();
+                    
+                    // Place player at start
+                    gameState.player.x = 1.5;
+                    gameState.player.y = 1.5;
+                    gameState.start.x = 1;
+                    gameState.start.y = 1;
+                    
+                    // Place exit at bottom right
+                    gameState.exit.x = gameState.cols - 2;
+                    gameState.exit.y = gameState.rows - 2;
+                    gameState.exit.active = false;
+                    
+                    // Clear existing enemies, gems, and power-ups
+                    gameState.enemies = [];
+                    gameState.gems = [];
+                    gameState.powerUps = [];
+                    gameState.particles = [];
+                    gameState.collectedGems = 0;
+                    gameState.power = 0;
+                    gameState.powerUpActive = false;
+                    gameState.powerUpTimer = 0;
+                    
+                    // Place gems - ensure at least 3 gems
+                    const gemCount = Math.max(3, 3 + Math.floor(gameState.level / 2));
+                    gameState.totalGems = gemCount;
+                    debugLog(`Placing ${gemCount} gems`);
+                    for (let i = 0; i < gemCount; i++) {
+                        placeGem();
+                    }
+                    
+                    // If no gems were placed, force place some
+                    if (gameState.gems.length === 0) {
+                        debugLog("No gems placed! Force placing gems...");
+                        forcePlaceGems(3);
+                    }
+                    
+                    // Place enemies
+                    const enemyCount = Math.min(gameState.level, 5);
+                    debugLog(`Placing ${enemyCount} enemies`);
+                    for (let i = 0; i < enemyCount; i++) {
+                        placeEnemy();
+                    }
+                    
+                    // Place power-ups
+                    const powerUpCount = Math.floor(gameState.level / 3) + 1;
+                    debugLog(`Placing ${powerUpCount} power-ups`);
+                    for (let i = 0; i < powerUpCount; i++) {
+                        placePowerUp();
+                    }
+                    
+                    // Update UI
+                    updateUI();
+                    debugLog("Game initialized successfully");
+                    debugLog(`Total gems placed: ${gameState.gems.length}`);
+                    debugLog(`Total enemies placed: ${gameState.enemies.length}`);
+                    debugLog(`Total power-ups placed: ${gameState.powerUps.length}`);
+                    debugLog(`Exit position: (${gameState.exit.x}, ${gameState.exit.y})`);
+                    
+                    // Show gem count notification
+                    showNotification(`Find ${gameState.gems.length} gems!`, 3000);
+                } catch (error) {
+                    debugLog(`Error in initGame: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Force place gems at specific positions
+            function forcePlaceGems(count) {
+                const positions = [
+                    {x: 3, y: 3},
+                    {x: gameState.cols - 4, y: 3},
+                    {x: Math.floor(gameState.cols / 2), y: Math.floor(gameState.rows / 2)},
+                    {x: 3, y: gameState.rows - 4},
+                    {x: gameState.cols - 4, y: gameState.rows - 4}
+                ];
+                
+                for (let i = 0; i < Math.min(count, positions.length); i++) {
+                    const pos = positions[i];
+                    if (gameState.maze[pos.y][pos.x] === 0) {
+                        gameState.gems.push({
+                            x: pos.x + 0.5,
+                            y: pos.y + 0.5,
+                            size: 16,
+                            color: '#ffcc00',
+                            collected: false,
+                            rotation: 0
+                        });
+                        debugLog(`Force placed gem at (${pos.x}, ${pos.y})`);
+                    }
+                }
+            }
+            
+            // Generate maze using recursive backtracking
+            function generateMaze() {
+                try {
+                    debugLog("Generating maze");
+                    
+                    // Initialize maze grid (all walls)
+                    gameState.maze = [];
+                    for (let y = 0; y < gameState.rows; y++) {
+                        const row = [];
+                        for (let x = 0; x < gameState.cols; x++) {
+                            row.push(1); // 1 = wall, 0 = path
+                        }
+                        gameState.maze.push(row);
+                    }
+                    
+                    // Recursive backtracking algorithm
+                    const stack = [];
+                    const startX = 1;
+                    const startY = 1;
+                    
+                    gameState.maze[startY][startX] = 0;
+                    stack.push([startX, startY]);
+                    
+                    const directions = [
+                        [0, -2], // Up
+                        [2, 0],  // Right
+                        [0, 2],  // Down
+                        [-2, 0]  // Left
+                    ];
+                    
+                    while (stack.length > 0) {
+                        const [x, y] = stack[stack.length - 1];
+                        
+                        // Get unvisited neighbors
+                        const neighbors = [];
+                        for (const [dx, dy] of directions) {
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            
+                            if (nx > 0 && nx < gameState.cols - 1 && 
+                                ny > 0 && ny < gameState.rows - 1 && 
+                                gameState.maze[ny][nx] === 1) {
+                                neighbors.push([nx, ny, dx, dy]);
+                            }
+                        }
+                        
+                        if (neighbors.length > 0) {
+                            // Choose random neighbor
+                            const [nx, ny, dx, dy] = neighbors[Math.floor(Math.random() * neighbors.length)];
+                            
+                            // Carve path
+                            gameState.maze[ny][nx] = 0;
+                            gameState.maze[y + dy / 2][x + dx / 2] = 0;
+                            
+                            stack.push([nx, ny]);
+                        } else {
+                            stack.pop();
+                        }
+                    }
+                    
+                    // Ensure exit is accessible
+                    gameState.maze[gameState.exit.y][gameState.exit.x] = 0;
+                    debugLog("Maze generated successfully");
+                } catch (error) {
+                    debugLog(`Error in generateMaze: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Place gem at random location
+            function placeGem() {
+                try {
+                    let x, y;
+                    let attempts = 0;
+                    
+                    do {
+                        x = Math.floor(Math.random() * (gameState.cols - 2)) + 1;
+                        y = Math.floor(Math.random() * (gameState.rows - 2)) + 1;
+                        attempts++;
+                    } while (
+                        gameState.maze[y][x] === 1 || 
+                        (x === gameState.start.x && y === gameState.start.y) ||
+                        (x === gameState.exit.x && y === gameState.exit.y) ||
+                        gameState.gems.some(gem => Math.floor(gem.x) === x && Math.floor(gem.y) === y) ||
+                        attempts < 100
+                    );
+                    
+                    if (attempts < 100) {
+                        gameState.gems.push({
+                            x: x + 0.5,
+                            y: y + 0.5,
+                            size: 16,
+                            color: '#ffcc00',
+                            collected: false,
+                            rotation: 0
+                        });
+                        debugLog(`Gem placed at (${x}, ${y})`);
+                    } else {
+                        debugLog("Failed to place gem after 100 attempts");
+                    }
+                } catch (error) {
+                    debugLog(`Error in placeGem: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Place enemy at random location
+            function placeEnemy() {
+                try {
+                    let x, y;
+                    let attempts = 0;
+                    
+                    do {
+                        x = Math.floor(Math.random() * (gameState.cols - 2)) + 1;
+                        y = Math.floor(Math.random() * (gameState.rows - 2)) + 1;
+                        attempts++;
+                    } while (
+                        gameState.maze[y][x] === 1 || 
+                        (x === gameState.start.x && y === gameState.start.y) ||
+                        (x === gameState.exit.x && y === gameState.exit.y) ||
+                        gameState.enemies.some(enemy => Math.floor(enemy.x) === x && Math.floor(enemy.y) === y) ||
+                        attempts < 100
+                    );
+                    
+                    if (attempts < 100) {
+                        gameState.enemies.push({
+                            x: x + 0.5,
+                            y: y + 0.5,
+                            size: 20,
+                            color: '#ff3366',
+                            speed: 0.03 + Math.random() * 0.02,
+                            direction: Math.floor(Math.random() * 4), // 0: up, 1: right, 2: down, 3: left
+                            pulsePhase: Math.random() * Math.PI * 2
+                        });
+                        debugLog(`Enemy placed at (${x}, ${y})`);
+                    } else {
+                        debugLog("Failed to place enemy after 100 attempts");
+                    }
+                } catch (error) {
+                    debugLog(`Error in placeEnemy: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Place power-up at random location
+            function placePowerUp() {
+                try {
+                    let x, y;
+                    let attempts = 0;
+                    
+                    do {
+                        x = Math.floor(Math.random() * (gameState.cols - 2)) + 1;
+                        y = Math.floor(Math.random() * (gameState.rows - 2)) + 1;
+                        attempts++;
+                    } while (
+                        gameState.maze[y][x] === 1 || 
+                        (x === gameState.start.x && y === gameState.start.y) ||
+                        (x === gameState.exit.x && y === gameState.exit.y) ||
+                        gameState.powerUps.some(powerUp => Math.floor(powerUp.x) === x && Math.floor(powerUp.y) === y) ||
+                        attempts < 100
+                    );
+                    
+                    if (attempts < 100) {
+                        gameState.powerUps.push({
+                            x: x + 0.5,
+                            y: y + 0.5,
+                            size: 18,
+                            color: '#ff9900',
+                            collected: false,
+                            type: 'speed',
+                            rotation: 0
+                        });
+                        debugLog(`Power-up placed at (${x}, ${y})`);
+                    } else {
+                        debugLog("Failed to place power-up after 100 attempts");
+                    }
+                } catch (error) {
+                    debugLog(`Error in placePowerUp: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Check if a position is valid (not a wall)
+            function isValidPosition(x, y) {
+                const gridX = Math.floor(x);
+                const gridY = Math.floor(y);
+                
+                if (gridX < 0 || gridX >= gameState.cols || 
+                    gridY < 0 || gridY >= gameState.rows) {
+                    return false;
+                }
+                
+                return gameState.maze[gridY][gridX] === 0;
+            }
+            
+            // Update game state
+            function update() {
+                if (!gameState.gameRunning) return;
+                
+                try {
+                    // Update power-up timer
+                    if (gameState.powerUpActive) {
+                        gameState.powerUpTimer--;
+                        if (gameState.powerUpTimer <= 0) {
+                            gameState.powerUpActive = false;
+                            gameState.player.speed = gameState.player.baseSpeed;
+                            debugLog("Power-up expired");
+                        }
+                    }
+                    
+                    // Move player based on key states
+                    let dx = 0, dy = 0;
+                    if (gameState.keys.up) dy -= 1;
+                    if (gameState.keys.down) dy += 1;
+                    if (gameState.keys.left) dx -= 1;
+                    if (gameState.keys.right) dx += 1;
+                    
+                    // Normalize diagonal movement
+                    if (dx !== 0 && dy !== 0) {
+                        dx *= 0.707; // 1/sqrt(2)
+                        dy *= 0.707;
+                    }
+                    
+                    // Calculate next position
+                    const nextX = gameState.player.x + dx * gameState.player.speed;
+                    const nextY = gameState.player.y + dy * gameState.player.speed;
+                    
+                    // Check if next position is valid
+                    if (isValidPosition(nextX, nextY)) {
+                        gameState.player.x = nextX;
+                        gameState.player.y = nextY;
+                    }
+                    
+                    // Move enemies
+                    gameState.enemies.forEach(enemy => {
+                        // Update pulse phase
+                        enemy.pulsePhase += 0.1;
+                        
+                        // Simple AI: move in current direction until hitting a wall, then turn
+                        let dx = 0, dy = 0;
+                        
+                        switch (enemy.direction) {
+                            case 0: dy = -1; break; // Up
+                            case 1: dx = 1; break;  // Right
+                            case 2: dy = 1; break;  // Down
+                            case 3: dx = -1; break; // Left
+                        }
+                        
+                        const nextX = enemy.x + dx * enemy.speed;
+                        const nextY = enemy.y + dy * enemy.speed;
+                        
+                        // Check if next position is valid
+                        if (isValidPosition(nextX, nextY)) {
+                            enemy.x = nextX;
+                            enemy.y = nextY;
+                        } else {
+                            // Change direction
+                            enemy.direction = Math.floor(Math.random() * 4);
+                            debugLog(`Enemy at (${Math.floor(enemy.x)}, ${Math.floor(enemy.y)}) changed direction to ${enemy.direction}`);
+                        }
+                        
+                        // Check collision with player
+                        const dist = Math.sqrt(
+                            Math.pow(enemy.x - gameState.player.x, 2) + 
+                            Math.pow(enemy.y - gameState.player.y, 2)
+                        );
+                        
+                        if (dist < (enemy.size + gameState.player.size) / gameState.cellSize) {
+                            if (!gameState.powerUpActive) {
+                                gameState.health -= 10;
+                                updateUI();
+                                debugLog(`Player hit by enemy! Health: ${gameState.health}`);
+                                showNotification("Ouch! -10 Health");
+                                
+                                // Create red particles for damage
+                                createParticleExplosion(
+                                    gameState.player.x * gameState.cellSize,
+                                    gameState.player.y * gameState.cellSize,
+                                    '#ff3366',
+                                    10
+                                );
+                                
+                                if (gameState.health <= 0) {
+                                    gameOver();
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Check gem collection
+                    gameState.gems.forEach(gem => {
+                        if (!gem.collected) {
+                            // Update gem rotation
+                            gem.rotation += 0.05;
+                            
+                            const dist = Math.sqrt(
+                                Math.pow(gem.x - gameState.player.x, 2) + 
+                                Math.pow(gem.y - gameState.player.y, 2)
+                            );
+                            
+                            if (dist < (gem.size + gameState.player.size) / gameState.cellSize) {
+                                gem.collected = true;
+                                gameState.collectedGems++;
+                                gameState.power += 10;
+                                updateUI();
+                                debugLog(`Gem collected! Total: ${gameState.collectedGems}/${gameState.totalGems}`);
+                                showNotification("Gem collected!");
+                                
+                                // Create yellow particles for gem collection
+                                createParticleExplosion(
+                                    gem.x * gameState.cellSize,
+                                    gem.y * gameState.cellSize,
+                                    '#ffcc00',
+                                    15
+                                );
+                                
+                                // Check if all gems collected
+                                if (gameState.collectedGems === gameState.totalGems) {
+                                    gameState.exit.active = true;
+                                    showNotification("Exit portal activated! Reach it to win!");
+                                    debugLog("Exit portal activated!");
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Check power-up collection
+                    gameState.powerUps.forEach(powerUp => {
+                        if (!powerUp.collected) {
+                            // Update power-up rotation
+                            powerUp.rotation += 0.03;
+                            
+                            const dist = Math.sqrt(
+                                Math.pow(powerUp.x - gameState.player.x, 2) + 
+                                Math.pow(powerUp.y - gameState.player.y, 2)
+                            );
+                            
+                            if (dist < (powerUp.size + gameState.player.size) / gameState.cellSize) {
+                                powerUp.collected = true;
+                                updateUI();
+                                debugLog(`Power-up collected! Type: ${powerUp.type}`);
+                                
+                                // Create orange particles for power-up collection
+                                createParticleExplosion(
+                                    powerUp.x * gameState.cellSize,
+                                    powerUp.y * gameState.cellSize,
+                                    '#ff9900',
+                                    20
+                                );
+                                
+                                // Apply power-up effect
+                                if (powerUp.type === 'speed') {
+                                    gameState.powerUpActive = true;
+                                    gameState.powerUpTimer = 300; // 5 seconds at 60fps
+                                    gameState.player.speed = gameState.player.baseSpeed * 2;
+                                    showPowerUpIndicator("SPEED BOOST!");
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Check if player reached exit
+                    if (gameState.exit.active) {
+                        const dist = Math.sqrt(
+                            Math.pow(gameState.exit.x + 0.5 - gameState.player.x, 2) + 
+                            Math.pow(gameState.exit.y + 0.5 - gameState.player.y, 2)
+                        );
+                        
+                        if (dist < (gameState.exit.size + gameState.player.size) / gameState.cellSize) {
+                            debugLog("Player reached exit! Advancing to next level.");
+                            nextLevel();
+                        }
+                    }
+                    
+                    // Update particles
+                    gameState.particles = gameState.particles.filter(particle => particle.update());
+                } catch (error) {
+                    debugLog(`Error in update: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Render game
+            function render() {
+                try {
+                    // Clear canvas
+                    ctx.fillStyle = '#0a0a15';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw maze
+                    for (let y = 0; y < gameState.rows; y++) {
+                        for (let x = 0; x < gameState.cols; x++) {
+                            if (gameState.maze[y][x] === 1) {
+                                // Wall with neon effect
+                                const hue = (x * y * 10) % 360;
+                                ctx.fillStyle = `hsl(${hue}, 80%, 40%)`;
+                                ctx.fillRect(
+                                    x * gameState.cellSize, 
+                                    y * gameState.cellSize, 
+                                    gameState.cellSize, 
+                                    gameState.cellSize
+                                );
+                                
+                                // Neon glow
+                                ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                                ctx.shadowBlur = 10;
+                                ctx.strokeStyle = `hsl(${hue}, 100%, 60%)`;
+                                ctx.lineWidth = 2;
+                                ctx.strokeRect(
+                                    x * gameState.cellSize + 2, 
+                                    y * gameState.cellSize + 2, 
+                                    gameState.cellSize - 4, 
+                                    gameState.cellSize - 4
+                                );
+                                ctx.shadowBlur = 0;
+                            } else {
+                                // Path
+                                ctx.fillStyle = '#0d0d1a';
+                                ctx.fillRect(
+                                    x * gameState.cellSize, 
+                                    y * gameState.cellSize, 
+                                    gameState.cellSize, 
+                                    gameState.cellSize
+                                );
+                            }
+                        }
+                    }
+                    
+                    // Draw particles
+                    gameState.particles.forEach(particle => {
+                        particle.draw(ctx);
+                    });
+                    
+                    // Draw start position
+                    ctx.fillStyle = gameState.start.color;
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.start.x * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.start.y * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.start.size,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    // Start position effect
+                    ctx.shadowColor = gameState.start.color;
+                    ctx.shadowBlur = 15;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.start.x * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.start.y * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.start.size + 5,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    
+                    // Draw gems
+                    gameState.gems.forEach(gem => {
+                        if (!gem.collected) {
+                            // Make gems VERY visible
+                            ctx.save();
+                            ctx.translate(gem.x * gameState.cellSize, gem.y * gameState.cellSize);
+                            ctx.rotate(gem.rotation);
+                            
+                            // Draw large diamond shape
+                            ctx.fillStyle = gem.color;
+                            ctx.beginPath();
+                            ctx.moveTo(0, -gem.size * 1.5);
+                            ctx.lineTo(gem.size * 1.5, 0);
+                            ctx.lineTo(0, gem.size * 1.5);
+                            ctx.lineTo(-gem.size * 1.5, 0);
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            // Inner diamond
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                            ctx.beginPath();
+                            ctx.moveTo(0, -gem.size * 0.8);
+                            ctx.lineTo(gem.size * 0.8, 0);
+                            ctx.lineTo(0, gem.size * 0.8);
+                            ctx.lineTo(-gem.size * 0.8, 0);
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            ctx.restore();
+                            
+                            // Strong glow effect
+                            ctx.shadowColor = gem.color;
+                            ctx.shadowBlur = 30;
+                            ctx.strokeStyle = '#fff';
+                            ctx.lineWidth = 4;
+                            ctx.beginPath();
+                            ctx.arc(
+                                gem.x * gameState.cellSize,
+                                gem.y * gameState.cellSize,
+                                gem.size * 1.5,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.stroke();
+                            ctx.shadowBlur = 0;
+                            
+                            // Debug info
+                            if (gameState.debug) {
+                                ctx.fillStyle = '#fff';
+                                ctx.font = '12px monospace';
+                                ctx.fillText(`GEM`, gem.x * gameState.cellSize - 15, gem.y * gameState.cellSize - gem.size * 2);
+                            }
+                        }
+                    });
+                    
+                    // Draw power-ups
+                    gameState.powerUps.forEach(powerUp => {
+                        if (!powerUp.collected) {
+                            ctx.save();
+                            ctx.translate(powerUp.x * gameState.cellSize, powerUp.y * gameState.cellSize);
+                            ctx.rotate(powerUp.rotation);
+                            
+                            // Draw star shape
+                            ctx.fillStyle = powerUp.color;
+                            ctx.beginPath();
+                            for (let i = 0; i < 5; i++) {
+                                const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                                const x = Math.cos(angle) * powerUp.size;
+                                const y = Math.sin(angle) * powerUp.size;
+                                if (i === 0) {
+                                    ctx.moveTo(x, y);
+                                } else {
+                                    ctx.lineTo(x, y);
+                                }
+                                
+                                const innerAngle = angle + Math.PI / 5;
+                                const innerX = Math.cos(innerAngle) * (powerUp.size * 0.5);
+                                const innerY = Math.sin(innerAngle) * (powerUp.size * 0.5);
+                                ctx.lineTo(innerX, innerY);
+                            }
+                            ctx.closePath();
+                            ctx.fill();
+                            
+                            ctx.restore();
+                            
+                            // Glow effect
+                            ctx.shadowColor = powerUp.color;
+                            ctx.shadowBlur = 20;
+                            ctx.strokeStyle = '#fff';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.arc(
+                                powerUp.x * gameState.cellSize,
+                                powerUp.y * gameState.cellSize,
+                                powerUp.size + 2,
+                                0,
+                                Math.PI * 2
+                            );
+                            ctx.stroke();
+                            ctx.shadowBlur = 0;
+                            
+                            // Debug info
+                            if (gameState.debug) {
+                                ctx.fillStyle = '#fff';
+                                ctx.font = '10px monospace';
+                                ctx.fillText(`POWER`, powerUp.x * gameState.cellSize - 15, powerUp.y * gameState.cellSize - powerUp.size - 5);
+                            }
+                        }
+                    });
+                    
+                    // Draw exit portal
+                    const time = Date.now() / 1000;
+                    
+                    // Portal glow
+                    ctx.shadowColor = gameState.exit.active ? gameState.exit.color : '#555';
+                    ctx.shadowBlur = 30;
+                    
+                    // Portal base
+                    ctx.fillStyle = gameState.exit.active ? gameState.exit.color : '#555';
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.exit.x * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.exit.y * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.exit.size,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    // Portal swirl
+                    if (gameState.exit.active) {
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        for (let i = 0; i < 3; i++) {
+                            const radius = gameState.exit.size - 5 - i * 5;
+                            const offset = time * 2 + i * Math.PI / 3;
+                            ctx.arc(
+                                gameState.exit.x * gameState.cellSize + gameState.cellSize / 2,
+                                gameState.exit.y * gameState.cellSize + gameState.cellSize / 2,
+                                radius,
+                                offset,
+                                offset + Math.PI * 1.5
+                            );
+                        }
+                        ctx.stroke();
+                    }
+                    
+                    // Portal effect
+                    ctx.strokeStyle = gameState.exit.active ? '#fff' : '#333';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.exit.x * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.exit.y * gameState.cellSize + gameState.cellSize / 2,
+                        gameState.exit.size + 5,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.stroke();
+                    
+                    // Portal animation
+                    if (gameState.exit.active) {
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 + 0.5 * Math.sin(time * 5)})`;
+                        ctx.lineWidth = 5;
+                        ctx.beginPath();
+                        ctx.arc(
+                            gameState.exit.x * gameState.cellSize + gameState.cellSize / 2,
+                            gameState.exit.y * gameState.cellSize + gameState.cellSize / 2,
+                            gameState.exit.size + 10 + 5 * Math.sin(time * 3),
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.stroke();
+                    }
+                    
+                    ctx.shadowBlur = 0;
+                    
+                    // Debug info for exit
+                    if (gameState.debug) {
+                        ctx.fillStyle = '#fff';
+                        ctx.font = '10px monospace';
+                        ctx.fillText(`EXIT`, gameState.exit.x * gameState.cellSize + gameState.cellSize / 2 - 15, gameState.exit.y * gameState.cellSize - gameState.exit.size - 5);
+                        ctx.fillText(gameState.exit.active ? "ACTIVE" : "INACTIVE", gameState.exit.x * gameState.cellSize + gameState.cellSize / 2 - 25, gameState.exit.y * gameState.cellSize - gameState.exit.size - 15);
+                    }
+                    
+                    // Draw enemies
+                    gameState.enemies.forEach(enemy => {
+                        // Pulsing size
+                        const pulseSize = enemy.size + Math.sin(enemy.pulsePhase) * 2;
+                        
+                        // Draw enemy with glow effect
+                        ctx.shadowColor = enemy.color;
+                        ctx.shadowBlur = 20;
+                        
+                        ctx.fillStyle = enemy.color;
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x * gameState.cellSize,
+                            enemy.y * gameState.cellSize,
+                            pulseSize,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                        
+                        // Reset shadow
+                        ctx.shadowBlur = 0;
+                        
+                        // White border for visibility
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x * gameState.cellSize,
+                            enemy.y * gameState.cellSize,
+                            pulseSize,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.stroke();
+                        
+                        // Enemy eyes
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x * gameState.cellSize - 6,
+                            enemy.y * gameState.cellSize - 4,
+                            4,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.arc(
+                            enemy.x * gameState.cellSize + 6,
+                            enemy.y * gameState.cellSize - 4,
+                            4,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                        
+                        // Enemy pupils
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath();
+                        ctx.arc(
+                            enemy.x * gameState.cellSize - 6,
+                            enemy.y * gameState.cellSize - 4,
+                            2,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.arc(
+                            enemy.x * gameState.cellSize + 6,
+                            enemy.y * gameState.cellCellSize - 4,
+                            2,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.fill();
+                        
+                        // Debug info
+                        if (gameState.debug) {
+                            ctx.fillStyle = '#fff';
+                            ctx.font = '10px monospace';
+                            ctx.fillText(`ENEMY`, enemy.x * gameState.cellSize - 15, enemy.y * gameState.cellSize - enemy.size - 5);
+                        }
+                    });
+                    
+                    // Draw player
+                    ctx.fillStyle = gameState.player.color;
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.player.x * gameState.cellSize,
+                        gameState.player.y * gameState.cellSize,
+                        gameState.player.size,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    // Player glow when power-up is active
+                    if (gameState.powerUpActive) {
+                        ctx.shadowColor = '#ff9900';
+                        ctx.shadowBlur = 20;
+                        ctx.strokeStyle = '#ff9900';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.arc(
+                            gameState.player.x * gameState.cellSize,
+                            gameState.player.y * gameState.cellSize,
+                            gameState.player.size + 5,
+                            0,
+                            Math.PI * 2
+                        );
+                        ctx.stroke();
+                        ctx.shadowBlur = 0;
+                    }
+                    
+                    // Player face
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.player.x * gameState.cellSize - 5,
+                        gameState.player.y * gameState.cellSize - 3,
+                        3,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.arc(
+                        gameState.player.x * gameState.cellSize + 5,
+                        gameState.player.y * gameState.cellSize - 3,
+                        3,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
+                    
+                    // Player smile
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(
+                        gameState.player.x * gameState.cellSize,
+                        gameState.player.y * gameState.cellSize + 2,
+                        6,
+                        0,
+                        Math.PI
+                    );
+                    ctx.stroke();
+                    
+                    // Draw debug info if enabled
+                    if (gameState.debug) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.font = '10px monospace';
+                        ctx.fillText(`Player: (${gameState.player.x.toFixed(2)}, ${gameState.player.y.toFixed(2)})`, 10, 15);
+                        ctx.fillText(`Grid: (${Math.floor(gameState.player.x)}, ${Math.floor(gameState.player.y)})`, 10, 30);
+                        ctx.fillText(`Gems: ${gameState.collectedGems}/${gameState.totalGems}`, 10, 45);
+                        ctx.fillText(`Enemies: ${gameState.enemies.length}`, 10, 60);
+                        ctx.fillText(`Exit Active: ${gameState.exit.active}`, 10, 75);
+                        ctx.fillText(`Power-up Active: ${gameState.powerUpActive}`, 10, 90);
+                    }
+                } catch (error) {
+                    debugLog(`Error in render: ${error.message}`);
+                    console.error(error);
+                }
+            }
+            
+            // Game loop
+            function gameLoop() {
+                update();
+                render();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Handle keyboard input
+            document.addEventListener('keydown', e => {
+                if (!gameState.gameRunning) return;
+                
+                switch (e.key.toLowerCase()) {
+                    case 'arrowup':
+                    case 'w':
+                        gameState.keys.up = true;
+                        break;
+                    case 'arrowdown':
+                    case 's':
+                        gameState.keys.down = true;
+                        break;
+                    case 'arrowleft':
+                    case 'a':
+                        gameState.keys.left = true;
+                        break;
+                    case 'arrowright':
+                    case 'd':
+                        gameState.keys.right = true;
+                        break;
+                    default:
+                        return;
+                }
+                
+                e.preventDefault();
+            });
+            
+            document.addEventListener('keyup', e => {
+                switch (e.key.toLowerCase()) {
+                    case 'arrowup':
+                    case 'w':
+                        gameState.keys.up = false;
+                        break;
+                    case 'arrowdown':
+                    case 's':
+                        gameState.keys.down = false;
+                        break;
+                    case 'arrowleft':
+                    case 'a':
+                        gameState.keys.left = false;
+                        break;
+                    case 'arrowright':
+                    case 'd':
+                        gameState.keys.right = false;
+                        break;
+                    default:
+                        return;
+                }
+                
+                e.preventDefault();
+            });
+            
+            // Update UI elements
+            function updateUI() {
+                document.getElementById('level').textContent = gameState.level;
+                document.getElementById('gems').textContent = gameState.collectedGems;
+                document.getElementById('totalGems').textContent = gameState.totalGems;
+                document.getElementById('health').textContent = gameState.health;
+                document.getElementById('power').textContent = gameState.power;
+            }
+            
+            // Advance to next level
+            function nextLevel() {
+                gameState.level++;
+                gameState.health = Math.min(100, gameState.health + 20);
+                showNotification(`Level ${gameState.level}! Get ready for a new maze!`);
+                debugLog(`Level up! Now at level ${gameState.level}`);
+                
+                // Create celebration particles
+                for (let i = 0; i < 50; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    const velocity = {
+                        x: Math.cos(angle) * speed,
+                        y: Math.sin(angle) * speed
+                    };
+                    const size = 3 + Math.random() * 4;
+                    const lifetime = 30 + Math.random() * 30;
+                    const colors = ['#ffcc00', '#00ff88', '#cc66ff', '#ff3366'];
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    gameState.particles.push(new Particle(
+                        canvas.width / 2,
+                        canvas.height / 2,
+                        color,
+                        velocity,
+                        size,
+                        lifetime
+                    ));
+                }
+                
+                initGame();
+            }
+            
+            // Game over
+            function gameOver() {
+                gameState.gameRunning = false;
+                debugLog("Game over!");
+                showNotification("Game Over!");
+                
+                // Create red particles for game over
+                for (let i = 0; i < 30; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 1 + Math.random() * 2;
+                    const velocity = {
+                        x: Math.cos(angle) * speed,
+                        y: Math.sin(angle) * speed
+                    };
+                    const size = 2 + Math.random() * 3;
+                    const lifetime = 40 + Math.random() * 20;
+                    gameState.particles.push(new Particle(
+                        gameState.player.x * gameState.cellSize,
+                        gameState.player.y * gameState.cellSize,
+                        '#ff3366',
+                        velocity,
+                        size,
+                        lifetime
+                    ));
+                }
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = '48px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
+                
+                ctx.font = '24px Orbitron';
+                ctx.fillText(`You reached level ${gameState.level}`, canvas.width / 2, canvas.height / 2 + 30);
+                ctx.fillText('Click "Reset Game" to play again', canvas.width / 2, canvas.height / 2 + 70);
+            }
+            
+            // Button event listeners
+            document.getElementById('newMazeBtn').addEventListener('click', () => {
+                if (gameState.gameRunning) {
+                    debugLog("Generating new maze");
+                    showNotification("New maze generated!");
+                    initGame();
+                }
+            });
+            
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                gameState.level = 1;
+                gameState.collectedGems = 0;
+                gameState.health = 100;
+                gameState.power = 0;
+                gameState.gameRunning = true;
+                debugLog("Game reset");
+                showNotification("Game reset!");
+                initGame();
+            });
+            
+            document.getElementById('debugBtn').addEventListener('click', () => {
+                gameState.debug = !gameState.debug;
+                const debugPanel = document.getElementById('debugPanel');
+                debugPanel.style.display = gameState.debug ? 'block' : 'none';
+                if (gameState.debug) {
+                    debugLog("Debug mode enabled");
+                }
+            });
+            
+            // Start the game
+            try {
+                initGame();
+                gameLoop();
+                debugLog("Game started successfully");
+                showNotification("Game started! Collect all gems!");
+            } catch (error) {
+                debugLog(`Error starting game: ${error.message}`);
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
