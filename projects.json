@@ -3,7 +3,7 @@
 ,
   "5CardDraw.html": {"title": "پوکر 5-Card Draw — نسخه آموزشی", "desc": "Play and learn 5-Card Draw poker with an interactive tutorial mode.", "tags": ["poker","card game","educational"]}
 ,
-  "Three js test.html": {"title": "Simple Game Test", "desc": "", "tags": []}
+  "Three js test.html": {"title": "Simple Game Test", "desc": "A basic Three.js test scene to experiment with 3D rendering in the browser.", "tags": ["three.js","3d","test"]}
 ,
   "3D Snake Battle Royale.html": {"title": "3D Snake Battle Royale", "desc": "Battle other snakes in a 3D arena in this fast-paced battle royale.", "tags": ["snake","battle royale","3d"]}
 ,
