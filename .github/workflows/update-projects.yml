@@ -13,7 +13,7 @@ jobs:
       - name: Generate projects.json
         run: |
           echo '{' > projects.json
-          find . -maxdepth 1 -name "*.html" ! -name "index.html" | while read file; do
+          find . -maxdepth 1 -name "*.html" | while read file; do
             name=$(basename "$file")
             echo "  \"$name\": {\"desc\": \"\",\"tags\": [],\"difficulty\": \"\"}," >> projects.json
           done
