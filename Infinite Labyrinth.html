@@ -447,6 +447,19 @@
                 }
             }
             
+            // Get all valid path positions
+            function getAllValidPositions() {
+                const validPositions = [];
+                for (let y = 0; y < gameState.rows; y++) {
+                    for (let x = 0; x < gameState.cols; x++) {
+                        if (gameState.maze[y][x] === 0) { // 0 = path
+                            validPositions.push({x, y});
+                        }
+                    }
+                }
+                return validPositions;
+            }
+            
             // Initialize game
             function initGame() {
                 try {
@@ -480,12 +493,23 @@
                     gameState.powerUpActive = false;
                     gameState.powerUpTimer = 0;
                     
+                    // Get all valid positions for placing objects
+                    const validPositions = getAllValidPositions();
+                    debugLog(`Found ${validPositions.length} valid positions`);
+                    
+                    // Remove start and exit positions from valid positions
+                    const filteredPositions = validPositions.filter(pos => 
+                        !(pos.x === gameState.start.x && pos.y === gameState.start.y) &&
+                        !(pos.x === gameState.exit.x && pos.y === gameState.exit.y)
+                    );
+                    debugLog(`Filtered to ${filteredPositions.length} valid positions`);
+                    
                     // Place gems - ensure at least 3 gems
                     const gemCount = Math.max(3, 3 + Math.floor(gameState.level / 2));
                     gameState.totalGems = gemCount;
                     debugLog(`Placing ${gemCount} gems`);
                     for (let i = 0; i < gemCount; i++) {
-                        placeGem();
+                        placeGem(filteredPositions);
                     }
                     
                     // If no gems were placed, force place some
@@ -495,17 +519,29 @@
                     }
                     
                     // Place enemies
-                    const enemyCount = Math.min(gameState.level, 5);
+                    const enemyCount = Math.max(1, Math.min(gameState.level, 5));
                     debugLog(`Placing ${enemyCount} enemies`);
                     for (let i = 0; i < enemyCount; i++) {
-                        placeEnemy();
+                        placeEnemy(filteredPositions);
+                    }
+                    
+                    // If no enemies were placed, force place some
+                    if (gameState.enemies.length === 0) {
+                        debugLog("No enemies placed! Force placing enemies...");
+                        forcePlaceEnemies(1);
                     }
                     
                     // Place power-ups
-                    const powerUpCount = Math.floor(gameState.level / 3) + 1;
+                    const powerUpCount = Math.max(1, Math.floor(gameState.level / 3) + 1);
                     debugLog(`Placing ${powerUpCount} power-ups`);
                     for (let i = 0; i < powerUpCount; i++) {
-                        placePowerUp();
+                        placePowerUp(filteredPositions);
+                    }
+                    
+                    // If no power-ups were placed, force place some
+                    if (gameState.powerUps.length === 0) {
+                        debugLog("No power-ups placed! Force placing power-ups...");
+                        forcePlacePowerUps(1);
                     }
                     
                     // Update UI
@@ -536,7 +572,8 @@
                 
                 for (let i = 0; i < Math.min(count, positions.length); i++) {
                     const pos = positions[i];
-                    if (gameState.maze[pos.y][pos.x] === 0) {
+                    // Check if position is valid (not a wall)
+                    if (gameState.maze[pos.y] && gameState.maze[pos.y][pos.x] === 0) {
                         gameState.gems.push({
                             x: pos.x + 0.5,
                             y: pos.y + 0.5,
@@ -546,6 +583,62 @@
                             rotation: 0
                         });
                         debugLog(`Force placed gem at (${pos.x}, ${pos.y})`);
+                    }
+                }
+            }
+            
+            // Force place enemies at specific positions
+            function forcePlaceEnemies(count) {
+                const positions = [
+                    {x: 5, y: 5},
+                    {x: gameState.cols - 6, y: 5},
+                    {x: Math.floor(gameState.cols / 2), y: Math.floor(gameState.rows / 2)},
+                    {x: 5, y: gameState.rows - 6},
+                    {x: gameState.cols - 6, y: gameState.rows - 6}
+                ];
+                
+                for (let i = 0; i < Math.min(count, positions.length); i++) {
+                    const pos = positions[i];
+                    // Check if position is valid (not a wall)
+                    if (gameState.maze[pos.y] && gameState.maze[pos.y][pos.x] === 0) {
+                        gameState.enemies.push({
+                            x: pos.x + 0.5,
+                            y: pos.y + 0.5,
+                            size: 20,
+                            color: '#ff3366',
+                            speed: 0.03 + Math.random() * 0.02,
+                            direction: Math.floor(Math.random() * 4),
+                            pulsePhase: Math.random() * Math.PI * 2
+                        });
+                        debugLog(`Force placed enemy at (${pos.x}, ${pos.y})`);
+                    }
+                }
+            }
+            
+            // Force place power-ups at specific positions
+            function forcePlacePowerUps(count) {
+                const positions = [
+                    {x: 7, y: 7},
+                    {x: gameState.cols - 8, y: 7},
+                    {x: Math.floor(gameState.cols / 2), y: Math.floor(gameState.rows / 2)},
+                    {x: 7, y: gameState.rows - 8},
+                    {x: gameState.cols - 8, y: gameState.rows - 8}
+                ];
+                
+                for (let i = 0; i < Math.min(count, positions.length); i++) {
+                    const pos = positions[i];
+                    // Check if position is valid (not a wall)
+                    if (gameState.maze[pos.y] && gameState.maze[pos.y][pos.x] === 0) {
+                        gameState.powerUps.push({
+                            x: pos.x + 0.5,
+                            y: pos.y + 0.5,
+                            size: 18,
+                            color: '#ff9900',
+                            collected: false,
+                            type: 'speed',
+                            rotation: 0
+                        });
+                        debugLog(`Force placed power-up at (${pos.x}, ${pos.y})`);
                     }
                 }
             }
@@ -620,36 +713,34 @@
             }
             
             // Place gem at random location
-            function placeGem() {
+            function placeGem(validPositions) {
                 try {
-                    let x, y;
-                    let attempts = 0;
+                    // Filter out positions already occupied by other objects
+                    const availablePositions = validPositions.filter(pos => {
+                        return !gameState.gems.some(gem => Math.floor(gem.x) === pos.x && Math.floor(gem.y) === pos.y) &&
+                               !gameState.enemies.some(enemy => Math.floor(enemy.x) === pos.x && Math.floor(enemy.y) === pos.y) &&
+                               !gameState.powerUps.some(powerUp => Math.floor(powerUp.x) === pos.x && Math.floor(powerUp.y) === pos.y);
+                    });
                     
-                    do {
-                        x = Math.floor(Math.random() * (gameState.cols - 2)) + 1;
-                        y = Math.floor(Math.random() * (gameState.rows - 2)) + 1;
-                        attempts++;
-                    } while (
-                        gameState.maze[y][x] === 1 || 
-                        (x === gameState.start.x && y === gameState.start.y) ||
-                        (x === gameState.exit.x && y === gameState.exit.y) ||
-                        gameState.gems.some(gem => Math.floor(gem.x) === x && Math.floor(gem.y) === y) ||
-                        attempts < 100
-                    );
-                    
-                    if (attempts < 100) {
-                        gameState.gems.push({
-                            x: x + 0.5,
-                            y: y + 0.5,
-                            size: 16,
-                            color: '#ffcc00',
-                            collected: false,
-                            rotation: 0
-                        });
-                        debugLog(`Gem placed at (${x}, ${y})`);
-                    } else {
-                        debugLog("Failed to place gem after 100 attempts");
+                    if (availablePositions.length === 0) {
+                        debugLog("No available positions for gem");
+                        return;
                     }
+                    
+                    // Randomly select a position
+                    const randomIndex = Math.floor(Math.random() * availablePositions.length);
+                    const pos = availablePositions[randomIndex];
+                    
+                    gameState.gems.push({
+                        x: pos.x + 0.5,
+                        y: pos.y + 0.5,
+                        size: 16,
+                        color: '#ffcc00',
+                        collected: false,
+                        rotation: 0
+                    });
+                    
+                    debugLog(`Gem placed at (${pos.x}, ${pos.y})`);
                 } catch (error) {
                     debugLog(`Error in placeGem: ${error.message}`);
                     console.error(error);
@@ -657,37 +748,35 @@
             }
             
             // Place enemy at random location
-            function placeEnemy() {
+            function placeEnemy(validPositions) {
                 try {
-                    let x, y;
-                    let attempts = 0;
+                    // Filter out positions already occupied by other objects
+                    const availablePositions = validPositions.filter(pos => {
+                        return !gameState.gems.some(gem => Math.floor(gem.x) === pos.x && Math.floor(gem.y) === pos.y) &&
+                               !gameState.enemies.some(enemy => Math.floor(enemy.x) === pos.x && Math.floor(enemy.y) === pos.y) &&
+                               !gameState.powerUps.some(powerUp => Math.floor(powerUp.x) === pos.x && Math.floor(powerUp.y) === pos.y);
+                    });
                     
-                    do {
-                        x = Math.floor(Math.random() * (gameState.cols - 2)) + 1;
-                        y = Math.floor(Math.random() * (gameState.rows - 2)) + 1;
-                        attempts++;
-                    } while (
-                        gameState.maze[y][x] === 1 || 
-                        (x === gameState.start.x && y === gameState.start.y) ||
-                        (x === gameState.exit.x && y === gameState.exit.y) ||
-                        gameState.enemies.some(enemy => Math.floor(enemy.x) === x && Math.floor(enemy.y) === y) ||
-                        attempts < 100
-                    );
-                    
-                    if (attempts < 100) {
-                        gameState.enemies.push({
-                            x: x + 0.5,
-                            y: y + 0.5,
-                            size: 20,
-                            color: '#ff3366',
-                            speed: 0.03 + Math.random() * 0.02,
-                            direction: Math.floor(Math.random() * 4), // 0: up, 1: right, 2: down, 3: left
-                            pulsePhase: Math.random() * Math.PI * 2
-                        });
-                        debugLog(`Enemy placed at (${x}, ${y})`);
-                    } else {
-                        debugLog("Failed to place enemy after 100 attempts");
+                    if (availablePositions.length === 0) {
+                        debugLog("No available positions for enemy");
+                        return;
                     }
+                    
+                    // Randomly select a position
+                    const randomIndex = Math.floor(Math.random() * availablePositions.length);
+                    const pos = availablePositions[randomIndex];
+                    
+                    gameState.enemies.push({
+                        x: pos.x + 0.5,
+                        y: pos.y + 0.5,
+                        size: 20,
+                        color: '#ff3366',
+                        speed: 0.03 + Math.random() * 0.02,
+                        direction: Math.floor(Math.random() * 4),
+                        pulsePhase: Math.random() * Math.PI * 2
+                    });
+                    
+                    debugLog(`Enemy placed at (${pos.x}, ${pos.y})`);
                 } catch (error) {
                     debugLog(`Error in placeEnemy: ${error.message}`);
                     console.error(error);
@@ -695,37 +784,35 @@
             }
             
             // Place power-up at random location
-            function placePowerUp() {
+            function placePowerUp(validPositions) {
                 try {
-                    let x, y;
-                    let attempts = 0;
+                    // Filter out positions already occupied by other objects
+                    const availablePositions = validPositions.filter(pos => {
+                        return !gameState.gems.some(gem => Math.floor(gem.x) === pos.x && Math.floor(gem.y) === pos.y) &&
+                               !gameState.enemies.some(enemy => Math.floor(enemy.x) === pos.x && Math.floor(enemy.y) === pos.y) &&
+                               !gameState.powerUps.some(powerUp => Math.floor(powerUp.x) === pos.x && Math.floor(powerUp.y) === pos.y);
+                    });
                     
-                    do {
-                        x = Math.floor(Math.random() * (gameState.cols - 2)) + 1;
-                        y = Math.floor(Math.random() * (gameState.rows - 2)) + 1;
-                        attempts++;
-                    } while (
-                        gameState.maze[y][x] === 1 || 
-                        (x === gameState.start.x && y === gameState.start.y) ||
-                        (x === gameState.exit.x && y === gameState.exit.y) ||
-                        gameState.powerUps.some(powerUp => Math.floor(powerUp.x) === x && Math.floor(powerUp.y) === y) ||
-                        attempts < 100
-                    );
-                    
-                    if (attempts < 100) {
-                        gameState.powerUps.push({
-                            x: x + 0.5,
-                            y: y + 0.5,
-                            size: 18,
-                            color: '#ff9900',
-                            collected: false,
-                            type: 'speed',
-                            rotation: 0
-                        });
-                        debugLog(`Power-up placed at (${x}, ${y})`);
-                    } else {
-                        debugLog("Failed to place power-up after 100 attempts");
+                    if (availablePositions.length === 0) {
+                        debugLog("No available positions for power-up");
+                        return;
                     }
+                    
+                    // Randomly select a position
+                    const randomIndex = Math.floor(Math.random() * availablePositions.length);
+                    const pos = availablePositions[randomIndex];
+                    
+                    gameState.powerUps.push({
+                        x: pos.x + 0.5,
+                        y: pos.y + 0.5,
+                        size: 18,
+                        color: '#ff9900',
+                        collected: false,
+                        type: 'speed',
+                        rotation: 0
+                    });
+                    
+                    debugLog(`Power-up placed at (${pos.x}, ${pos.y})`);
                 } catch (error) {
                     debugLog(`Error in placePowerUp: ${error.message}`);
                     console.error(error);
@@ -1264,7 +1351,7 @@
                         );
                         ctx.arc(
                             enemy.x * gameState.cellSize + 6,
-                            enemy.y * gameState.cellCellSize - 4,
+                            enemy.y * gameState.cellSize - 4,
                             2,
                             0,
                             Math.PI * 2
@@ -1456,7 +1543,10 @@
                     ));
                 }
                 
-                initGame();
+                // Reset game state for next level
+                setTimeout(() => {
+                    initGame();
+                }, 1000);
             }
             
             // Game over
