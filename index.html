@@ -272,7 +272,8 @@
           const name = meta.title && meta.title.trim()
           ? meta.title.trim()
           : filename.replace(/\.html$/i, "").trim();
-          const thumbnailFileName = name + ".jpg";
+          const tname =filename.replace(/\.html$/i, "").trim();
+          const thumbnailFileName = tname + ".jpg";
           return {
             file: filename.trim(),
             name,
