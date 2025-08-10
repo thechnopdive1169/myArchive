@@ -248,7 +248,9 @@
       })
       .then(data => {
         allProjects = Object.entries(data).map(([filename, meta]) => {
-          const name = filename.replace(/\.html$/i, "").trim();
+          const name = meta.title && meta.title.trim()
+          ? meta.title.trim()
+          : filename.replace(/\.html$/i, "").trim();
           const thumbnailFileName = name + ".jpg";
           return {
             file: filename.trim(),
