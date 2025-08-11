@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Survivor: Cyberpunk Arena - Legendary Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Orbitron', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+            position: relative;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #00ffff;
+            box-shadow: 0 0 30px #00ffff, inset 0 0 30px rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #gameCanvas {
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #16213e);
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ffff;
+            font-size: 14px;
+            text-shadow: 0 0 10px #00ffff;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            min-width: 220px;
+        }
+
+        .ui-section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .ui-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .ui-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            min-width: 200px;
+        }
+
+        .ui-label {
+            color: #88ccff;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+
+        .ui-value {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        #levelUpScreen {
+            position: absolute;
+            top:
