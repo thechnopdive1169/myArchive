@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Survivor: Cyberpunk Arena</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        #gameCanvas {
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            display: block;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ffff;
+            font-size: 18px;
+            text-shadow: 0 0 10px #00ffff;
+            z-index: 10;
+        }
+
+        #levelUpScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff00ff;
+            padding: 20px;
+            color: #ff00ff;
+            text-align: center;
+            display: none;
+            z-index: 20;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #ff00ff;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ff0000;
+            padding: 30px;
+            color: #ff0000;
+            text-align: center;
+            display: none;
+            z-index: 30;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00ffff;
+            padding: 30px;
+            color: #00ffff;
+            text-align: center;
+            z-index: 40;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1000" height="700"></canvas>
+        
+        <div id="ui">
+            <div>Level: <span id="level">1</span></div>
+            <div>XP: <span id="xp">0</span>/<span id="xpNeeded">100</span></div>
+            <div>Health: <span id="health">100</span></div>
+            <div>Score: <span id="score">0</span></div>
+            <div>Time: <span id="time">0</span>s</div>
+            <div>Weapon: <span id="weapon">Neon Blaster</span></div>
+        </div>
+
+        <div id="startScreen">
+            <h1>NEON SURVIVOR: CYBERPUNK ARENA</h1>
+            <p>Survive waves of cybernetic enemies in a neon-drenched arena!</p>
+            <p>Use WASD or Arrow Keys to move</p>
+            <p>Your weapons fire automatically at nearby enemies</p>
+            <p>Collect XP orbs and credits to upgrade your arsenal</p>
+            <button class="start-btn" onclick="startGame()">START GAME</button>
+        </div>
+
+        <div id="levelUpScreen">
+            <h2>LEVEL UP!</h2>
+            <p>Choose an upgrade:</p>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="gameOver">
+            <h2>GAME OVER</h2>
+            <p>You survived for <span id="finalTime">0</span> seconds</p>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Level Reached: <span id="finalLevel">1</span></p>
+            <button class="upgrade-btn" onclick="restartGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameState = 'start'; // start, playing, paused, gameOver
+        let gameTime = 0;
+        let lastTime = 0;
+
+        // Player object
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 15,
+            speed: 3,
+            health: 100,
+            maxHealth: 100,
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+            score: 0,
+            weapon: 'neonBlaster',
+            weaponLevel: 1,
+            damage: 10,
+            fireRate: 500,
+            lastFire: 0,
+            speedMultiplier: 1,
+            damageMultiplier: 1,
+            rangeMultiplier: 1
+        };
+
+        // Game arrays
+        let enemies = [];
+        let projectiles = [];
+        let xpOrbs = [];
+        let credits = [];
+        let particles = [];
+
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Weapon definitions
+        const weapons = {
+            neonBlaster: {
+                name: 'Neon Blaster',
+                damage: 10,
+                fireRate: 500,
+                range: 200,
+                color: '#00ffff',
+                projectileSpeed: 8
+            },
+            plasmaRifle: {
+                name: 'Plasma Rifle',
+                damage: 15,
+                fireRate: 300,
+                range: 250,
+                color: '#ff00ff',
+                projectileSpeed: 10
+            },
+            laserCannon: {
+                name: 'Laser Cannon',
+                damage: 25,
+                fireRate: 800,
+                range: 300,
+                color: '#ffff00',
+                projectileSpeed: 12
+            },
+            sonicPulse: {
+                name: 'Sonic Pulse',
+                damage: 8,
+                fireRate: 200,
+                range: 150,
+                color: '#00ff00',
+                projectileSpeed: 6
+            }
+        };
+
+        // Enemy types
+        const enemyTypes = {
+            drone: {
+                health: 20,
+                speed: 1,
+                damage: 5,
+                radius: 8,
+                color: '#ff4444',
+                xpValue: 10,
+                creditValue: 5
+            },
+            cyborg: {
+                health: 50,
+                speed: 0.8,
+                damage: 10,
+                radius: 12,
+                color: '#ff8844',
+                xpValue: 25,
+                creditValue: 10
+            },
+            assassin: {
+                health: 30,
+                speed: 2,
+                damage: 15,
+                radius: 10,
+                color: '#ff00ff',
+                xpValue: 20,
+                creditValue: 15
+            },
+            tank: {
+                health: 100,
+                speed: 0.5,
+                damage: 20,
+                radius: 20,
+                color: '#880000',
+                xpValue: 50,
+                creditValue: 25
+            }
+        };
+
+        // Upgrade options
+        const upgrades = [
+            {
+                name: 'Max Health +20',
+                apply: () => { player.maxHealth += 20; player.health = player.maxHealth; }
+            },
+            {
+                name: 'Speed +10%',
+                apply: () => { player.speedMultiplier *= 1.1; }
+            },
+            {
+                name: 'Damage +20%',
+                apply: () => { player.damageMultiplier *= 1.2; }
+            },
+            {
+                name: 'Fire Rate +15%',
+                apply: () => { 
+                    const weapon = weapons[player.weapon];
+                    weapon.fireRate *= 0.85;
+                }
+            },
+            {
+                name: 'Range +25%',
+                apply: () => { player.rangeMultiplier *= 1.25; }
+            },
+            {
+                name: 'Upgrade Weapon',
+                apply: () => { 
+                    player.weaponLevel++;
+                    const weapon = weapons[player.weapon];
+                    weapon.damage *= 1.3;
+                    weapon.fireRate *= 0.9;
+                    weapon.range *= 1.1;
+                }
+            }
+        ];
+
+        function startGame() {
+            gameState = 'playing';
+            document.getElementById('startScreen').style.display = 'none';
+            resetGame();
+            gameLoop();
+        }
+
+        function resetGame() {
+            // Reset player
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.health = player.maxHealth;
+            player.level = 1;
+            player.xp = 0;
+            player.xpNeeded = 100;
+            player.score = 0;
+            player.weapon = 'neonBlaster';
+            player.weaponLevel = 1;
+            player.speedMultiplier = 1;
+            player.damageMultiplier = 1;
+            player.rangeMultiplier = 1;
+
+            // Reset game arrays
+            enemies = [];
+            projectiles = [];
+            xpOrbs = [];
+            credits = [];
+            particles = [];
+            gameTime = 0;
+
+            // Reset weapons
+            Object.keys(weapons).forEach(key => {
+                const weapon = weapons[key];
+                weapon.damage = [10, 15, 25, 8][Object.keys(weapons).indexOf(key)];
+                weapon.fireRate = [500, 300, 800, 200][Object.keys(weapons).indexOf(key)];
+                weapon.range = [200, 250, 300, 150][Object.keys(weapons).indexOf(key)];
+            });
+
+            updateUI();
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            startGame();
+        }
+
+        function updatePlayer() {
+            // Movement
+            let dx = 0, dy = 0;
+            if (keys['w'] || keys['arrowup']) dy = -1;
+            if (keys['s'] || keys['arrowdown']) dy = 1;
+            if (keys['a'] || keys['arrowleft']) dx = -1;
+            if (keys['d'] || keys['arrowright']) dx = 1;
+
+            // Normalize diagonal movement
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.707;
+                dy *= 0.707;
+            }
+
+            player.x += dx * player.speed * player.speedMultiplier;
+            player.y += dy * player.speed * player.speedMultiplier;
+
+            // Keep player in bounds
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+            // Auto-fire at nearest enemy
+            const now = Date.now();
+            if (now - player.lastFire > weapons[player.weapon].fireRate) {
+                const nearestEnemy = findNearestEnemy();
+                if (nearestEnemy) {
+                    fireProjectile(nearestEnemy);
+                    player.lastFire = now;
+                }
+            }
+        }
+
+        function findNearestEnemy() {
+            let nearest = null;
+            let minDistance = weapons[player.weapon].range * player.rangeMultiplier;
+
+            enemies.forEach(enemy => {
+                const distance = Math.sqrt(
+                    Math.pow(enemy.x - player.x, 2) + Math.pow(enemy.y - player.y, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = enemy;
+                }
+            });
+
+            return nearest;
+        }
+
+        function fireProjectile(target) {
+            const angle = Math.atan2(target.y - player.y, target.x - player.x);
+            const weapon = weapons[player.weapon];
+            
+            projectiles.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * weapon.projectileSpeed,
+                vy: Math.sin(angle) * weapon.projectileSpeed,
+                damage: weapon.damage * player.damageMultiplier,
+                range: weapon.range * player.rangeMultiplier,
+                color: weapon.color,
+                life: 0
+            });
+        }
+
+        function spawnEnemy() {
+            const types = Object.keys(enemyTypes);
+            const type = types[Math.floor(Math.random() * types.length)];
+            const enemyData = enemyTypes[type];
+            
+            // Spawn from edges
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            
+            switch(side) {
+                case 0: // top
+                    x = Math.random() * canvas.width;
+                    y = -enemyData.radius;
+                    break;
+                case 1: // right
+                    x = canvas.width + enemyData.radius;
+                    y = Math.random() * canvas.height;
+                    break;
+                case 2: // bottom
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + enemyData.radius;
+                    break;
+                case 3: // left
+                    x = -enemyData.radius;
+                    y = Math.random() * canvas.height;
+                    break;
+            }
+
+            enemies.push({
+                x: x,
+                y: y,
+                type: type,
+                health: enemyData.health,
+                maxHealth: enemyData.health,
+                speed: enemyData.speed,
+                damage: enemyData.damage,
+                radius: enemyData.radius,
+                color: enemyData.color,
+                xpValue: enemyData.xpValue,
+                creditValue: enemyData.creditValue
+            });
+        }
+
+        function updateEnemies() {
+            enemies.forEach((enemy, index) => {
+                // Move towards player
+                const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                enemy.x += Math.cos(angle) * enemy.speed;
+                enemy.y += Math.sin(angle) * enemy.speed;
+
+                // Check collision with player
+                const distance = Math.sqrt(
+                    Math.pow(enemy.x - player.x, 2) + Math.pow(enemy.y - player.y, 2)
+                );
+                
+                if (distance < enemy.radius + player.radius) {
+                    player.health -= enemy.damage;
+                    createParticles(enemy.x, enemy.y, enemy.color, 5);
+                    enemies.splice(index, 1);
+                    
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function updateProjectiles() {
+            projectiles.forEach((projectile, pIndex) => {
+                projectile.x += projectile.vx;
+                projectile.y += projectile.vy;
+                projectile.life++;
+
+                // Remove if out of range or lived too long
+                if (projectile.life > projectile.range / 10 ||
+                    projectile.x < 0 || projectile.x > canvas.width ||
+                    projectile.y < 0 || projectile.y > canvas.height) {
+                    projectiles.splice(pIndex, 1);
+                    return;
+                }
+
+                // Check collision with enemies
+                enemies.forEach((enemy, eIndex) => {
+                    const distance = Math.sqrt(
+                        Math.pow(projectile.x - enemy.x, 2) + Math.pow(projectile.y - enemy.y, 2)
+                    );
+                    
+                    if (distance < projectile.radius + enemy.radius) {
+                        enemy.health -= projectile.damage;
+                        createParticles(projectile.x, projectile.y, projectile.color, 3);
+                        projectiles.splice(pIndex, 1);
+
+                        if (enemy.health <= 0) {
+                            // Enemy defeated
+                            player.xp += enemy.xpValue;
+                            player.score += enemy.xpValue;
+                            
+                            // Drop XP orb
+                            xpOrbs.push({
+                                x: enemy.x,
+                                y: enemy.y,
+                                value: enemy.xpValue,
+                                radius: 8,
+                                color: '#00ff00'
+                            });
+
+                            // Drop credit
+                            if (Math.random() < 0.3) {
+                                credits.push({
+                                    x: enemy.x,
+                                    y: enemy.y,
+                                    value: enemy.creditValue,
+                                    radius: 6,
+                                    color: '#ffff00'
+                                });
+                            }
+
+                            createParticles(enemy.x, enemy.y, enemy.color, 8);
+                            enemies.splice(eIndex, 1);
+
+                            // Check for level up
+                            if (player.xp >= player.xpNeeded) {
+                                levelUp();
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function updateXPOrbs() {
+            xpOrbs.forEach((orb, index) => {
+                // Move towards player
+                const angle = Math.atan2(player.y - orb.y, player.x - orb.x);
+                orb.x += Math.cos(angle) * 2;
+                orb.y += Math.sin(angle) * 2;
+
+                // Check collection
+                const distance = Math.sqrt(
+                    Math.pow(orb.x - player.x, 2) + Math.pow(orb.y - player.y, 2)
+                );
+                
+                if (distance < orb.radius + player.radius) {
+                    player.xp += orb.value;
+                    player.score += orb.value;
+                    createParticles(orb.x, orb.y, orb.color, 5);
+                    xpOrbs.splice(index, 1);
+
+                    if (player.xp >= player.xpNeeded) {
+                        levelUp();
+                    }
+                }
+            });
+        }
+
+        function updateCredits() {
+            credits.forEach((credit, index) => {
+                // Move towards player
+                const angle = Math.atan2(player.y - credit.y, player.x - credit.x);
+                credit.x += Math.cos(angle) * 1.5;
+                credit.y += Math.sin(angle) * 1.5;
+
+                // Check collection
+                const distance = Math.sqrt(
+                    Math.pow(credit.x - player.x, 2) + Math.pow(credit.y - player.y, 2)
+                );
+                
+                if (distance < credit.radius + player.radius) {
+                    player.score += credit.value * 10;
+                    createParticles(credit.x, credit.y, credit.color, 3);
+                    credits.splice(index, 1);
+                }
+            });
+        }
+
+        function updateParticles() {
+            particles.forEach((particle, index) => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                particle.alpha = particle.life / particle.maxLife;
+
+                if (particle.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 * i) / count;
+                const speed = 2 + Math.random() * 3;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: color,
+                    life: 20,
+                    maxLife: 20,
+                    alpha: 1
+                });
+            }
+        }
+
+        function levelUp() {
+            player.level++;
+            player.xp -= player.xpNeeded;
+            player.xpNeeded = Math.floor(player.xpNeeded * 1.5);
+            player.health = Math.min(player.health + 20, player.maxHealth);
+            
+            showLevelUpScreen();
+        }
+
+        function showLevelUpScreen() {
+            gameState = 'paused';
+            const screen = document.getElementById('levelUpScreen');
+            const options = document.getElementById('upgradeOptions');
+            
+            // Clear previous options
+            options.innerHTML = '';
+            
+            // Show 3 random upgrades
+            const availableUpgrades = [...upgrades];
+            for (let i = 0; i < 3 && availableUpgrades.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * availableUpgrades.length);
+                const upgrade = availableUpgrades.splice(randomIndex, 1)[0];
+                
+                const btn = document.createElement('button');
+                btn.className = 'upgrade-btn';
+                btn.textContent = upgrade.name;
+                btn.onclick = () => {
+                    upgrade.apply();
+                    screen.style.display = 'none';
+                    gameState = 'playing';
+                };
+                options.appendChild(btn);
+            }
+            
+            screen.style.display = 'block';
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            document.getElementById('finalTime').textContent = Math.floor(gameTime);
+            document.getElementById('finalScore').textContent = player.score;
+            document.getElementById('finalLevel').textContent = player.level;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function updateUI() {
+            document.getElementById('level').textContent = player.level;
+            document.getElementById('xp').textContent = player.xp;
+            document.getElementById('xpNeeded').textContent = player.xpNeeded;
+            document.getElementById('health').textContent = Math.max(0, player.health);
+            document.getElementById('score').textContent = player.score;
+            document.getElementById('time').textContent = Math.floor(gameTime);
+            document.getElementById('weapon').textContent = weapons[player.weapon].name;
+        }
+
+        function render() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw grid background
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            // Draw particles
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.alpha;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw XP orbs
+            xpOrbs.forEach(orb => {
+                ctx.fillStyle = orb.color;
+                ctx.shadowColor = orb.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw credits
+            credits.forEach(credit => {
+                ctx.fillStyle = credit.color;
+                ctx.shadowColor = credit.color;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(credit.x, credit.y, credit.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw enemies
+            enemies.forEach(enemy => {
+                // Enemy body
+                ctx.fillStyle = enemy.color;
+                ctx.shadowColor = enemy.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Health bar
+                if (enemy.health < enemy.maxHealth) {
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 10, enemy.radius * 2, 4);
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 10, (enemy.health / enemy.maxHealth) * enemy.radius * 2, 4);
+                }
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw projectiles
+            projectiles.forEach(projectile => {
+                ctx.fillStyle = projectile.color;
+                ctx.shadowColor = projectile.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(projectile.x, projectile.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw player
+            ctx.fillStyle = '#00ffff';
+            ctx.shadowColor = '#00ffff';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Player health bar
+            ctx.fillStyle = 'red';
+            ctx.fillRect(player.x - 20, player.y - 30, 40, 6);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(player.x - 20, player.y - 30, (player.health / player.maxHealth) * 40, 6);
+            ctx.shadowBlur = 0;
+        }
+
+        function gameLoop(currentTime = 0) {
+            if (gameState !== 'playing') {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            gameTime += deltaTime / 1000;
+
+            // Update game objects
+            updatePlayer();
+            updateEnemies();
+            updateProjectiles();
+            updateXPOrbs();
+            updateCredits();
+            updateParticles();
+
+            // Spawn enemies
+            if (Math.random() < 0.02 + gameTime * 0.0001) {
+                spawnEnemy();
+            }
+
+            // Update UI
+            updateUI();
+
+            // Render
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize the game
+        render();
+    </script>
+</body>
+</html>
