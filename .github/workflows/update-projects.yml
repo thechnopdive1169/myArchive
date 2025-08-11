@@ -14,7 +14,7 @@ jobs:
         run: |
           echo '{' > projects.json
           first=true
-          find . -maxdepth 1 -name "*.html" | while read file; do
+          find . -type f -name "*.html" ! -path "./.git/*" | while read file; do
             title=$(grep -oP '(?<=<title>).*?(?=</title>)' "$file" | head -n 1)
             desc=$(grep -oP '(?<=<meta name="description" content=").*?(?=")' "$file" | head -n 1)
             tags=$(grep -oP '(?<=<meta name="keywords" content=").*?(?=")' "$file" | head -n 1)
@@ -40,7 +40,9 @@ jobs:
               echo "," >> projects.json
             fi
 
-            echo "  \"$(basename "$file")\": {\"title\": \"$title\", \"desc\": \"$desc\", \"tags\": $tags_json}" >> projects.json
+            # Use path relative to repo root instead of just filename
+            rel_path="${file#./}"
+            echo "  \"$rel_path\": {\"title\": \"$title\", \"desc\": \"$desc\", \"tags\": $tags_json}" >> projects.json
           done
           echo '' >> projects.json
           echo '}' >> projects.json
