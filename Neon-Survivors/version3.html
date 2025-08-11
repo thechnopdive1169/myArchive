@@ -3,16 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Survivor: Cyberpunk Arena - Legendary Edition</title>
+    <title>Neon Survivor: Cyberpunk Arena - Ultimate Edition</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             padding: 0;
@@ -24,7 +18,6 @@
             min-height: 100vh;
             overflow: hidden;
             background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
-            position: relative;
         }
 
         #gameContainer {
@@ -33,7 +26,6 @@
             box-shadow: 0 0 30px #00ffff, inset 0 0 30px rgba(0, 255, 255, 0.1);
             border-radius: 10px;
             overflow: hidden;
-            background: #000;
         }
 
         #gameCanvas {
@@ -55,18 +47,6 @@
             border-radius: 10px;
             border: 1px solid rgba(0, 255, 255, 0.3);
             backdrop-filter: blur(5px);
-            min-width: 220px;
-        }
-
-        .ui-section {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-        }
-
-        .ui-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
         }
 
         .ui-row {
@@ -90,4 +70,2863 @@
 
         #levelUpScreen {
             position: absolute;
-            top:
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(26, 26, 46, 0.95));
+            border: 3px solid #ff00ff;
+            padding: 30px;
+            color: #ff00ff;
+            text-align: center;
+            display: none;
+            z-index: 20;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #ff00ff;
+            animation: levelUpGlow 2s ease-in-out infinite alternate;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes levelUpGlow {
+            from { box-shadow: 0 0 30px #ff00ff; }
+            to { box-shadow: 0 0 50px #ff00ff, 0 0 80px rgba(255, 0, 255, 0.5); }
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            margin: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upgrade-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .upgrade-btn:hover:before {
+            left: 100%;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 0 0 20px #ff00ff;
+            filter: brightness(1.2);
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(139, 0, 0, 0.8));
+            border: 3px solid #ff0000;
+            padding: 40px;
+            color: #ff0000;
+            text-align: center;
+            display: none;
+            z-index: 30;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #ff0000;
+            backdrop-filter: blur(10px);
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(0, 26, 46, 0.9));
+            border: 3px solid #00ffff;
+            padding: 40px;
+            color: #00ffff;
+            text-align: center;
+            z-index: 40;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #00ffff;
+            max-width: 600px;
+            backdrop-filter: blur(10px);
+        }
+
+        .character-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .character-card {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .character-card:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .character-card.selected {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .start-btn:hover:before {
+            left: 100%;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 0 25px #00ffff;
+            filter: brightness(1.3);
+        }
+
+        #weaponEvolution {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(255, 215, 0, 0.3));
+            border: 3px solid #ffd700;
+            padding: 30px;
+            color: #ffd700;
+            text-align: center;
+            display: none;
+            z-index: 25;
+            border-radius: 15px;
+            box-shadow: 0 0 40px #ffd700;
+            animation: evolutionGlow 1s ease-in-out infinite alternate;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes evolutionGlow {
+            from { box-shadow: 0 0 40px #ffd700; }
+            to { box-shadow: 0 0 60px #ffd700, 0 0 100px rgba(255, 215, 0, 0.6); }
+        }
+
+        #specialAbility {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.3s;
+            font-size: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #specialAbility:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s;
+        }
+
+        #specialAbility:hover:before {
+            width: 100%;
+            height: 100%;
+        }
+
+        #specialAbility:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px #ff00ff;
+        }
+
+        #specialAbility.cooldown {
+            background: linear-gradient(135deg, #333, #666);
+            cursor: not-allowed;
+        }
+
+        #comboDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffff00;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ffff00;
+            display: none;
+            z-index: 35;
+            animation: comboPopup 1s ease-out;
+        }
+
+        @keyframes comboPopup {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        .achievement {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(255, 215, 0, 0.3));
+            border: 2px solid #ffd700;
+            padding: 15px;
+            color: #ffd700;
+            border-radius: 10px;
+            z-index: 45;
+            animation: achievementSlide 3s ease-in-out;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes achievementSlide {
+            0% { transform: translateX(100%); opacity: 0; }
+            20% { transform: translateX(0); opacity: 1; }
+            80% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        #bossWarning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 72px;
+            font-weight: bold;
+            text-shadow: 0 0 30px #ff0000;
+            display: none;
+            z-index: 50;
+            animation: bossWarningPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes bossWarningPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+
+        #minimap {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            z-index: 12;
+        }
+
+        #perkScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(128, 0, 128, 0.8));
+            border: 3px solid #8a2be2;
+            padding: 30px;
+            color: #8a2be2;
+            text-align: center;
+            display: none;
+            z-index: 22;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #8a2be2;
+            backdrop-filter: blur(10px);
+        }
+
+        .perk-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .perk-card {
+            background: rgba(138, 43, 226, 0.2);
+            border: 2px solid #8a2be2;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .perk-card:hover {
+            background: rgba(138, 43, 226, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #8a2be2;
+        }
+
+        .perk-card.locked {
+            background: rgba(64, 64, 64, 0.5);
+            border-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .perk-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        #weatherEffects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(173, 216, 230, 0.6));
+            animation: rain-fall linear infinite;
+        }
+
+        @keyframes rain-fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        #equipmentPanel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 10px;
+            color: #00ffff;
+            z-index: 11;
+            backdrop-filter: blur(5px);
+        }
+
+        .equipment-slot {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            margin: 2px;
+            text-align: center;
+            line-height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .equipment-slot:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .damage-number {
+            position: absolute;
+            color: #ffff00;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 5px #000;
+            pointer-events: none;
+            z-index: 60;
+            animation: damage-float 1s ease-out forwards;
+        }
+
+        @keyframes damage-float {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        #companion {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff00;
+            z-index: 8;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1400" height="900"></canvas>
+        
+        <div id="ui">
+            <div class="ui-row">
+                <span class="ui-label">Level:</span>
+                <span class="ui-value" id="level">1</span>
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">XP:</span>
+                <span class="ui-value" id="xp">0</span>/<span id="xpNeeded">100</span>
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Health:</span>
+                <span class="ui-value" id="health">100</span>
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Score:</span>
+                <span class="ui-value" id="score">0</span>
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Time:</span>
+                <span class="ui-value" id="time">0</span>s
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Weapon:</span>
+                <span class="ui-value" id="weapon">Neon Blaster</span>
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Combo:</span>
+                <span class="ui-value" id="combo">0</span>x
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Kills:</span>
+                <span class="ui-value" id="kills">0</span>
+            </div>
+            <div class="ui-row">
+                <span class="ui-label">Perks:</span>
+                <span class="ui-value" id="perkCount">0</span>
+            </div>
+        </div>
+
+        <div id="minimap">
+            <canvas id="minimapCanvas" width="150" height="150"></canvas>
+        </div>
+
+        <div id="equipmentPanel">
+            <div class="equipment-slot" id="slot1" title="Head">👒</div>
+            <div class="equipment-slot" id="slot2" title="Body">👕</div>
+            <div class="equipment-slot" id="slot3" title="Weapon">⚔️</div>
+            <div class="equipment-slot" id="slot4" title="Accessory">💍</div>
+        </div>
+
+        <div id="specialAbility" onclick="activateSpecialAbility()" title="Press Q">
+            <div>SPECIAL<br>Q</div>
+        </div>
+
+        <div id="weatherEffects"></div>
+        <div id="companion"></div>
+
+        <div id="startScreen">
+            <h1>NEON SURVIVOR: CYBERPUNK ARENA</h1>
+            <h2>ULTIMATE EDITION</h2>
+            <p>Choose your character and survive the cybernetic onslaught!</p>
+            
+            <h3>Select Character:</h3>
+            <div class="character-select">
+                <div class="character-card" onclick="selectCharacter('hacker')">
+                    <div>👨‍💻</div>
+                    <div><strong>Hacker</strong></div>
+                    <div style="font-size: 11px;">Fast movement, Tech specialist</div>
+                </div>
+                <div class="character-card" onclick="selectCharacter('samurai')">
+                    <div>🥷</div>
+                    <div><strong>Cyber Samurai</strong></div>
+                    <div style="font-size: 11px;">High damage, Melee focus</div>
+                </div>
+                <div class="character-card" onclick="selectCharacter('engineer')">
+                    <div>🔧</div>
+                    <div><strong>Engineer</strong></div>
+                    <div style="font-size: 11px;">Defense, Drone support</div>
+                </div>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <p><strong>Controls:</strong></p>
+                <p>WASD/Arrows - Move | Q - Special Ability | E - Use Perk</p>
+                <p>Auto-fire at nearest enemies | Collect XP and items</p>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <p><strong>New Features:</strong></p>
+                <p>• Character Classes • Perk System • Equipment</p>
+                <p>• Weather Effects • Companion AI • Minimap</p>
+                <p>• Advanced Bosses • Environmental Hazards</p>
+            </div>
+
+            <button class="start-btn" onclick="startGame()">START GAME</button>
+        </div>
+
+        <div id="levelUpScreen">
+            <h2>LEVEL UP!</h2>
+            <p>Choose an upgrade:</p>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="perkScreen">
+            <h2>CHOOSE PERK</h2>
+            <p>Select a permanent perk:</p>
+            <div class="perk-grid" id="perkGrid"></div>
+        </div>
+
+        <div id="weaponEvolution">
+            <h2>WEAPON EVOLUTION!</h2>
+            <p id="evolutionText"></p>
+            <button class="upgrade-btn" onclick="closeEvolution()">AWESOME!</button>
+        </div>
+
+        <div id="gameOver">
+            <h2>GAME OVER</h2>
+            <p>You survived for <span id="finalTime">0</span> seconds</p>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Level Reached: <span id="finalLevel">1</span></p>
+            <p>Enemies Defeated: <span id="finalKills">0</span></p>
+            <p>Max Combo: <span id="finalCombo">0</span></p>
+            <p>Perks Unlocked: <span id="finalPerks">0</span></p>
+            <button class="upgrade-btn" onclick="restartGame()">PLAY AGAIN</button>
+        </div>
+
+        <div id="comboDisplay"></div>
+        <div id="bossWarning">WARNING! BOSS INCOMING!</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+
+        // Game state
+        let gameState = 'start'; // start, playing, paused, gameOver
+        let gameTime = 0;
+        let lastTime = 0;
+        let screenShake = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let kills = 0;
+        let lastKillTime = 0;
+        let bossSpawned = false;
+        let selectedCharacter = 'hacker';
+        let weather = 'clear';
+        let dayNightCycle = 0;
+        let equipment = {};
+        let companion = null;
+
+        // High scores
+        let highScores = JSON.parse(localStorage.getItem('neonSurvivorHighScores') || '[]');
+
+        // Character definitions
+        const characters = {
+            hacker: {
+                name: 'Hacker',
+                health: 80,
+                speed: 4,
+                damage: 0.8,
+                special: 'systemOverload',
+                color: '#00ffff',
+                companion: 'drone'
+            },
+            samurai: {
+                name: 'Cyber Samurai',
+                health: 120,
+                speed: 3,
+                damage: 1.5,
+                special: 'bladeDance',
+                color: '#ff00ff',
+                companion: 'spirit'
+            },
+            engineer: {
+                name: 'Engineer',
+                health: 100,
+                speed: 2.5,
+                damage: 1.0,
+                special: 'turretDeploy',
+                color: '#ffff00',
+                companion: 'repairBot'
+            }
+        };
+
+        // Player object
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 20,
+            speed: 3,
+            health: 100,
+            maxHealth: 100,
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+            score: 0,
+            weapon: 'neonBlaster',
+            weaponLevel: 1,
+            damage: 10,
+            fireRate: 500,
+            lastFire: 0,
+            speedMultiplier: 1,
+            damageMultiplier: 1,
+            rangeMultiplier: 1,
+            specialAbilityReady: true,
+            specialAbilityCooldown: 0,
+            perks: [],
+            perkPoints: 0,
+            criticalChance: 0.1,
+            luck: 1.0
+        };
+
+        // Game arrays
+        let enemies = [];
+        let projectiles = [];
+        let xpOrbs = [];
+        let credits = [];
+        let particles = [];
+        let powerUps = [];
+        let bosses = [];
+        let environmentalHazards = [];
+        let turrets = [];
+        let damageNumbers = [];
+
+        // Perk system
+        const perks = {
+            vampire: {
+                name: 'Vampire',
+                description: 'Heal on kill',
+                unlockCost: 1,
+                effect: () => { player.vampire = true; }
+            },
+            scavenger: {
+                name: 'Scavenger',
+                description: 'More item drops',
+                unlockCost: 1,
+                effect: () => { player.luck *= 1.5; }
+            },
+            adrenaline: {
+                name: 'Adrenaline',
+                description: 'Speed on low health',
+                unlockCost: 2,
+                effect: () => { player.adrenaline = true; }
+            },
+            overcharge: {
+                name: 'Overcharge',
+                description: 'Faster special cooldown',
+                unlockCost: 2,
+                effect: () => { player.specialAbilityCooldown *= 0.7; }
+            },
+            critical: {
+                name: 'Critical Strike',
+                description: 'Increased crit chance',
+                unlockCost: 3,
+                effect: () => { player.criticalChance += 0.2; }
+            },
+            tank: {
+                name: 'Tank',
+                description: 'Double max health',
+                unlockCost: 3,
+                effect: () => { player.maxHealth *= 2; player.health = player.maxHealth; }
+            },
+            demolition: {
+                name: 'Demolition',
+                description: 'Explosions on death',
+                unlockCost: 4,
+                effect: () => { player.demolition = true; }
+            },
+            timeWarp: {
+                name: 'Time Warp',
+                description: 'Slow time occasionally',
+                unlockCost: 5,
+                effect: () => { player.timeWarp = true; }
+            }
+        };
+
+        // Enhanced weapon definitions
+        const weapons = {
+            neonBlaster: {
+                name: 'Neon Blaster',
+                damage: 10,
+                fireRate: 500,
+                range: 200,
+                color: '#00ffff',
+                projectileSpeed: 8,
+                evolution: 'neonStorm',
+                evolutionLevel: 5
+            },
+            plasmaRifle: {
+                name: 'Plasma Rifle',
+                damage: 15,
+                fireRate: 300,
+                range: 250,
+                color: '#ff00ff',
+                projectileSpeed: 10,
+                evolution: 'plasmaCannon',
+                evolutionLevel: 6
+            },
+            laserCannon: {
+                name: 'Laser Cannon',
+                damage: 25,
+                fireRate: 800,
+                range: 300,
+                color: '#ffff00',
+                projectileSpeed: 12,
+                evolution: 'laserBeam',
+                evolutionLevel: 7
+            },
+            sonicPulse: {
+                name: 'Sonic Pulse',
+                damage: 8,
+                fireRate: 200,
+                range: 150,
+                color: '#00ff00',
+                projectileSpeed: 6,
+                evolution: 'sonicBoom',
+                evolutionLevel: 4
+            },
+            railgun: {
+                name: 'Railgun',
+                damage: 40,
+                fireRate: 1200,
+                range: 400,
+                color: '#ff8800',
+                projectileSpeed: 20,
+                evolution: 'railCannon',
+                evolutionLevel: 8
+            },
+            teslaCoil: {
+                name: 'Tesla Coil',
+                damage: 12,
+                fireRate: 400,
+                range: 180,
+                color: '#8800ff',
+                projectileSpeed: 7,
+                evolution: 'teslaStorm',
+                evolutionLevel: 6,
+                chaining: true
+            },
+            // Evolved weapons
+            neonStorm: {
+                name: 'Neon Storm',
+                damage: 20,
+                fireRate: 200,
+                range: 250,
+                color: '#00ffff',
+                projectileSpeed: 10,
+                multishot: 3,
+                evolved: true
+            },
+            plasmaCannon: {
+                name: 'Plasma Cannon',
+                damage: 35,
+                fireRate: 400,
+                range: 350,
+                color: '#ff00ff',
+                projectileSpeed: 15,
+                piercing: true,
+                evolved: true
+            },
+            laserBeam: {
+                name: 'Laser Beam',
+                damage: 50,
+                fireRate: 600,
+                range: 400,
+                color: '#ffff00',
+                projectileSpeed: 20,
+                beam: true,
+                evolved: true
+            },
+            sonicBoom: {
+                name: 'Sonic Boom',
+                damage: 15,
+                fireRate: 150,
+                range: 200,
+                color: '#00ff00',
+                projectileSpeed: 8,
+                explosive: true,
+                evolved: true
+            },
+            railCannon: {
+                name: 'Rail Cannon',
+                damage: 80,
+                fireRate: 1500,
+                range: 500,
+                color: '#ff8800',
+                projectileSpeed: 25,
+                piercing: true,
+                explosive: true,
+                evolved: true
+            },
+            teslaStorm: {
+                name: 'Tesla Storm',
+                damage: 25,
+                fireRate: 300,
+                range: 250,
+                color: '#8800ff',
+                projectileSpeed: 10,
+                chaining: true,
+                multishot: 2,
+                evolved: true
+            }
+        };
+
+        // Enhanced enemy types
+        const enemyTypes = {
+            drone: {
+                health: 20,
+                speed: 1,
+                damage: 5,
+                radius: 8,
+                color: '#ff4444',
+                xpValue: 10,
+                creditValue: 5,
+                ai: 'basic'
+            },
+            cyborg: {
+                health: 50,
+                speed: 0.8,
+                damage: 10,
+                radius: 12,
+                color: '#ff8844',
+                xpValue: 25,
+                creditValue: 10,
+                ai: 'aggressive'
+            },
+            assassin: {
+                health: 30,
+                speed: 2,
+                damage: 15,
+                radius: 10,
+                color: '#ff00ff',
+                xpValue: 20,
+                creditValue: 15,
+                ai: 'flanking'
+            },
+            tank: {
+                health: 100,
+                speed: 0.5,
+                damage: 20,
+                radius: 20,
+                color: '#880000',
+                xpValue: 50,
+                creditValue: 25,
+                ai: 'tank'
+            },
+            sniper: {
+                health: 40,
+                speed: 0.6,
+                damage: 25,
+                radius: 8,
+                color: '#00ff00',
+                xpValue: 30,
+                creditValue: 20,
+                ai: 'sniper',
+                range: 300
+            },
+            berserker: {
+                health: 80,
+                speed: 1.5,
+                damage: 30,
+                radius: 15,
+                color: '#ff0000',
+                xpValue: 40,
+                creditValue: 30,
+                ai: 'berserker'
+            },
+            hacker: {
+                health: 25,
+                speed: 1.2,
+                damage: 8,
+                radius: 9,
+                color: '#00ffff',
+                xpValue: 35,
+                creditValue: 25,
+                ai: 'hacker',
+                abilities: ['hack', 'disable']
+            }
+        };
+
+        // Enhanced boss types
+        const bossTypes = {
+            cyberOverlord: {
+                health: 500,
+                speed: 0.3,
+                damage: 30,
+                radius: 40,
+                color: '#ff0000',
+                xpValue: 200,
+                creditValue: 100,
+                abilities: ['summon', 'laser', 'shockwave'],
+                phases: 2
+            },
+            quantumProcessor: {
+                health: 400,
+                speed: 0.5,
+                damage: 25,
+                radius: 35,
+                color: '#00ffff',
+                xpValue: 180,
+                creditValue: 90,
+                abilities: ['teleport', 'missiles', 'shield'],
+                phases: 3
+            },
+            naniteSwarm: {
+                health: 600,
+                speed: 0.8,
+                damage: 20,
+                radius: 30,
+                color: '#8800ff',
+                xpValue: 250,
+                creditValue: 120,
+                abilities: ['divide', 'assimilate', 'corrosion'],
+                phases: 4
+            },
+            omegaAI: {
+                health: 800,
+                speed: 0.4,
+                damage: 35,
+                radius: 50,
+                color: '#ffd700',
+                xpValue: 500,
+                creditValue: 200,
+                abilities: ['realityHack', 'timeStop', 'dimensionalRift'],
+                phases: 5
+            }
+        };
+
+        // Environmental hazards
+        const hazardTypes = {
+            laserGrid: {
+                damage: 5,
+                color: '#ff0000',
+                type: 'grid'
+            },
+            acidPool: {
+                damage: 3,
+                color: '#00ff00',
+                type: 'pool'
+            },
+            electricField: {
+                damage: 8,
+                color: '#ffff00',
+                type: 'field'
+            },
+            firewall: {
+                damage: 10,
+                color: '#ff8800',
+                type: 'wall'
+            }
+        };
+
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key.toLowerCase() === 'q') {
+                activateSpecialAbility();
+            }
+            if (e.key.toLowerCase() === 'e') {
+                activatePerk();
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.character-card').classList.add('selected');
+        }
+
+        function startGame() {
+            if (!selectedCharacter) {
+                alert('Please select a character first!');
+                return;
+            }
+
+            gameState = 'playing';
+            document.getElementById('startScreen').style.display = 'none';
+            resetGame();
+            initializeCharacter();
+            gameLoop();
+        }
+
+        function initializeCharacter() {
+            const character = characters[selectedCharacter];
+            player.health = character.health;
+            player.maxHealth = character.health;
+            player.speed = character.speed;
+            player.damageMultiplier = character.damage;
+            player.specialAbility = character.special;
+            
+            // Initialize companion
+            if (character.companion) {
+                companion = {
+                    type: character.companion,
+                    x: player.x,
+                    y: player.y,
+                    radius: 10,
+                    health: 50,
+                    maxHealth: 50,
+                    damage: 5,
+                    lastAttack: 0
+                };
+                document.getElementById('companion').style.display = 'block';
+            }
+        }
+
+        function resetGame() {
+            // Reset player
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.level = 1;
+            player.xp = 0;
+            player.xpNeeded = 100;
+            player.score = 0;
+            player.weapon = 'neonBlaster';
+            player.weaponLevel = 1;
+            player.speedMultiplier = 1;
+            player.damageMultiplier = characters[selectedCharacter].damage;
+            player.rangeMultiplier = 1;
+            player.specialAbilityReady = true;
+            player.specialAbilityCooldown = 15000;
+            player.bossKills = 0;
+            player.perks = [];
+            player.perkPoints = 0;
+            player.criticalChance = 0.1;
+            player.luck = 1.0;
+
+            // Reset game arrays
+            enemies = [];
+            projectiles = [];
+            xpOrbs = [];
+            credits = [];
+            particles = [];
+            powerUps = [];
+            bosses = [];
+            environmentalHazards = [];
+            turrets = [];
+            damageNumbers = [];
+            
+            // Reset counters
+            gameTime = 0;
+            combo = 0;
+            maxCombo = 0;
+            kills = 0;
+            bossSpawned = false;
+            weather = 'clear';
+            dayNightCycle = 0;
+            equipment = {};
+
+            // Reset weapons
+            Object.keys(weapons).forEach(key => {
+                const weapon = weapons[key];
+                const baseStats = {
+                    neonBlaster: { damage: 10, fireRate: 500, range: 200 },
+                    plasmaRifle: { damage: 15, fireRate: 300, range: 250 },
+                    laserCannon: { damage: 25, fireRate: 800, range: 300 },
+                    sonicPulse: { damage: 8, fireRate: 200, range: 150 },
+                    railgun: { damage: 40, fireRate: 1200, range: 400 },
+                    teslaCoil: { damage: 12, fireRate: 400, range: 180 },
+                    neonStorm: { damage: 20, fireRate: 200, range: 250 },
+                    plasmaCannon: { damage: 35, fireRate: 400, range: 350 },
+                    laserBeam: { damage: 50, fireRate: 600, range: 400 },
+                    sonicBoom: { damage: 15, fireRate: 150, range: 200 },
+                    railCannon: { damage: 80, fireRate: 1500, range: 500 },
+                    teslaStorm: { damage: 25, fireRate: 300, range: 250 }
+                };
+                
+                if (baseStats[key]) {
+                    weapon.damage = baseStats[key].damage;
+                    weapon.fireRate = baseStats[key].fireRate;
+                    weapon.range = baseStats[key].range;
+                }
+            });
+
+            // Initialize weather
+            changeWeather();
+            
+            updateUI();
+        }
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            startGame();
+        }
+
+        function changeWeather() {
+            const weathers = ['clear', 'rain', 'storm', 'fog'];
+            weather = weathers[Math.floor(Math.random() * weathers.length)];
+            
+            const weatherEffects = document.getElementById('weatherEffects');
+            weatherEffects.innerHTML = '';
+            
+            if (weather === 'rain') {
+                for (let i = 0; i < 50; i++) {
+                    const drop = document.createElement('div');
+                    drop.className = 'rain-drop';
+                    drop.style.left = Math.random() * 100 + '%';
+                    drop.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
+                    drop.style.animationDelay = Math.random() * 2 + 's';
+                    weatherEffects.appendChild(drop);
+                }
+            }
+        }
+
+        function updatePlayer() {
+            // Adrenaline perk effect
+            if (player.adrenaline && player.health < player.maxHealth * 0.3) {
+                player.speedMultiplier = 1.5;
+            } else if (player.adrenaline) {
+                player.speedMultiplier = 1;
+            }
+
+            // Movement
+            let dx = 0, dy = 0;
+            if (keys['w'] || keys['arrowup']) dy = -1;
+            if (keys['s'] || keys['arrowdown']) dy = 1;
+            if (keys['a'] || keys['arrowleft']) dx = -1;
+            if (keys['d'] || keys['arrowright']) dx = 1;
+
+            // Normalize diagonal movement
+            if (dx !== 0 && dy !== 0) {
+                dx *= 0.707;
+                dy *= 0.707;
+            }
+
+            player.x += dx * player.speed * player.speedMultiplier;
+            player.y += dy * player.speed * player.speedMultiplier;
+
+            // Keep player in bounds
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+            // Auto-fire at nearest enemy
+            const now = Date.now();
+            if (now - player.lastFire > weapons[player.weapon].fireRate) {
+                const nearestEnemy = findNearestEnemy();
+                if (nearestEnemy) {
+                    fireProjectile(nearestEnemy);
+                    player.lastFire = now;
+                }
+            }
+
+            // Update special ability cooldown
+            if (!player.specialAbilityReady) {
+                player.specialAbilityCooldown -= 16;
+                if (player.specialAbilityCooldown <= 0) {
+                    player.specialAbilityReady = true;
+                    document.getElementById('specialAbility').classList.remove('cooldown');
+                }
+            }
+
+            // Update power-ups
+            powerUps.forEach((powerUp, index) => {
+                powerUp.duration -= 16;
+                if (powerUp.duration <= 0) {
+                    powerUp.remove();
+                    powerUps.splice(index, 1);
+                }
+            });
+
+            // Update companion
+            if (companion) {
+                updateCompanion();
+            }
+
+            // Environmental hazard damage
+            environmentalHazards.forEach(hazard => {
+                const distance = Math.sqrt(
+                    Math.pow(player.x - hazard.x, 2) + Math.pow(player.y - hazard.y, 2)
+                );
+                if (distance < hazard.radius + player.radius) {
+                    player.health -= hazard.damage * 0.016; // Per frame damage
+                }
+            });
+        }
+
+        function updateCompanion() {
+            if (!companion) return;
+
+            // Companion follows player
+            const dx = player.x - companion.x;
+            const dy = player.y - companion.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 50) {
+                companion.x += (dx / distance) * 2;
+                companion.y += (dy / distance) * 2;
+            }
+
+            // Companion attacks nearby enemies
+            const now = Date.now();
+            if (now - companion.lastAttack > 1000) {
+                const nearestEnemy = findNearestEnemyToCompanion();
+                if (nearestEnemy && distance < 100) {
+                    companionAttack(nearestEnemy);
+                    companion.lastAttack = now;
+                }
+            }
+
+            // Update companion position
+            const companionElement = document.getElementById('companion');
+            companionElement.style.left = companion.x - 10 + 'px';
+            companionElement.style.top = companion.y - 10 + 'px';
+        }
+
+        function findNearestEnemyToCompanion() {
+            let nearest = null;
+            let minDistance = 80;
+
+            enemies.forEach(enemy => {
+                const distance = Math.sqrt(
+                    Math.pow(enemy.x - companion.x, 2) + Math.pow(enemy.y - companion.y, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = enemy;
+                }
+            });
+
+            return nearest;
+        }
+
+        function companionAttack(target) {
+            const angle = Math.atan2(target.y - companion.y, target.x - companion.x);
+            
+            // Create companion projectile
+            projectiles.push({
+                x: companion.x,
+                y: companion.y,
+                vx: Math.cos(angle) * 6,
+                vy: Math.sin(angle) * 6,
+                damage: companion.damage,
+                range: 100,
+                color: '#00ff00',
+                life: 0,
+                companion: true
+            });
+        }
+
+        function findNearestEnemy() {
+            let nearest = null;
+            let minDistance = weapons[player.weapon].range * player.rangeMultiplier;
+
+            // Check regular enemies
+            enemies.forEach(enemy => {
+                const distance = Math.sqrt(
+                    Math.pow(enemy.x - player.x, 2) + Math.pow(enemy.y - player.y, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = enemy;
+                }
+            });
+
+            // Check bosses
+            bosses.forEach(boss => {
+                const distance = Math.sqrt(
+                    Math.pow(boss.x - player.x, 2) + Math.pow(boss.y - player.y, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = boss;
+                }
+            });
+
+            return nearest;
+        }
+
+        function fireProjectile(target) {
+            const weapon = weapons[player.weapon];
+            const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
+            
+            // Check for critical hit
+            const isCritical = Math.random() < player.criticalChance;
+            const damageMultiplier = isCritical ? 2 : 1;
+            
+            if (weapon.multishot) {
+                // Multishot for evolved weapons
+                for (let i = 0; i < weapon.multishot; i++) {
+                    const angle = baseAngle + (i - (weapon.multishot - 1) / 2) * 0.2;
+                    createProjectile(angle, weapon, damageMultiplier);
+                }
+            } else if (player.multishot) {
+                // Temporary multishot from power-up
+                for (let i = 0; i < 3; i++) {
+                    const angle = baseAngle + (i - 1) * 0.3;
+                    createProjectile(angle, weapon, damageMultiplier);
+                }
+            } else {
+                createProjectile(baseAngle, weapon, damageMultiplier);
+            }
+        }
+
+        function createProjectile(angle, weapon, damageMultiplier = 1) {
+            projectiles.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * weapon.projectileSpeed,
+                vy: Math.sin(angle) * weapon.projectileSpeed,
+                damage: weapon.damage * player.damageMultiplier * damageMultiplier,
+                range: weapon.range * player.rangeMultiplier,
+                color: weapon.color,
+                life: 0,
+                piercing: weapon.piercing || false,
+                explosive: weapon.explosive || false,
+                beam: weapon.beam || false,
+                chaining: weapon.chaining || false,
+                critical: damageMultiplier > 1
+            });
+        }
+
+        function spawnEnemy() {
+            const types = Object.keys(enemyTypes);
+            const type = types[Math.floor(Math.random() * types.length)];
+            const enemyData = enemyTypes[type];
+            
+            // Spawn from edges
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            
+            switch(side) {
+                case 0: // top
+                    x = Math.random() * canvas.width;
+                    y = -enemyData.radius;
+                    break;
+                case 1: // right
+                    x = canvas.width + enemyData.radius;
+                    y = Math.random() * canvas.height;
+                    break;
+                case 2: // bottom
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + enemyData.radius;
+                    break;
+                case 3: // left
+                    x = -enemyData.radius;
+                    y = Math.random() * canvas.height;
+                    break;
+            }
+
+            enemies.push({
+                x: x,
+                y: y,
+                type: type,
+                health: enemyData.health,
+                maxHealth: enemyData.health,
+                speed: enemyData.speed,
+                damage: enemyData.damage,
+                radius: enemyData.radius,
+                color: enemyData.color,
+                xpValue: enemyData.xpValue,
+                creditValue: enemyData.creditValue,
+                ai: enemyData.ai,
+                state: 'hunting',
+                lastAttack: 0,
+                abilities: enemyData.abilities || []
+            });
+        }
+
+        function spawnBoss() {
+            if (bossSpawned) return;
+            
+            bossSpawned = true;
+            const bossTypes_keys = Object.keys(bossTypes);
+            const type = bossTypes_keys[Math.floor(Math.random() * bossTypes_keys.length)];
+            const bossData = bossTypes[type];
+            
+            // Show boss warning
+            const warning = document.getElementById('bossWarning');
+            warning.style.display = 'block';
+            setTimeout(() => {
+                warning.style.display = 'none';
+            }, 3000);
+
+            setTimeout(() => {
+                bosses.push({
+                    x: canvas.width / 2,
+                    y: 100,
+                    type: type,
+                    health: bossData.health,
+                    maxHealth: bossData.health,
+                    speed: bossData.speed,
+                    damage: bossData.damage,
+                    radius: bossData.radius,
+                    color: bossData.color,
+                    xpValue: bossData.xpValue,
+                    creditValue: bossData.creditValue,
+                    abilities: bossData.abilities,
+                    lastAbility: 0,
+                    state: 'entering',
+                    phase: 1,
+                    phases: bossData.phases
+                });
+            }, 2000);
+        }
+
+        function spawnEnvironmentalHazard() {
+            const hazardTypes_keys = Object.keys(hazardTypes);
+            const type = hazardTypes_keys[Math.floor(Math.random() * hazardTypes_keys.length)];
+            const hazardData = hazardTypes[type];
+            
+            environmentalHazards.push({
+                x: Math.random() * (canvas.width - 100) + 50,
+                y: Math.random() * (canvas.height - 100) + 50,
+                radius: 30 + Math.random() * 20,
+                damage: hazardData.damage,
+                color: hazardData.color,
+                type: hazardData.type,
+                pulse: 0
+            });
+        }
+
+        function updateEnemies() {
+            enemies.forEach((enemy, index) => {
+                // AI behavior
+                updateEnemyAI(enemy);
+                
+                // Check collision with player
+                const distance = Math.sqrt(
+                    Math.pow(enemy.x - player.x, 2) + Math.pow(enemy.y - player.y, 2)
+                );
+                
+                if (distance < enemy.radius + player.radius) {
+                    if (!player.shield) {
+                        player.health -= enemy.damage;
+                        screenShake = 10;
+                        createParticles(enemy.x, enemy.y, enemy.color, 8);
+                        showDamageNumber(player.x, player.y, enemy.damage, '#ff0000');
+                    }
+                    enemies.splice(index, 1);
+                    
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function updateEnemyAI(enemy) {
+            const playerDistance = Math.sqrt(
+                Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2)
+            );
+
+            switch(enemy.ai) {
+                case 'basic':
+                    const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                    enemy.x += Math.cos(angle) * enemy.speed;
+                    enemy.y += Math.sin(angle) * enemy.speed;
+                    break;
+                    
+                case 'aggressive':
+                    const speedMultiplier = Math.max(1, 2 - playerDistance / 200);
+                    const aggAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                    enemy.x += Math.cos(aggAngle) * enemy.speed * speedMultiplier;
+                    enemy.y += Math.sin(aggAngle) * enemy.speed * speedMultiplier;
+                    break;
+                    
+                case 'flanking':
+                    const flankAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x) + Math.PI / 4;
+                    enemy.x += Math.cos(flankAngle) * enemy.speed;
+                    enemy.y += Math.sin(flankAngle) * enemy.speed;
+                    break;
+                    
+                case 'tank':
+                    const tankAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                    enemy.x += Math.cos(tankAngle) * enemy.speed;
+                    enemy.y += Math.sin(tankAngle) * enemy.speed;
+                    break;
+                    
+                case 'sniper':
+                    if (playerDistance < 150) {
+                        const retreatAngle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+                        enemy.x += Math.cos(retreatAngle) * enemy.speed;
+                        enemy.y += Math.sin(retreatAngle) * enemy.speed;
+                    } else if (playerDistance > 250) {
+                        const advanceAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                        enemy.x += Math.cos(advanceAngle) * enemy.speed;
+                        enemy.y += Math.sin(advanceAngle) * enemy.speed;
+                    }
+                    break;
+                    
+                case 'berserker':
+                    // Charge at player when close
+                    if (playerDistance < 200) {
+                        const chargeAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                        enemy.x += Math.cos(chargeAngle) * enemy.speed * 2;
+                        enemy.y += Math.sin(chargeAngle) * enemy.speed * 2;
+                    } else {
+                        const normalAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                        enemy.x += Math.cos(normalAngle) * enemy.speed;
+                        enemy.y += Math.sin(normalAngle) * enemy.speed;
+                    }
+                    break;
+                    
+                case 'hacker':
+                    // Use special abilities
+                    const now = Date.now();
+                    if (now - enemy.lastAttack > 3000) {
+                        const ability = enemy.abilities[Math.floor(Math.random() * enemy.abilities.length)];
+                        useEnemyAbility(enemy, ability);
+                        enemy.lastAttack = now;
+                    }
+                    
+                    // Keep distance and circle
+                    const hackAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x) + Math.PI / 2;
+                    enemy.x += Math.cos(hackAngle) * enemy.speed;
+                    enemy.y += Math.sin(hackAngle) * enemy.speed;
+                    break;
+            }
+        }
+
+        function useEnemyAbility(enemy, ability) {
+            switch(ability) {
+                case 'hack':
+                    // Disable player special ability temporarily
+                    player.specialAbilityCooldown += 5000;
+                    createParticles(enemy.x, enemy.y, '#00ffff', 10);
+                    break;
+                    
+                case 'disable':
+                    // Slow player down
+                    player.speedMultiplier *= 0.5;
+                    setTimeout(() => { player.speedMultiplier *= 2; }, 3000);
+                    createParticles(enemy.x, enemy.y, '#ff00ff', 10);
+                    break;
+            }
+        }
+
+        function updateBosses() {
+            bosses.forEach((boss, index) => {
+                if (boss.state === 'entering') {
+                    boss.y += 2;
+                    if (boss.y >= 150) {
+                        boss.state = 'fighting';
+                    }
+                } else if (boss.state === 'fighting') {
+                    // Phase transitions
+                    const healthPercent = boss.health / boss.maxHealth;
+                    const newPhase = Math.floor((1 - healthPercent) * boss.phases) + 1;
+                    
+                    if (newPhase > boss.phase) {
+                        boss.phase = newPhase;
+                        bossAbilityPhaseTransition(boss);
+                    }
+                    
+                    // Movement
+                    const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    boss.x += Math.cos(angle) * boss.speed;
+                    boss.y += Math.sin(angle) * boss.speed;
+                    
+                    // Use abilities
+                    const now = Date.now();
+                    const abilityFrequency = Math.max(2000, 5000 - (boss.phase - 1) * 1000);
+                    if (now - boss.lastAbility > abilityFrequency) {
+                        useBossAbility(boss);
+                        boss.lastAbility = now;
+                    }
+                }
+                
+                // Check collision with player
+                const distance = Math.sqrt(
+                    Math.pow(boss.x - player.x, 2) + Math.pow(boss.y - player.y, 2)
+                );
+                
+                if (distance < boss.radius + player.radius) {
+                    if (!player.shield) {
+                        player.health -= boss.damage;
+                        screenShake = 20;
+                        createParticles(boss.x, boss.y, boss.color, 15);
+                        showDamageNumber(player.x, player.y, boss.damage, '#ff0000');
+                    }
+                    
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function bossAbilityPhaseTransition(boss) {
+            screenShake = 20;
+            createParticles(boss.x, boss.y, boss.color, 30);
+            
+            // Heal boss slightly and increase stats
+            boss.health += boss.maxHealth * 0.1;
+            boss.damage *= 1.2;
+            boss.speed *= 1.1;
+        }
+
+        function useBossAbility(boss) {
+            const ability = boss.abilities[Math.floor(Math.random() * boss.abilities.length)];
+            
+            switch(ability) {
+                case 'summon':
+                    for (let i = 0; i < 3 + boss.phase; i++) {
+                        setTimeout(() => spawnEnemy(), i * 300);
+                    }
+                    break;
+                    
+                case 'laser':
+                    const laserAngle = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    for (let i = 0; i < 5 + boss.phase * 2; i++) {
+                        setTimeout(() => {
+                            projectiles.push({
+                                x: boss.x,
+                                y: boss.y,
+                                vx: Math.cos(laserAngle) * 15,
+                                vy: Math.sin(laserAngle) * 15,
+                                damage: 20 * boss.phase,
+                                range: 500,
+                                color: '#ff0000',
+                                life: 0,
+                                piercing: true
+                            });
+                        }, i * 100);
+                    }
+                    break;
+                    
+                case 'shockwave':
+                    createShockwave(boss.x, boss.y, 15 * boss.phase);
+                    break;
+                    
+                case 'teleport':
+                    boss.x = Math.random() * (canvas.width - 100) + 50;
+                    boss.y = Math.random() * (canvas.height - 200) + 100;
+                    createParticles(boss.x, boss.y, boss.color, 20);
+                    break;
+                    
+                case 'missiles':
+                    for (let i = 0; i < 5 + boss.phase; i++) {
+                        const angle = (Math.PI * 2 * i) / (5 + boss.phase);
+                        projectiles.push({
+                            x: boss.x,
+                            y: boss.y,
+                            vx: Math.cos(angle) * 5,
+                            vy: Math.sin(angle) * 5,
+                            damage: 15 * boss.phase,
+                            range: 400,
+                            color: '#ff8800',
+                            life: 0,
+                            homing: true,
+                            target: player
+                        });
+                    }
+                    break;
+                    
+                case 'shield':
+                    boss.shielded = true;
+                    setTimeout(() => { boss.shielded = false; }, 3000 + boss.phase * 1000);
+                    break;
+                    
+                case 'divide':
+                    if (boss.phase > 1) {
+                        // Create smaller copies
+                        for (let i = 0; i < 2; i++) {
+                            enemies.push({
+                                x: boss.x + (Math.random() - 0.5) * 100,
+                                y: boss.y + (Math.random() - 0.5) * 100,
+                                type: 'berserker',
+                                health: boss.maxHealth * 0.3,
+                                maxHealth: boss.maxHealth * 0.3,
+                                speed: boss.speed * 1.5,
+                                damage: boss.damage * 0.7,
+                                radius: boss.radius * 0.7,
+                                color: boss.color,
+                                xpValue: boss.xpValue * 0.3,
+                                creditValue: boss.creditValue * 0.3,
+                                ai: 'berserker'
+                            });
+                        }
+                    }
+                    break;
+                    
+                case 'assimilate':
+                    // Heal from nearby enemies
+                    enemies.forEach(enemy => {
+                        const distance = Math.sqrt(
+                            Math.pow(enemy.x - boss.x, 2) + Math.pow(enemy.y - boss.y, 2)
+                        );
+                        if (distance < 200) {
+                            boss.health += 10;
+                            enemy.health -= 10;
+                        }
+                    });
+                    break;
+                    
+                case 'corrosion':
+                    // Create acid pools
+                    for (let i = 0; i < 3; i++) {
+                        environmentalHazards.push({
+                            x: boss.x + (Math.random() - 0.5) * 200,
+                            y: boss.y + (Math.random() - 0.5) * 200,
+                            radius: 40,
+                            damage: 5 * boss.phase,
+                            color: '#00ff00',
+                            type: 'pool',
+                            pulse: 0,
+                            duration: 10000
+                        });
+                    }
+                    break;
+                    
+                case 'realityHack':
+                    // Invert controls temporarily
+                    const originalKeys = {...keys};
+                    setTimeout(() => {
+                        for (let key in keys) {
+                            keys[key] = !originalKeys[key];
+                        }
+                    }, 100);
+                    setTimeout(() => {
+                        for (let key in keys) {
+                            keys[key] = originalKeys[key];
+                        }
+                    }, 3000);
+                    break;
+                    
+                case 'timeStop':
+                    // Slow down time
+                    const originalSpeed = player.speed;
+                    player.speed *= 0.3;
+                    setTimeout(() => { player.speed = originalSpeed; }, 2000);
+                    break;
+                    
+                case 'dimensionalRift':
+                    // Create multiple portals that spawn enemies
+                    for (let i = 0; i < 3; i++) {
+                        const portalX = Math.random() * canvas.width;
+                        const portalY = Math.random() * canvas.height;
+                        
+                        for (let j = 0; j < 3; j++) {
+                            setTimeout(() => {
+                                enemies.push({
+                                    x: portalX,
+                                    y: portalY,
+                                    type: 'hacker',
+                                    health: 30,
+                                    maxHealth: 30,
+                                    speed: 1.5,
+                                    damage: 10,
+                                    radius: 10,
+                                    color: '#8800ff',
+                                    xpValue: 25,
+                                    creditValue: 15,
+                                    ai: 'basic'
+                                });
+                            }, j * 500);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        function createShockwave(x, y, damage) {
+            for (let radius = 20; radius <= 200; radius += 20) {
+                setTimeout(() => {
+                    createParticles(x + radius, y, '#ff0000', 5);
+                    createParticles(x - radius, y, '#ff0000', 5);
+                    createParticles(x, y + radius, '#ff0000', 5);
+                    createParticles(x, y - radius, '#ff0000', 5);
+                    
+                    const distance = Math.sqrt(Math.pow(player.x - x, 2) + Math.pow(player.y - y, 2));
+                    if (distance < radius && distance > radius - 20 && !player.shield) {
+                        player.health -= damage;
+                        screenShake = 15;
+                        showDamageNumber(player.x, player.y, damage, '#ff0000');
+                    }
+                }, radius * 10);
+            }
+        }
+
+        function updateProjectiles() {
+            projectiles.forEach((projectile, pIndex) => {
+                if (projectile.homing && projectile.target) {
+                    const angle = Math.atan2(projectile.target.y - projectile.y, projectile.target.x - projectile.x);
+                    projectile.vx = Math.cos(angle) * (projectile.projectileSpeed || 8);
+                    projectile.vy = Math.sin(angle) * (projectile.projectileSpeed || 8);
+                }
+                
+                projectile.x += projectile.vx;
+                projectile.y += projectile.vy;
+                projectile.life++;
+
+                if (projectile.life > projectile.range / 10 ||
+                    projectile.x < 0 || projectile.x > canvas.width ||
+                    projectile.y < 0 || projectile.y > canvas.height) {
+                    projectiles.splice(pIndex, 1);
+                    return;
+                }
+
+                let hit = false;
+                
+                // Check collision with enemies
+                enemies.forEach((enemy, eIndex) => {
+                    const distance = Math.sqrt(
+                        Math.pow(projectile.x - enemy.x, 2) + Math.pow(projectile.y - enemy.y, 2)
+                    );
+                    
+                    if (distance < 5 + enemy.radius) {
+                        enemy.health -= projectile.damage;
+                        createParticles(projectile.x, projectile.y, projectile.color, 5);
+                        showDamageNumber(enemy.x, enemy.y, projectile.damage, projectile.critical ? '#ffff00' : '#ffffff');
+                        
+                        if (projectile.explosive) {
+                            createExplosion(projectile.x, projectile.y, projectile.damage / 2);
+                        }
+                        
+                        if (projectile.chaining) {
+                            // Chain to nearby enemies
+                            chainLightning(projectile.x, projectile.y, projectile.damage / 2, enemy);
+                        }
+                        
+                        if (!projectile.piercing) {
+                            hit = true;
+                        }
+
+                        if (enemy.health <= 0) {
+                            defeatEnemy(enemy, eIndex);
+                        }
+                    }
+                });
+
+                // Check collision with bosses
+                bosses.forEach((boss, bIndex) => {
+                    if (boss.shielded) return;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(projectile.x - boss.x, 2) + Math.pow(projectile.y - boss.y, 2)
+                    );
+                    
+                    if (distance < 5 + boss.radius) {
+                        boss.health -= projectile.damage;
+                        createParticles(projectile.x, projectile.y, projectile.color, 8);
+                        screenShake = 5;
+                        showDamageNumber(boss.x, boss.y, projectile.damage, projectile.critical ? '#ffff00' : '#ffffff');
+                        
+                        if (projectile.explosive) {
+                            createExplosion(projectile.x, projectile.y, projectile.damage / 3);
+                        }
+                        
+                        if (!projectile.piercing) {
+                            hit = true;
+                        }
+
+                        if (boss.health <= 0) {
+                            defeatBoss(boss, bIndex);
+                        }
+                    }
+                });
+
+                if (hit) {
+                    projectiles.splice(pIndex, 1);
+                }
+            });
+        }
+
+        function chainLightning(x, y, damage, sourceEnemy) {
+            const nearbyEnemies = enemies.filter(enemy => {
+                if (enemy === sourceEnemy) return false;
+                const distance = Math.sqrt(Math.pow(enemy.x - x, 2) + Math.pow(enemy.y - y, 2));
+                return distance < 100;
+            });
+
+            if (nearbyEnemies.length > 0) {
+                const target = nearbyEnemies[0];
+                
+                // Create lightning effect
+                for (let i = 0; i < 5; i++) {
+                    const t = i / 4;
+                    const lx = x + (target.x - x) * t + (Math.random() - 0.5) * 20;
+                    const ly = y + (target.y - y) * t + (Math.random() - 0.5) * 20;
+                    createParticles(lx, ly, '#8800ff', 2);
+                }
+                
+                target.health -= damage;
+                if (target.health <= 0) {
+                    const index = enemies.indexOf(target);
+                    defeatEnemy(target, index);
+                }
+            }
+        }
+
+        function createExplosion(x, y, damage) {
+            createParticles(x, y, '#ff8800', 15);
+            screenShake = 10;
+            
+            enemies.forEach((enemy, index) => {
+                const distance = Math.sqrt(Math.pow(enemy.x - x, 2) + Math.pow(enemy.y - y, 2));
+                if (distance < 50) {
+                    enemy.health -= damage;
+                    showDamageNumber(enemy.x, enemy.y, damage, '#ff8800');
+                    if (enemy.health <= 0) {
+                        defeatEnemy(enemy, index);
+                    }
+                }
+            });
+        }
+
+        function showDamageNumber(x, y, damage, color) {
+            damageNumbers.push({
+                x: x,
+                y: y,
+                damage: Math.floor(damage),
+                color: color,
+                life: 60,
+                alpha: 1
+            });
+        }
+
+        function updateDamageNumbers() {
+            damageNumbers.forEach((number, index) => {
+                number.y -= 1;
+                number.life--;
+                number.alpha = number.life / 60;
+                
+                if (number.life <= 0) {
+                    damageNumbers.splice(index, 1);
+                }
+            });
+        }
+
+        function defeatEnemy(enemy, index) {
+            kills++;
+            updateCombo();
+            
+            const xpGain = enemy.xpValue * (player.xpMultiplier || 1) * player.luck;
+            player.xp += xpGain;
+            player.score += enemy.xpValue;
+            
+            // Vampire perk effect
+            if (player.vampire) {
+                player.health = Math.min(player.health + 5, player.maxHealth);
+            }
+            
+            // Drop XP orb
+            xpOrbs.push({
+                x: enemy.x,
+                y: enemy.y,
+                value: enemy.xpValue,
+                radius: 10,
+                color: '#00ff00'
+            });
+
+            // Drop credit
+            if (Math.random() < 0.4 * player.luck) {
+                credits.push({
+                    x: enemy.x,
+                    y: enemy.y,
+                    value: enemy.creditValue,
+                    radius: 8,
+                    color: '#ffff00'
+                });
+            }
+
+            // Drop power-up
+            if (Math.random() < 0.1 * player.luck) {
+                spawnPowerUp(enemy.x, enemy.y);
+            }
+
+            // Drop equipment
+            if (Math.random() < 0.05 * player.luck) {
+                spawnEquipment(enemy.x, enemy.y);
+            }
+
+            createParticles(enemy.x, enemy.y, enemy.color, 12);
+            enemies.splice(index, 1);
+
+            if (player.xp >= player.xpNeeded) {
+                levelUp();
+            }
+
+            checkAchievements();
+        }
+
+        function spawnPowerUp(x, y) {
+            const powerUpTypes_keys = Object.keys(powerUpTypes);
+            const type = powerUpTypes_keys[Math.floor(Math.random() * powerUpTypes_keys.length)];
+            const powerUpData = powerUpTypes[type];
+            
+            powerUps.push({
+                x: x,
+                y: y,
+                type: type,
+                radius: 12,
+                color: powerUpData.color,
+                duration: powerUpData.duration,
+                effect: powerUpData.effect,
+                remove: powerUpData.remove
+            });
+        }
+
+        function spawnEquipment(x, y) {
+            const equipmentTypes = ['helmet', 'armor', 'weapon', 'ring'];
+            const type = equipmentTypes[Math.floor(Math.random() * equipmentTypes.length)];
+            
+            // This would be expanded with actual equipment stats
+            equipment[type] = {
+                name: type,
+                bonus: Math.floor(Math.random() * 10) + 1
+            };
+            
+            createParticles(x, y, '#ffd700', 15);
+        }
+
+        function defeatBoss(boss, index) {
+            player.bossKills = (player.bossKills || 0) + 1;
+            
+            const xpGain = boss.xpValue * (player.xpMultiplier || 1) * player.luck;
+            player.xp += xpGain;
+            player.score += boss.xpValue;
+            
+            // Drop multiple XP orbs
+            for (let i = 0; i < 5; i++) {
+                xpOrbs.push({
+                    x: boss.x + (Math.random() - 0.5) * 50,
+                    y: boss.y + (Math.random() - 0.5) * 50,
+                    value: boss.xpValue / 5,
+                    radius: 15,
+                    color: '#00ff00'
+                });
+            }
+
+            // Drop credits
+            for (let i = 0; i < 3; i++) {
+                credits.push({
+                    x: boss.x + (Math.random() - 0.5) * 30,
+                    y: boss.y + (Math.random() - 0.5) * 30,
+                    value: boss.creditValue / 3,
+                    radius: 10,
+                    color: '#ffff00'
+                });
+            }
+
+            // Drop guaranteed power-up
+            spawnPowerUp(boss.x, boss.y);
+            
+            // Drop guaranteed equipment
+            spawnEquipment(boss.x, boss.y);
+
+            createParticles(boss.x, boss.y, boss.color, 30);
+            screenShake = 30;
+            bosses.splice(index, 1);
+
+            if (player.xp >= player.xpNeeded) {
+                levelUp();
+            }
+
+            checkAchievements();
+        }
+
+        function updateCombo() {
+            const now = Date.now();
+            if (now - lastKillTime < 2000) {
+                combo++;
+                if (combo > maxCombo) {
+                    maxCombo = combo;
+                }
+                
+                if (combo % 5 === 0) {
+                    showCombo(combo);
+                    player.score += combo * 10;
+                }
+            } else {
+                combo = 1;
+            }
+            lastKillTime = now;
+        }
+
+        function showCombo(comboCount) {
+            const comboDisplay = document.getElementById('comboDisplay');
+            comboDisplay.textContent = `${comboCount}x COMBO!`;
+            comboDisplay.style.display = 'block';
+            setTimeout(() => {
+                comboDisplay.style.display = 'none';
+            }, 1000);
+        }
+
+        function activateSpecialAbility() {
+            if (!player.specialAbilityReady) return;
+            
+            player.specialAbilityReady = false;
+            player.specialAbilityCooldown = 15000;
+            document.getElementById('specialAbility').classList.add('cooldown');
+            
+            switch(player.specialAbility) {
+                case 'systemOverload':
+                    // Hacker ability: EMP blast
+                    createExplosion(player.x, player.y, 75);
+                    screenShake = 25;
+                    
+                    // Stun all enemies
+                    enemies.forEach(enemy => {
+                        enemy.speed *= 0.1;
+                        setTimeout(() => { enemy.speed *= 10; }, 3000);
+                    });
+                    break;
+                    
+                case 'bladeDance':
+                    // Samurai ability: Whirlwind attack
+                    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+                        projectiles.push({
+                            x: player.x,
+                            y: player.y,
+                            vx: Math.cos(angle) * 10,
+                            vy: Math.sin(angle) * 10,
+                            damage: 50,
+                            range: 200,
+                            color: '#ff00ff',
+                            life: 0,
+                            piercing: true
+                        });
+                    }
+                    break;
+                    
+                case 'turretDeploy':
+                    // Engineer ability: Deploy turret
+                    turrets.push({
+                        x: player.x,
+                        y: player.y,
+                        radius: 15,
+                        health: 100,
+                        damage: 15,
+                        fireRate: 500,
+                        lastFire: 0,
+                        duration: 15000
+                    });
+                    break;
+            }
+        }
+
+        function updateTurrets() {
+            turrets.forEach((turret, index) => {
+                turret.duration -= 16;
+                
+                if (turret.duration <= 0 || turret.health <= 0) {
+                    createParticles(turret.x, turret.y, '#ffff00', 10);
+                    turrets.splice(index, 1);
+                    return;
+                }
+                
+                // Find nearest enemy
+                let nearestEnemy = null;
+                let minDistance = 150;
+                
+                enemies.forEach(enemy => {
+                    const distance = Math.sqrt(
+                        Math.pow(enemy.x - turret.x, 2) + Math.pow(enemy.y - turret.y, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestEnemy = enemy;
+                    }
+                });
+                
+                // Fire at enemy
+                const now = Date.now();
+                if (nearestEnemy && now - turret.lastFire > turret.fireRate) {
+                    const angle = Math.atan2(nearestEnemy.y - turret.y, nearestEnemy.x - turret.x);
+                    projectiles.push({
+                        x: turret.x,
+                        y: turret.y,
+                        vx: Math.cos(angle) * 8,
+                        vy: Math.sin(angle) * 8,
+                        damage: turret.damage,
+                        range: 150,
+                        color: '#ffff00',
+                        life: 0
+                    });
+                    turret.lastFire = now;
+                }
+            });
+        }
+
+        function activatePerk() {
+            if (player.perkPoints > 0) {
+                showPerkScreen();
+            }
+        }
+
+        function showPerkScreen() {
+            gameState = 'paused';
+            const screen = document.getElementById('perkScreen');
+            const grid = document.getElementById('perkGrid');
+            
+            grid.innerHTML = '';
+            
+            Object.keys(perks).forEach(perkKey => {
+                const perk = perks[perkKey];
+                const card = document.createElement('div');
+                card.className = 'perk-card';
+                
+                if (player.perks.includes(perkKey)) {
+                    card.classList.add('locked');
+                    card.innerHTML = `
+                        <div><strong>${perk.name}</strong></div>
+                        <div style="font-size: 11px;">${perk.description}</div>
+                        <div style="font-size: 10px; color: #00ff00;">✓ Unlocked</div>
+                    `;
+                } else if (player.perkPoints >= perk.unlockCost) {
+                    card.innerHTML = `
+                        <div><strong>${perk.name}</strong></div>
+                        <div style="font-size: 11px;">${perk.description}</div>
+                        <div style="font-size: 10px;">Cost: ${perk.unlockCost} points</div>
+                    `;
+                    card.onclick = () => unlockPerk(perkKey);
+                } else {
+                    card.classList.add('locked');
+                    card.innerHTML = `
+                        <div><strong>${perk.name}</strong></div>
+                        <div style="font-size: 11px;">${perk.description}</div>
+                        <div style="font-size: 10px;">Cost: ${perk.unlockCost} points</div>
+                    `;
+                }
+                
+                grid.appendChild(card);
+            });
+            
+            screen.style.display = 'block';
+        }
+
+        function unlockPerk(perkKey) {
+            const perk = perks[perkKey];
+            if (player.perkPoints >= perk.unlockCost && !player.perks.includes(perkKey)) {
+                player.perkPoints -= perk.unlockCost;
+                player.perks.push(perkKey);
+                perk.effect();
+                
+                document.getElementById('perkScreen').style.display = 'none';
+                gameState = 'playing';
+                updateUI();
+            }
+        }
+
+        function evolveWeapon() {
+            const currentWeapon = weapons[player.weapon];
+            if (!currentWeapon.evolution) return;
+            
+            const evolvedWeapon = weapons[currentWeapon.evolution];
+            player.weapon = currentWeapon.evolution;
+            player.weaponLevel = 1;
+            
+            const evolutionScreen = document.getElementById('weaponEvolution');
+            const evolutionText = document.getElementById('evolutionText');
+            evolutionText.textContent = `${currentWeapon.name} → ${evolvedWeapon.name}!`;
+            evolutionScreen.style.display = 'block';
+            
+            createParticles(player.x, player.y, '#ffd700', 25);
+            screenShake = 15;
+        }
+
+        function closeEvolution() {
+            document.getElementById('weaponEvolution').style.display = 'none';
+        }
+
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (!unlockedAchievements.includes(achievement.id) && achievement.condition()) {
+                    unlockedAchievements.push(achievement.id);
+                    showAchievement(achievement);
+                }
+            });
+        }
+
+        function showAchievement(achievement) {
+            const achievementDiv = document.createElement('div');
+            achievementDiv.className = 'achievement';
+            achievementDiv.innerHTML = `
+                <h3>🏆 Achievement Unlocked!</h3>
+                <p><strong>${achievement.name}</strong></p>
+                <p>${achievement.description}</p>
+            `;
+            document.body.appendChild(achievementDiv);
+            
+            setTimeout(() => {
+                document.body.removeChild(achievementDiv);
+            }, 3000);
+        }
+
+        function updateXPOrbs() {
+            xpOrbs.forEach((orb, index) => {
+                const angle = Math.atan2(player.y - orb.y, player.x - orb.x);
+                orb.x += Math.cos(angle) * 3;
+                orb.y += Math.sin(angle) * 3;
+
+                const distance = Math.sqrt(
+                    Math.pow(orb.x - player.x, 2) + Math.pow(orb.y - player.y, 2)
+                );
+                
+                if (distance < orb.radius + player.radius) {
+                    player.xp += orb.value;
+                    player.score += orb.value;
+                    createParticles(orb.x, orb.y, orb.color, 8);
+                    xpOrbs.splice(index, 1);
+
+                    if (player.xp >= player.xpNeeded) {
+                        levelUp();
+                    }
+                }
+            });
+        }
+
+        function updateCredits() {
+            credits.forEach((credit, index) => {
+                const angle = Math.atan2(player.y - credit.y, player.x - credit.x);
+                credit.x += Math.cos(angle) * 2;
+                credit.y += Math.sin(angle) * 2;
+
+                const distance = Math.sqrt(
+                    Math.pow(credit.x - player.x, 2) + Math.pow(credit.y - player.y, 2)
+                );
+                
+                if (distance < credit.radius + player.radius) {
+                    player.score += credit.value * 10;
+                    createParticles(credit.x, credit.y, credit.color, 6);
+                    credits.splice(index, 1);
+                }
+            });
+        }
+
+        function updatePowerUps() {
+            powerUps.forEach((powerUp, index) => {
+                const angle = Math.atan2(player.y - powerUp.y, player.x - powerUp.x);
+                powerUp.x += Math.cos(angle) * 1;
+                powerUp.y += Math.sin(angle) * 1;
+
+                const distance = Math.sqrt(
+                    Math.pow(powerUp.x - player.x, 2) + Math.pow(powerUp.y - player.y, 2)
+                );
+                
+                if (distance < powerUp.radius + player.radius) {
+                    powerUp.effect();
+                    createParticles(powerUp.x, powerUp.y, powerUp.color, 10);
+                    powerUps.splice(index, 1);
+                }
+            });
+        }
+
+        function updateEnvironmentalHazards() {
+            environmentalHazards.forEach((hazard, index) => {
+                hazard.pulse += 0.1;
+                
+                if (hazard.duration !== undefined) {
+                    hazard.duration -= 16;
+                    if (hazard.duration <= 0) {
+                        environmentalHazards.splice(index, 1);
+                    }
+                }
+            });
+        }
+
+        function updateParticles() {
+            particles.forEach((particle, index) => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vx *= 0.98;
+                particle.vy *= 0.98;
+                particle.life--;
+                particle.alpha = particle.life / particle.maxLife;
+
+                if (particle.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 4;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: color,
+                    life: 30 + Math.random() * 20,
+                    maxLife: 50,
+                    alpha: 1,
+                    size: 2 + Math.random() * 3
+                });
+            }
+        }
+
+        function levelUp() {
+            player.level++;
+            player.xp -= player.xpNeeded;
+            player.xpNeeded = Math.floor(player.xpNeeded * 1.5);
+            player.health = Math.min(player.health + 30, player.maxHealth);
+            player.perkPoints++;
+            
+            showLevelUpScreen();
+        }
+
+        function showLevelUpScreen() {
+            gameState = 'paused';
+            const screen = document.getElementById('levelUpScreen');
+            const options = document.getElementById('upgradeOptions');
+            
+            options.innerHTML = '';
+            
+            const availableUpgrades = [...upgrades];
+            for (let i = 0; i < 3 && availableUpgrades.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * availableUpgrades.length);
+                const upgrade = availableUpgrades.splice(randomIndex, 1)[0];
+                
+                const btn = document.createElement('button');
+                btn.className = 'upgrade-btn';
+                btn.textContent = upgrade.name;
+                btn.onclick = () => {
+                    upgrade.apply();
+                    screen.style.display = 'none';
+                    gameState = 'playing';
+                };
+                options.appendChild(btn);
+            }
+            
+            screen.style.display = 'block';
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            
+            // Save high score
+            highScores.push({
+                score: player.score,
+                time: Math.floor(gameTime),
+                level: player.level,
+                kills: kills,
+                character: selectedCharacter,
+                date: new Date().toISOString()
+            });
+            
+            highScores.sort((a, b) => b.score - a.score);
+            highScores = highScores.slice(0, 10); // Keep top 10
+            localStorage.setItem('neonSurvivorHighScores', JSON.stringify(highScores));
+            
+            document.getElementById('finalTime').textContent = Math.floor(gameTime);
+            document.getElementById('finalScore').textContent = player.score;
+            document.getElementById('finalLevel').textContent = player.level;
+            document.getElementById('finalKills').textContent = kills;
+            document.getElementById('finalCombo').textContent = maxCombo;
+            document.getElementById('finalPerks').textContent = player.perks.length;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+
+        function updateUI() {
+            document.getElementById('level').textContent = player.level;
+            document.getElementById('xp').textContent = Math.floor(player.xp);
+            document.getElementById('xpNeeded').textContent = player.xpNeeded;
+            document.getElementById('health').textContent = Math.max(0, Math.floor(player.health));
+            document.getElementById('score').textContent = player.score;
+            document.getElementById('time').textContent = Math.floor(gameTime);
+            document.getElementById('weapon').textContent = weapons[player.weapon].name;
+            document.getElementById('combo').textContent = combo;
+            document.getElementById('kills').textContent = kills;
+            document.getElementById('perkCount').textContent = player.perkPoints;
+            
+            if (!player.specialAbilityReady) {
+                const cooldownPercent = Math.max(0, player.specialAbilityCooldown / 15000);
+                document.getElementById('specialAbility').style.opacity = 0.3 + (0.7 * (1 - cooldownPercent));
+            }
+        }
+
+        function updateMinimap() {
+            minimapCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            minimapCtx.fillRect(0, 0, 150, 150);
+            
+            const scale = 150 / Math.max(canvas.width, canvas.height);
+            
+            // Draw player
+            minimapCtx.fillStyle = '#00ffff';
+            minimapCtx.beginPath();
+            minimapCtx.arc(player.x * scale, player.y * scale, 3, 0, Math.PI * 2);
+            minimapCtx.fill();
+            
+            // Draw enemies
+            minimapCtx.fillStyle = '#ff4444';
+            enemies.forEach(enemy => {
+                minimapCtx.beginPath();
+                minimapCtx.arc(enemy.x * scale, enemy.y * scale, 2, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+            
+            // Draw bosses
+            minimapCtx.fillStyle = '#ff0000';
+            bosses.forEach(boss => {
+                minimapCtx.beginPath();
+                minimapCtx.arc(boss.x * scale, boss.y * scale, 4, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+            
+            // Draw XP orbs
+            minimapCtx.fillStyle = '#00ff00';
+            xpOrbs.forEach(orb => {
+                minimapCtx.beginPath();
+                minimapCtx.arc(orb.x * scale, orb.y * scale, 1, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+        }
+
+        function render() {
+            if (screenShake > 0) {
+                ctx.save();
+                ctx.translate(
+                    (Math.random() - 0.5) * screenShake,
+                    (Math.random() - 0.5) * screenShake
+                );
+                screenShake *= 0.9;
+            }
+
+            // Day/night cycle effect
+            dayNightCycle += 0.001;
+            const dayNightAlpha = (Math.sin(dayNightCycle) + 1) * 0.1;
+            
+            ctx.fillStyle = `rgba(10, 10, 10, ${0.1 + dayNightAlpha})`;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawGridBackground();
+
+            // Draw environmental hazards
+            environmentalHazards.forEach(hazard => {
+                ctx.save();
+                const pulseSize = hazard.radius + Math.sin(hazard.pulse) * 5;
+                
+                if (hazard.type === 'pool') {
+                    const gradient = ctx.createRadialGradient(hazard.x, hazard.y, 0, hazard.x, hazard.y, pulseSize);
+                    gradient.addColorStop(0, hazard.color + '80');
+                    gradient.addColorStop(1, hazard.color + '20');
+                    ctx.fillStyle = gradient;
+                } else {
+                    ctx.fillStyle = hazard.color + '40';
+                }
+                
+                ctx.beginPath();
+                ctx.arc(hazard.x, hazard.y, pulseSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw turrets
+            turrets.forEach(turret => {
+                ctx.save();
+                ctx.fillStyle = '#ffff00';
+                ctx.shadowColor = '#ffff00';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(turret.x, turret.y, turret.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Health bar
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.fillRect(turret.x - 15, turret.y - 25, 30, 4);
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                ctx.fillRect(turret.x - 15, turret.y - 25, (turret.health / 100) * 30, 4);
+                ctx.restore();
+            });
+
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.alpha;
+                ctx.fillStyle = particle.color;
+                ctx.shadowColor = particle.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            powerUps.forEach(powerUp => {
+                ctx.save();
+                ctx.fillStyle = powerUp.color;
+                ctx.shadowColor = powerUp.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText('P', powerUp.x, powerUp.y + 4);
+                ctx.restore();
+            });
+
+            xpOrbs.forEach(orb => {
+                ctx.save();
+                ctx.fillStyle = orb.color;
+                ctx.shadowColor = orb.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            credits.forEach(credit => {
+                ctx.save();
+                ctx.fillStyle = credit.color;
+                ctx.shadowColor = credit.color;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(credit.x, credit.y, credit.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'black';
+                ctx.font = '10px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText('$', credit.x, credit.y + 3);
+                ctx.restore();
+            });
+
+            enemies.forEach(enemy => {
+                ctx.save();
+                ctx.fillStyle = enemy.color;
+                ctx.shadowColor = enemy.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                if (enemy.health < enemy.maxHealth) {
+                    ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+                    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 12, enemy.radius * 2, 4);
+                    ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
+                    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 12, (enemy.health / enemy.maxHealth) * enemy.radius * 2, 4);
+                }
+                ctx.restore();
+            });
+
+            bosses.forEach(boss => {
+                ctx.save();
+                
+                if (boss.shielded) {
+                    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(boss.x, boss.y, boss.radius + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                
+                ctx.fillStyle = boss.color;
+                ctx.shadowColor = boss.color;
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.arc(boss.x, boss.y, boss.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.fillRect(boss.x - 40, boss.y - boss.radius - 20, 80, 8);
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                ctx.fillRect(boss.x - 40, boss.y - boss.radius - 20, (boss.health / boss.maxHealth) * 80, 8);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '14px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText(boss.type.toUpperCase(), boss.x, boss.y - boss.radius - 25);
+                ctx.restore();
+            });
+
+            projectiles.forEach(projectile => {
+                ctx.save();
+                ctx.fillStyle = projectile.color;
+                ctx.shadowColor = projectile.color;
+                ctx.shadowBlur = 10;
+                
+                if (projectile.beam) {
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(projectile.x - projectile.vx * 2, projectile.y - projectile.vy * 2);
+                    ctx.lineTo(projectile.x, projectile.y);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(projectile.x, projectile.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            // Draw damage numbers
+            damageNumbers.forEach(number => {
+                ctx.save();
+                ctx.globalAlpha = number.alpha;
+                ctx.fillStyle = number.color;
+                ctx.font = 'bold 16px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText(number.damage.toString(), number.x, number.y);
+                ctx.restore();
+            });
+
+            // Draw player
+            ctx.save();
+            
+            if (player.shield) {
+                ctx.strokeStyle = 'rgba(0, 100, 255, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius + 8, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            
+            ctx.fillStyle = characters[selectedCharacter].color;
+            ctx.shadowColor = characters[selectedCharacter].color;
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.fillRect(player.x - 25, player.y - 35, 50, 6);
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+            ctx.fillRect(player.x - 25, player.y - 35, (player.health / player.maxHealth) * 50, 6);
+            ctx.restore();
+
+            if (screenShake > 0) {
+                ctx.restore();
+            }
+
+            updateMinimap();
+        }
+
+        function drawGridBackground() {
+            const time = Date.now() * 0.001;
+            ctx.strokeStyle = `rgba(0, 255, 255, ${0.1 + Math.sin(time) * 0.05})`;
+            ctx.lineWidth = 1;
+            
+            const gridSize = 50;
+            const offset = (time * 10) % gridSize;
+            
+            for (let x = -offset; x < canvas.width + gridSize; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = -offset; y < canvas.height + gridSize; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function gameLoop(currentTime = 0) {
+            if (gameState !== 'playing') {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            gameTime += deltaTime / 1000;
+
+            updatePlayer();
+            updateEnemies();
+            updateBosses();
+            updateProjectiles();
+            updateXPOrbs();
+            updateCredits();
+            updatePowerUps();
+            updateEnvironmentalHazards();
+            updateTurrets();
+            updateParticles();
+            updateDamageNumbers();
+
+            if (Math.random() < 0.015 + gameTime * 0.0001) {
+                spawnEnemy();
+            }
+
+            if (gameTime > 30 && gameTime < 31 && !bossSpawned) {
+                spawnBoss();
+            }
+
+            if (gameTime > 60 && Math.random() < 0.001) {
+                spawnEnvironmentalHazard();
+            }
+
+            if (gameTime > 120 && Math.random() < 0.0001) {
+                changeWeather();
+            }
+
+            updateUI();
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize the game
+        render();
+    </script>
+</body>
+</html>
