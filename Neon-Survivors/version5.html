@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Survivor: Cyberpunk Arena - Legendary Edition (Debugged)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Orbitron', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+            position: relative;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 3px solid #00ffff;
+            box-shadow: 0 0 30px #00ffff, inset 0 0 30px rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #gameCanvas {
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #16213e);
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ffff;
+            font-size: 14px;
+            text-shadow: 0 0 10px #00ffff;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            min-width: 220px;
+        }
+
+        .ui-section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .ui-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .ui-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+            min-width: 200px;
+        }
+
+        .ui-label {
+            color: #88ccff;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+
+        .ui-value {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        #levelUpScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(26, 26, 46, 0.95));
+            border: 3px solid #ff00ff;
+            padding: 30px;
+            color: #ff00ff;
+            text-align: center;
+            display: none;
+            z-index: 20;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #ff00ff;
+            animation: levelUpGlow 2s ease-in-out infinite alternate;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+        }
+
+        @keyframes levelUpGlow {
+            from { box-shadow: 0 0 30px #ff00ff; }
+            to { box-shadow: 0 0 50px #ff00ff, 0 0 80px rgba(255, 0, 255, 0.5); }
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            margin: 8px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upgrade-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .upgrade-btn:hover:before {
+            left: 100%;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 0 0 20px #ff00ff;
+            filter: brightness(1.2);
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(139, 0, 0, 0.8));
+            border: 3px solid #ff0000;
+            padding: 40px;
+            color: #ff0000;
+            text-align: center;
+            display: none;
+            z-index: 30;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #ff0000;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(0, 26, 46, 0.9));
+            border: 3px solid #00ffff;
+            padding: 40px;
+            color: #00ffff;
+            text-align: center;
+            z-index: 40;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #00ffff;
+            max-width: 700px;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .mode-card {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .mode-card.selected {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        .character-select {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .character-card {
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+        }
+
+        .character-card:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        .character-card.selected {
+            background: rgba(0, 255, 255, 0.3);
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+
+        .character-card.locked {
+            background: rgba(64, 64, 64, 0.5);
+            border-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .character-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 16px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .start-btn:hover:before {
+            left: 100%;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 0 25px #00ffff;
+            filter: brightness(1.3);
+        }
+
+        #weaponEvolution {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(255, 215, 0, 0.3));
+            border: 3px solid #ffd700;
+            padding: 30px;
+            color: #ffd700;
+            text-align: center;
+            display: none;
+            z-index: 25;
+            border-radius: 15px;
+            box-shadow: 0 0 40px #ffd700;
+            animation: evolutionGlow 1s ease-in-out infinite alternate;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes evolutionGlow {
+            from { box-shadow: 0 0 40px #ffd700; }
+            to { box-shadow: 0 0 60px #ffd700, 0 0 100px rgba(255, 215, 0, 0.6); }
+        }
+
+        #specialAbility {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.3s;
+            font-size: 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #specialAbility:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s;
+        }
+
+        #specialAbility:hover:before {
+            width: 100%;
+            height: 100%;
+        }
+
+        #specialAbility:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px #ff00ff;
+        }
+
+        #specialAbility.cooldown {
+            background: linear-gradient(135deg, #333, #666);
+            cursor: not-allowed;
+        }
+
+        #ultimateAbility {
+            position: absolute;
+            bottom: 110px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff0000, #ffff00);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.3s;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        #ultimateAbility:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px #ff0000;
+        }
+
+        #ultimateAbility.cooldown {
+            background: linear-gradient(135deg, #333, #666);
+            cursor: not-allowed;
+        }
+
+        #comboDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffff00;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ffff00;
+            display: none;
+            z-index: 35;
+            animation: comboPopup 1s ease-out;
+        }
+
+        @keyframes comboPopup {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        .achievement {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(255, 215, 0, 0.3));
+            border: 2px solid #ffd700;
+            padding: 15px;
+            color: #ffd700;
+            border-radius: 10px;
+            z-index: 45;
+            animation: achievementSlide 3s ease-in-out;
+            backdrop-filter: blur(5px);
+            max-width: 300px;
+        }
+
+        @keyframes achievementSlide {
+            0% { transform: translateX(100%); opacity: 0; }
+            20% { transform: translateX(0); opacity: 1; }
+            80% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        #bossWarning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 72px;
+            font-weight: bold;
+            text-shadow: 0 0 30px #ff0000;
+            display: none;
+            z-index: 50;
+            animation: bossWarningPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes bossWarningPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+
+        #minimap {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            z-index: 12;
+        }
+
+        #perkScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(128, 0, 128, 0.8));
+            border: 3px solid #8a2be2;
+            padding: 30px;
+            color: #8a2be2;
+            text-align: center;
+            display: none;
+            z-index: 22;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #8a2be2;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+        }
+
+        .perk-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .perk-card {
+            background: rgba(138, 43, 226, 0.2);
+            border: 2px solid #8a2be2;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .perk-card:hover {
+            background: rgba(138, 43, 226, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #8a2be2;
+        }
+
+        .perk-card.locked {
+            background: rgba(64, 64, 64, 0.5);
+            border-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .perk-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        #weatherEffects {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(173, 216, 230, 0.6));
+            animation: rain-fall linear infinite;
+        }
+
+        @keyframes rain-fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        #equipmentPanel {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            padding: 10px;
+            color: #00ffff;
+            z-index: 11;
+            backdrop-filter: blur(5px);
+        }
+
+        .equipment-slot {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 5px;
+            margin: 2px;
+            text-align: center;
+            line-height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .equipment-slot:hover {
+            background: rgba(0, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .equipment-slot .item-level {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 2px;
+            padding: 1px;
+        }
+
+        .damage-number {
+            position: absolute;
+            color: #ffff00;
+            font-weight: bold;
+            font-size: 16px;
+            text-shadow: 0 0 5px #000;
+            pointer-events: none;
+            z-index: 60;
+            animation: damage-float 1s ease-out forwards;
+        }
+
+        @keyframes damage-float {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        #companion {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+            z-index: 8;
+            pointer-events: none;
+            transition: all 0.1s;
+        }
+
+        #skillTreeScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(0, 100, 200, 0.3));
+            border: 3px solid #0064c8;
+            padding: 30px;
+            color: #0064c8;
+            text-align: center;
+            display: none;
+            z-index: 23;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #0064c8;
+            backdrop-filter: blur(10px);
+            max-width: 800px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .skill-tree {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .skill-node {
+            background: rgba(0, 100, 200, 0.2);
+            border: 2px solid #0064c8;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .skill-node:hover {
+            background: rgba(0, 100, 200, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #0064c8;
+        }
+
+        .skill-node.unlocked {
+            background: rgba(0, 200, 100, 0.3);
+            border-color: #00c864;
+        }
+
+        .skill-node.locked {
+            background: rgba(64, 64, 64, 0.5);
+            border-color: #444;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .skill-node.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .skill-cost {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 2px;
+            padding: 2px;
+        }
+
+        #craftingScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(200, 100, 0, 0.3));
+            border: 3px solid #c86400;
+            padding: 30px;
+            color: #c86400;
+            text-align: center;
+            display: none;
+            z-index: 24;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #c86400;
+            backdrop-filter: blur(10px);
+            max-width: 600px;
+        }
+
+        .crafting-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .crafting-slot {
+            background: rgba(200, 100, 0, 0.2);
+            border: 2px solid #c86400;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .crafting-result {
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid #ffd700;
+        }
+
+        #questPanel {
+            position: absolute;
+            top: 200px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            padding: 15px;
+            color: #00ff00;
+            z-index: 13;
+            backdrop-filter: blur(5px);
+            max-width: 250px;
+            display: none;
+        }
+
+        .quest-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid #00ff00;
+        }
+
+        .quest-item.completed {
+            border-left-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .quest-progress {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        #portal {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #8a2be2, #4b0082);
+            box-shadow: 0 0 30px #8a2be2;
+            animation: portal-spin 3s linear infinite;
+            z-index: 7;
+            display: none;
+        }
+
+        @keyframes portal-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #transformationScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(255, 0, 255, 0.5));
+            border: 3px solid #ff00ff;
+            padding: 40px;
+            color: #ff00ff;
+            text-align: center;
+            display: none;
+            z-index: 26;
+            border-radius: 15px;
+            box-shadow: 0 0 50px #ff00ff;
+            animation: transform-glow 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes transform-glow {
+            from { box-shadow: 0 0 50px #ff00ff; }
+            to { box-shadow: 0 0 80px #ff00ff, 0 0 120px rgba(255, 0, 255, 0.6); }
+        }
+
+        .status-effect {
+            position: absolute;
+            bottom: 180px;
+            right: 20px;
+            display: flex;
+            gap: 5px;
+            z-index: 14;
+        }
+
+        .status-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            border: 2px solid #fff;
+            position: relative;
+        }
+
+        .status-duration {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            font-size: 8px;
+            border-radius: 2px;
+            padding: 1px;
+        }
+
+        #dailyChallenge {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 140, 0, 0.2));
+            border: 2px solid #ffd700;
+            padding: 10px 20px;
+            color: #ffd700;
+            border-radius: 20px;
+            z-index: 16;
+            display: none;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: #00ffff;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .particle-trail {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 6;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 1000;
+            font-family: 'Orbitron', monospace;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1600" height="1000"></canvas>
+        
+        <div id="ui">
+            <div class="ui-section">
+                <div class="ui-row">
+                    <span class="ui-label">Level:</span>
+                    <span class="ui-value" id="level">1</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">XP:</span>
+                    <span class="ui-value" id="xp">0</span>/<span id="xpNeeded">100</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Health:</span>
+                    <span class="ui-value" id="health">100</span>
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <div class="ui-row">
+                    <span class="ui-label">Score:</span>
+                    <span class="ui-value" id="score">0</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Time:</span>
+                    <span class="ui-value" id="time">0</span>s
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Wave:</span>
+                    <span class="ui-value" id="wave">1</span>
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <div class="ui-row">
+                    <span class="ui-label">Weapon:</span>
+                    <span class="ui-value" id="weapon">Neon Blaster</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Combo:</span>
+                    <span class="ui-value" id="combo">0</span>x
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Kills:</span>
+                    <span class="ui-value" id="kills">0</span>
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <div class="ui-row">
+                    <span class="ui-label">Skill Points:</span>
+                    <span class="ui-value" id="skillPoints">0</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Perks:</span>
+                    <span class="ui-value" id="perkCount">0</span>
+                </div>
+                <div class="ui-row">
+                    <span class="ui-label">Crafting:</span>
+                    <span class="ui-value" id="craftingLevel">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="minimap">
+            <canvas id="minimapCanvas" width="150" height="150"></canvas>
+        </div>
+
+        <div id="equipmentPanel">
+            <div class="equipment-slot" id="slot1" title="Head">👒</div>
+            <div class="equipment-slot" id="slot2" title="Body">👕</div>
+            <div class="equipment-slot" id="slot3" title="Weapon">⚔️</div>
+            <div class="equipment-slot" id="slot4" title="Accessory">💍</div>
+            <div class="equipment-slot" id="slot5" title="Artifact">🔮</div>
+        </div>
+
+        <div id="specialAbility" onclick="activateSpecialAbility()" title="Press Q">
+            <div>SPECIAL<br>Q</div>
+        </div>
+
+        <div id="ultimateAbility" onclick="activateUltimateAbility()" title="Press R">
+            <div>ULTIMATE<br>R</div>
+        </div>
+
+        <div id="weatherEffects"></div>
+        <div id="companion"></div>
+        <div id="portal"></div>
+
+        <div class="status-effect" id="statusEffects"></div>
+
+        <div id="dailyChallenge">
+            Daily Challenge: Survival Master - Survive 5 minutes
+        </div>
+
+        <div id="startScreen">
+            <h1>NEON SURVIVOR: CYBERPUNK ARENA</h1>
+            <h2>LEGENDARY EDITION</h2>
+            <p>Choose your path and conquer the cybernetic apocalypse!</p>
+            
+            <h3>Select Game Mode:</h3>
+            <div class="game-modes">
+                <div class="mode-card" onclick="selectGameMode('story')">
+                    <div>📖</div>
+                    <div><strong>Story Mode</strong></div>
+                    <div style="font-size: 11px;">Campaign with narrative</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('endless')">
+                    <div>♾️</div>
+                    <div><strong>Endless Mode</strong></div>
+                    <div style="font-size: 11px;">Survive as long as possible</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('daily')">
+                    <div>📅</div>
+                    <div><strong>Daily Challenge</strong></div>
+                    <div style="font-size: 11px;">Compete globally</div>
+                </div>
+                <div class="mode-card" onclick="selectGameMode('boss')">
+                    <div>👑</div>
+                    <div><strong>Boss Rush</strong></div>
+                    <div style="font-size: 11px;">Face all bosses</div>
+                </div>
+            </div>
+
+            <h3>Select Character:</h3>
+            <div class="character-select">
+                <div class="character-card" onclick="selectCharacter('hacker')">
+                    <div>👨‍💻</div>
+                    <div><strong>Hacker</strong></div>
+                    <div style="font-size: 11px;">Tech specialist</div>
+                </div>
+                <div class="character-card" onclick="selectCharacter('samurai')">
+                    <div>🥷</div>
+                    <div><strong>Cyber Samurai</strong></div>
+                    <div style="font-size: 11px;">Melee master</div>
+                </div>
+                <div class="character-card" onclick="selectCharacter('engineer')">
+                    <div>🔧</div>
+                    <div><strong>Engineer</strong></div>
+                    <div style="font-size: 11px;">Defense expert</div>
+                </div>
+                <div class="character-card locked" onclick="unlockCharacter('psyker')">
+                    <div>🔮</div>
+                    <div><strong>Psyker</strong></div>
+                    <div style="font-size: 11px;">Mind powers</div>
+                    <div class="lock-icon">🔒</div>
+                </div>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <p><strong>Controls:</strong></p>
+                <p>WASD/Arrows - Move | Q - Special | R - Ultimate</p>
+                <p>E - Perks | T - Skill Tree | C - Crafting | Tab - Quests</p>
+                <p>Space - Interact | Shift - Sprint</p>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <p><strong>New Features:</strong></p>
+                <p>• Skill Tree System • Crafting & Upgrades</p>
+                <p>• Quest System • Transformations • Portals</p>
+                <p>• Daily Challenges • Multiple Game Modes</p>
+                <p>• Advanced AI • Environmental Storytelling</p>
+            </div>
+
+            <button class="start-btn" onclick="startGame()">START GAME</button>
+        </div>
+
+        <div id="levelUpScreen">
+            <h2>LEVEL UP!</h2>
+            <p>Choose an upgrade:</p>
+            <div id="upgradeOptions"></div>
+        </div>
+
+        <div id="perkScreen">
+            <h2>CHOOSE PERK</h2>
+            <p>Select a permanent perk:</p>
+            <div class="perk-grid" id="perkGrid"></div>
+        </div>
+
+        <div id="skillTreeScreen">
+            <h2>SKILL TREE</h2>
+            <p>Spend skill points to unlock powerful abilities:</p>
+            <div class="skill-tree" id="skillTree"></div>
+            <button class="upgrade-btn" onclick="closeSkillTree()">CLOSE</button>
+        </div>
+
+        <div id="craftingScreen">
+            <h2>CRAFTING</h2>
+            <p>Combine materials to create powerful items:</p>
+            <div class="crafting-grid">
+                <div class="crafting-slot" id="craftSlot1">
+                    <div>Material 1</div>
+                </div>
+                <div class="crafting-slot" id="craftSlot2">
+                    <div>Material 2</div>
+                </div>
+                <div class="crafting-slot crafting-result" id="craftResult">
+                    <div>Result</div>
+                </div>
+            </div>
+            <button class="upgrade-btn" onclick="craftItem()">CRAFT</button>
+            <button class="upgrade-btn" onclick="closeCrafting()">CLOSE</button>
+        </div>
+
+        <div id="questPanel">
+            <h3>ACTIVE QUESTS</h3>
+            <div id="questList"></div>
+        </div>
+
+        <div id="weaponEvolution">
+            <h2>WEAPON EVOLUTION!</h2>
+            <p id="evolutionText"></p>
+            <button class="upgrade-btn" onclick="closeEvolution()">AWESOME!</button>
+        </div>
+
+        <div id="transformationScreen">
+            <h2>TRANSFORMATION ACTIVATED!</h2>
+            <p id="transformationText"></p>
+            <button class="upgrade-btn" onclick="closeTransformation()">CONTINUE</button>
+        </div>
+
+        <div id="gameOver">
+            <h2>GAME OVER</h2>
+            <p>You survived for <span id="finalTime">0</span> seconds</p>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Level Reached: <span id="finalLevel">1</span></p>
+            <p>Enemies Defeated: <span id="finalKills">0</span></p>
+            <p>Max Combo: <span id="finalCombo">0</span></p>
+            <p>Quests Completed: <span id="finalQuests">0</span></p>
+            <p>Skill Points Used: <span id="finalSkills">0</span></p>
+            <button class="upgrade-btn" onclick="restartGame()">PLAY AGAIN</button>
+        </div>
+
+        <div id="comboDisplay"></div>
+        <div id="bossWarning">WARNING! BOSS INCOMING!</div>
+
+        <div class="loading-screen" id="loadingScreen">
+            <h2>LOADING...</h2>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Error handling wrapper
+        function safeExecute(fn, errorMessage = "An error occurred") {
+            try {
+                return fn();
+            } catch (error) {
+                console.error(errorMessage, error);
+                showError(errorMessage + ": " + error.message);
+                return null;
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+
+        // Game state
+        let gameState = 'start'; // start, playing, paused, gameOver
+        let gameTime = 0;
+        let lastTime = 0;
+        let screenShake = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let kills = 0;
+        let lastKillTime = 0;
+        let bossSpawned = false;
+        let selectedCharacter = 'hacker';
+        let selectedGameMode = 'story';
+        let weather = 'clear';
+        let dayNightCycle = 0;
+        let equipment = {};
+        let companion = null;
+        let transformationActive = false;
+        let transformationType = null;
+        let skillPoints = 0;
+        let craftingLevel = 1;
+        let currentWave = 1;
+        let storyProgress = 0;
+        let unlockedCharacters = ['hacker', 'samurai', 'engineer'];
+        let dailyChallenge = null;
+        let activeQuests = [];
+        let completedQuests = [];
+        let statusEffects = [];
+        let particleTrails = [];
+
+        // Save data with error handling
+        let saveData = {};
+        try {
+            saveData = JSON.parse(localStorage.getItem('neonSurvivorSave') || '{}');
+        } catch (error) {
+            console.warn("Failed to load save data:", error);
+            saveData = {};
+        }
+
+        // High scores with error handling
+        let highScores = [];
+        try {
+            highScores = JSON.parse(localStorage.getItem('neonSurvivorHighScores') || '[]');
+        } catch (error) {
+            console.warn("Failed to load high scores:", error);
+            highScores = [];
+        }
+
+        // Daily challenge data with error handling
+        let dailyChallengeData = {};
+        try {
+            dailyChallengeData = JSON.parse(localStorage.getItem('dailyChallenge') || '{}');
+        } catch (error) {
+            console.warn("Failed to load daily challenge data:", error);
+            dailyChallengeData = {};
+        }
+
+        let today = new Date().toDateString();
+        if (dailyChallengeData.date !== today) {
+            dailyChallengeData = {
+                date: today,
+                challenge: generateDailyChallenge(),
+                scores: []
+            };
+            try {
+                localStorage.setItem('dailyChallenge', JSON.stringify(dailyChallengeData));
+            } catch (error) {
+                console.warn("Failed to save daily challenge data:", error);
+            }
+        }
+
+        // Character definitions with error handling
+        const characters = {
+            hacker: {
+                name: 'Hacker',
+                health: 80,
+                speed: 4,
+                damage: 0.8,
+                special: 'systemOverload',
+                ultimate: 'matrixMode',
+                color: '#00ffff',
+                companion: 'drone',
+                description: 'Master of technology and digital warfare',
+                unlocked: true
+            },
+            samurai: {
+                name: 'Cyber Samurai',
+                health: 120,
+                speed: 3,
+                damage: 1.5,
+                special: 'bladeDance',
+                ultimate: 'berserkerMode',
+                color: '#ff00ff',
+                companion: 'spirit',
+                description: 'Honorable warrior with enhanced reflexes',
+                unlocked: true
+            },
+            engineer: {
+                name: 'Engineer',
+                health: 100,
+                speed: 2.5,
+                damage: 1.0,
+                special: 'turretDeploy',
+                ultimate: 'fortressMode',
+                color: '#ffff00',
+                companion: 'repairBot',
+                description: 'Builder of defenses and machines',
+                unlocked: true
+            },
+            psyker: {
+                name: 'Psyker',
+                health: 90,
+                speed: 3.5,
+                damage: 1.2,
+                special: 'mindControl',
+                ultimate: 'realityShift',
+                color: '#8a2be2',
+                companion: 'psychicEntity',
+                description: 'Wielder of psychic powers',
+                unlocked: saveData.unlockedCharacters?.includes('psyker') || false
+            }
+        };
+
+        // Player object with initialization
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 20,
+            speed: 3,
+            health: 100,
+            maxHealth: 100,
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+            score: 0,
+            weapon: 'neonBlaster',
+            weaponLevel: 1,
+            damage: 10,
+            fireRate: 500,
+            lastFire: 0,
+            speedMultiplier: 1,
+            damageMultiplier: 1,
+            rangeMultiplier: 1,
+            specialAbilityReady: true,
+            specialAbilityCooldown: 0,
+            ultimateAbilityReady: true,
+            ultimateAbilityCooldown: 0,
+            perks: [],
+            perkPoints: 0,
+            criticalChance: 0.1,
+            luck: 1.0,
+            skills: {},
+            materials: {
+                scrap: 0,
+                circuits: 0,
+                energy: 0,
+                data: 0
+            },
+            sprinting: false,
+            stealth: false,
+            elementalResistances: {
+                fire: 0,
+                ice: 0,
+                electric: 0,
+                poison: 0
+            }
+        };
+
+        // Game arrays
+        let enemies = [];
+        let projectiles = [];
+        let xpOrbs = [];
+        let credits = [];
+        let particles = [];
+        let powerUps = [];
+        let bosses = [];
+        let environmentalHazards = [];
+        let turrets = [];
+        let damageNumbers = [];
+        let portals = [];
+        let allies = [];
+        let destructibles = [];
+
+        // Upgrades array - FIXED: was missing
+        const upgrades = [
+            {
+                name: 'Max Health +25',
+                apply: () => { 
+                    player.maxHealth += 25; 
+                    player.health = player.maxHealth; 
+                }
+            },
+            {
+                name: 'Speed +15%',
+                apply: () => { 
+                    player.speedMultiplier *= 1.15; 
+                }
+            },
+            {
+                name: 'Damage +25%',
+                apply: () => { 
+                    player.damageMultiplier *= 1.25; 
+                }
+            },
+            {
+                name: 'Fire Rate +20%',
+                apply: () => { 
+                    const weapon = weapons[player.weapon];
+                    if (weapon) {
+                        weapon.fireRate *= 0.8;
+                    }
+                }
+            },
+            {
+                name: 'Range +30%',
+                apply: () => { 
+                    player.rangeMultiplier *= 1.3; 
+                }
+            },
+            {
+                name: 'Upgrade Weapon',
+                apply: () => { 
+                    player.weaponLevel++;
+                    const weapon = weapons[player.weapon];
+                    if (weapon) {
+                        weapon.damage *= 1.3;
+                        weapon.fireRate *= 0.9;
+                        weapon.range *= 1.1;
+                    }
+                    
+                    // Check for evolution
+                    if (weapon && weapon.evolution && player.weaponLevel >= weapon.evolutionLevel) {
+                        evolveWeapon();
+                    }
+                }
+            },
+            {
+                name: 'Special Ability CD -20%',
+                apply: () => { 
+                    player.specialAbilityCooldown = Math.max(5000, player.specialAbilityCooldown * 0.8); 
+                }
+            },
+            {
+                name: 'XP Gain +20%',
+                apply: () => { 
+                    player.xpMultiplier = (player.xpMultiplier || 1) * 1.2; 
+                }
+            }
+        ];
+
+        // Power-ups array - FIXED: was missing
+        const powerUpTypes = {
+            rapidFire: {
+                name: 'Rapid Fire',
+                duration: 10000,
+                effect: () => { 
+                    const weapon = weapons[player.weapon];
+                    if (weapon) {
+                        weapon.fireRate *= 0.5;
+                    }
+                },
+                remove: () => { 
+                    const weapon = weapons[player.weapon];
+                    if (weapon) {
+                        weapon.fireRate *= 2;
+                    }
+                },
+                color: '#ff0000'
+            },
+            multiShot: {
+                name: 'Multi Shot',
+                duration: 8000,
+                effect: () => { 
+                    player.multishot = true; 
+                },
+                remove: () => { 
+                    player.multishot = false; 
+                },
+                color: '#00ff00'
+            },
+            shield: {
+                name: 'Shield',
+                duration: 12000,
+                effect: () => { 
+                    player.shield = true; 
+                },
+                remove: () => { 
+                    player.shield = false; 
+                },
+                color: '#0000ff'
+            },
+            speedBoost: {
+                name: 'Speed Boost',
+                duration: 10000,
+                effect: () => { 
+                    player.speedMultiplier *= 1.5; 
+                },
+                remove: () => { 
+                    player.speedMultiplier /= 1.5; 
+                },
+                color: '#ffff00'
+            }
+        };
+
+        // Achievements array - FIXED: was missing
+        const achievements = [
+            { 
+                id: 'firstKill', 
+                name: 'First Blood', 
+                description: 'Defeat your first enemy', 
+                condition: () => kills >= 1 
+            },
+            { 
+                id: 'combo10', 
+                name: 'Combo Master', 
+                description: 'Reach 10x combo', 
+                condition: () => maxCombo >= 10 
+            },
+            { 
+                id: 'survive60', 
+                name: 'Minute Man', 
+                description: 'Survive for 60 seconds', 
+                condition: () => gameTime >= 60 
+            },
+            { 
+                id: 'level10', 
+                name: 'Level Up', 
+                description: 'Reach level 10', 
+                condition: () => player.level >= 10 
+            },
+            { 
+                id: 'bossKiller', 
+                name: 'Boss Slayer', 
+                description: 'Defeat a boss', 
+                condition: () => (player.bossKills || 0) >= 1 
+            },
+            { 
+                id: 'score1000', 
+                name: 'High Scorer', 
+                description: 'Score 1000 points', 
+                condition: () => player.score >= 1000 
+            }
+        ];
+
+        let unlockedAchievements = [];
+
+        // Skill tree system
+        const skillTree = {
+            offensive: {
+                name: 'Offensive',
+                skills: [
+                    { id: 'damage1', name: 'Power Strike', cost: 1, effect: () => { player.damageMultiplier *= 1.2; } },
+                    { id: 'damage2', name: 'Critical Focus', cost: 2, effect: () => { player.criticalChance += 0.15; } },
+                    { id: 'damage3', name: 'Weapon Master', cost: 3, effect: () => { 
+                        const weapon = weapons[player.weapon];
+                        if (weapon) {
+                            weapon.fireRate *= 0.8;
+                        }
+                    }},
+                    { id: 'ultimate1', name: 'Ultimate Power', cost: 5, effect: () => { player.ultimateAbilityCooldown *= 0.7; } }
+                ]
+            },
+            defensive: {
+                name: 'Defensive',
+                skills: [
+                    { id: 'health1', name: 'Vitality', cost: 1, effect: () => { player.maxHealth += 25; player.health += 25; } },
+                    { id: 'health2', name: 'Resistance', cost: 2, effect: () => { 
+                        Object.keys(player.elementalResistances).forEach(key => { 
+                            player.elementalResistances[key] += 0.2; 
+                        }); 
+                    }},
+                    { id: 'health3', name: 'Regeneration', cost: 3, effect: () => { player.regeneration = true; } },
+                    { id: 'shield1', name: 'Energy Shield', cost: 4, effect: () => { player.shieldCapacity = 50; } }
+                ]
+            },
+            utility: {
+                name: 'Utility',
+                skills: [
+                    { id: 'speed1', name: 'Swift', cost: 1, effect: () => { player.speedMultiplier *= 1.15; } },
+                    { id: 'luck1', name: 'Fortune', cost: 2, effect: () => { player.luck *= 1.5; } },
+                    { id: 'stealth1', name: 'Shadow', cost: 2, effect: () => { player.stealthEnabled = true; } },
+                    { id: 'crafting1', name: 'Artificer', cost: 3, effect: () => { craftingLevel++; } }
+                ]
+            },
+            special: {
+                name: 'Special',
+                skills: [
+                    { id: 'companion1', name: 'Bond', cost: 2, effect: () => { 
+                        if (companion) { 
+                            companion.damage *= 1.5; 
+                        } 
+                    }},
+                    { id: 'portal1', name: 'Gatekeeper', cost: 3, effect: () => { player.portalMastery = true; } },
+                    { id: 'transform1', name: 'Metamorph', cost: 4, effect: () => { player.transformationMastery = true; } },
+                    { id: 'time1', name: 'Chronomancer', cost: 5, effect: () => { player.timeManipulation = true; } }
+                ]
+            },
+            mastery: {
+                name: 'Mastery',
+                skills: [
+                    { id: 'mastery1', name: 'Expertise', cost: 3, effect: () => { player.allStatsMultiplier = 1.1; } },
+                    { id: 'mastery2', name: 'Perfection', cost: 5, effect: () => { player.allStatsMultiplier = 1.25; } },
+                    { id: 'mastery3', name: 'Transcendence', cost: 8, effect: () => { player.transcendent = true; } }
+                ]
+            }
+        };
+
+        // Crafting recipes
+        const craftingRecipes = [
+            {
+                name: 'Health Injector',
+                materials: { scrap: 5, circuits: 2 },
+                effect: () => { 
+                    player.health = Math.min(player.health + 50, player.maxHealth); 
+                }
+            },
+            {
+                name: 'Damage Amplifier',
+                materials: { circuits: 3, energy: 2 },
+                effect: () => { 
+                    player.damageMultiplier *= 1.5; 
+                    setTimeout(() => { 
+                        player.damageMultiplier /= 1.5; 
+                    }, 30000); 
+                }
+            },
+            {
+                name: 'Speed Booster',
+                materials: { energy: 3, scrap: 2 },
+                effect: () => { 
+                    player.speedMultiplier *= 1.5; 
+                    setTimeout(() => { 
+                        player.speedMultiplier /= 1.5; 
+                    }, 20000); 
+                }
+            },
+            {
+                name: 'Shield Generator',
+                materials: { circuits: 5, energy: 3 },
+                effect: () => { 
+                    player.shield = 100; 
+                }
+            },
+            {
+                name: 'Companion Upgrade',
+                materials: { scrap: 10, circuits: 5, energy: 5 },
+                effect: () => { 
+                    if (companion) { 
+                        companion.maxHealth += 50; 
+                        companion.damage += 10; 
+                    } 
+                }
+            }
+        ];
+
+        // Quest system
+        const questTemplates = [
+            {
+                type: 'kill',
+                name: 'Enemy Elimination',
+                description: 'Defeat {count} enemies',
+                generate: () => ({ count: 10 + Math.floor(Math.random() * 20) }),
+                check: (quest) => kills >= quest.data.count,
+                reward: { xp: 50, credits: 25 }
+            },
+            {
+                type: 'survive',
+                name: 'Survival Challenge',
+                description: 'Survive for {time} seconds',
+                generate: () => ({ time: 60 + Math.floor(Math.random() * 120) }),
+                check: (quest) => gameTime >= quest.data.time,
+                reward: { xp: 75, credits: 50 }
+            },
+            {
+                type: 'boss',
+                name: 'Boss Hunter',
+                description: 'Defeat {count} bosses',
+                generate: () => ({ count: 1 + Math.floor(Math.random() * 2) }),
+                check: (quest) => (player.bossKills || 0) >= quest.data.count,
+                reward: { xp: 150, credits: 100 }
+            },
+            {
+                type: 'combo',
+                name: 'Combo Master',
+                description: 'Reach {combo}x combo',
+                generate: () => ({ combo: 10 + Math.floor(Math.random() * 20) }),
+                check: (quest) => maxCombo >= quest.data.combo,
+                reward: { xp: 100, credits: 75 }
+            },
+            {
+                type: 'collect',
+                name: 'Material Collector',
+                description: 'Collect {count} {material}',
+                generate: () => {
+                    const materials = ['scrap', 'circuits', 'energy', 'data'];
+                    const material = materials[Math.floor(Math.random() * materials.length)];
+                    return { material, count: 5 + Math.floor(Math.random() * 15) };
+                },
+                check: (quest) => (player.materials[quest.data.material] || 0) >= quest.data.count,
+                reward: { xp: 60, credits: 40 }
+            }
+        ];
+
+        // Perk system (expanded)
+        const perks = {
+            vampire: {
+                name: 'Vampire',
+                description: 'Heal on kill',
+                unlockCost: 1,
+                effect: () => { player.vampire = true; }
+            },
+            scavenger: {
+                name: 'Scavenger',
+                description: 'More item drops',
+                unlockCost: 1,
+                effect: () => { player.luck *= 1.5; }
+            },
+            adrenaline: {
+                name: 'Adrenaline',
+                description: 'Speed on low health',
+                unlockCost: 2,
+                effect: () => { player.adrenaline = true; }
+            },
+            overcharge: {
+                name: 'Overcharge',
+                description: 'Faster special cooldown',
+                unlockCost: 2,
+                effect: () => { player.specialAbilityCooldown *= 0.7; }
+            },
+            critical: {
+                name: 'Critical Strike',
+                description: 'Increased crit chance',
+                unlockCost: 3,
+                effect: () => { player.criticalChance += 0.2; }
+            },
+            tank: {
+                name: 'Tank',
+                description: 'Double max health',
+                unlockCost: 3,
+                effect: () => { 
+                    player.maxHealth *= 2; 
+                    player.health = player.maxHealth; 
+                }
+            },
+            demolition: {
+                name: 'Demolition',
+                description: 'Explosions on death',
+                unlockCost: 4,
+                effect: () => { player.demolition = true; }
+            },
+            timeWarp: {
+                name: 'Time Warp',
+                description: 'Slow time occasionally',
+                unlockCost: 5,
+                effect: () => { player.timeWarp = true; }
+            },
+            elemental: {
+                name: 'Elemental Mastery',
+                description: 'Random elemental damage',
+                unlockCost: 4,
+                effect: () => { player.elementalDamage = true; }
+            },
+            lucky: {
+                name: 'Lucky Seven',
+                description: '7% chance for bonus effects',
+                unlockCost: 3,
+                effect: () => { player.luckySeven = true; }
+            },
+            stealth: {
+                name: 'Ghost',
+                description: 'Become briefly invisible',
+                unlockCost: 4,
+                effect: () => { player.stealthMode = true; }
+            },
+            magnetic: {
+                name: 'Magnetic',
+                description: 'Items attract to you',
+                unlockCost: 2,
+                effect: () => { player.magnetic = true; }
+            }
+        };
+
+        // Continue with the rest of the game objects (weapons, enemyTypes, etc.)
+        // ... [Previous weapon and enemy definitions remain the same] ...
+
+        // Input handling with error checking
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            try {
+                keys[e.key.toLowerCase()] = true;
+                
+                if (e.key.toLowerCase() === 'q') {
+                    activateSpecialAbility();
+                }
+                if (e.key.toLowerCase() === 'r') {
+                    activateUltimateAbility();
+                }
+                if (e.key.toLowerCase() === 'e') {
+                    if (player.perkPoints > 0) {
+                        showPerkScreen();
+                    }
+                }
+                if (e.key.toLowerCase() === 't') {
+                    showSkillTree();
+                }
+                if (e.key.toLowerCase() === 'c') {
+                    showCraftingScreen();
+                }
+                if (e.key.toLowerCase() === 'tab') {
+                    toggleQuestPanel();
+                }
+                if (e.key.toLowerCase() === 'shift') {
+                    player.sprinting = true;
+                }
+                if (e.key.toLowerCase() === ' ') {
+                    interact();
+                }
+            } catch (error) {
+                console.error("Keydown error:", error);
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            try {
+                keys[e.key.toLowerCase()] = false;
+                if (e.key.toLowerCase() === 'shift') {
+                    player.sprinting = false;
+                }
+            } catch (error) {
+                console.error("Keyup error:", error);
+            }
+        });
+
+        // Game mode selection with error handling
+        function selectGameMode(mode) {
+            try {
+                selectedGameMode = mode;
+                document.querySelectorAll('.mode-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                if (event && event.target.closest('.mode-card')) {
+                    event.target.closest('.mode-card').classList.add('selected');
+                }
+            } catch (error) {
+                console.error("Error selecting game mode:", error);
+                showError("Failed to select game mode");
+            }
+        }
+
+        // Character selection with error handling
+        function selectCharacter(character) {
+            try {
+                if (!characters[character] || !characters[character].unlocked) return;
+                
+                selectedCharacter = character;
+                document.querySelectorAll('.character-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                if (event && event.target.closest('.character-card')) {
+                    event.target.closest('.character-card').classList.add('selected');
+                }
+            } catch (error) {
+                console.error("Error selecting character:", error);
+                showError("Failed to select character");
+            }
+        }
+
+        // Unlock character system with error handling
+        function unlockCharacter(character) {
+            try {
+                const cost = 1000;
+                
+                if (player.score >= cost && characters[character] && !characters[character].unlocked) {
+                    player.score -= cost;
+                    characters[character].unlocked = true;
+                    if (!unlockedCharacters.includes(character)) {
+                        unlockedCharacters.push(character);
+                    }
+                    
+                    saveData.unlockedCharacters = unlockedCharacters;
+                    try {
+                        localStorage.setItem('neonSurvivorSave', JSON.stringify(saveData));
+                    } catch (error) {
+                        console.warn("Failed to save character unlock data:", error);
+                    }
+                    
+                    if (event && event.target.closest('.character-card')) {
+                        event.target.closest('.character-card').classList.remove('locked');
+                        const lockIcon = event.target.closest('.character-card').querySelector('.lock-icon');
+                        if (lockIcon) {
+                            lockIcon.style.display = 'none';
+                        }
+                    }
+                    
+                    showAchievement({
+                        name: 'Character Unlocked',
+                        description: `${characters[character].name} is now available!`
+                    });
+                }
+            } catch (error) {
+                console.error("Error unlocking character:", error);
+                showError("Failed to unlock character");
+            }
+        }
+
+        // Generate daily challenge with error handling
+        function generateDailyChallenge() {
+            try {
+                const challenges = [
+                    { name: 'Survival Master', description: 'Survive for 5 minutes', type: 'survive', target: 300 },
+                    { name: 'Boss Slayer', description: 'Defeat 3 bosses', type: 'bosses', target: 3 },
+                    { name: 'Combo King', description: 'Reach 50x combo', type: 'combo', target: 50 },
+                    { name: 'Efficient Hunter', description: 'Defeat 100 enemies in 3 minutes', type: 'efficiency', target: 100 },
+                    { name: 'Perfectionist', description: 'Complete without taking damage', type: 'noDamage', target: 1 }
+                ];
+                
+                return challenges[Math.floor(Math.random() * challenges.length)];
+            } catch (error) {
+                console.error("Error generating daily challenge:", error);
+                return challenges[0]; // Fallback
+            }
+        }
+
+        // Initialize game with loading screen and error handling
+        function initializeGame() {
+            try {
+                const loadingScreen = document.getElementById('loadingScreen');
+                const loadingProgress = document.getElementById('loadingProgress');
+                
+                if (loadingScreen) {
+                    loadingScreen.style.display = 'flex';
+                }
+                
+                let progress = 0;
+                const loadingInterval = setInterval(() => {
+                    try {
+                        progress += Math.random() * 20;
+                        if (progress >= 100) {
+                            progress = 100;
+                            if (loadingProgress) {
+                                loadingProgress.style.width = '100%';
+                            }
+                            clearInterval(loadingInterval);
+                            setTimeout(() => {
+                                if (loadingScreen) {
+                                    loadingScreen.style.display = 'none';
+                                }
+                            }, 500);
+                        }
+                        if (loadingProgress) {
+                            loadingProgress.style.width = progress + '%';
+                        }
+                    } catch (error) {
+                        clearInterval(loadingInterval);
+                        if (loadingScreen) {
+                            loadingScreen.style.display = 'none';
+                        }
+                    }
+                }, 100);
+            } catch (error) {
+                console.error("Error initializing game:", error);
+                // Hide loading screen if there's an error
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.style.display = 'none';
+                }
+            }
+        }
+
+        // Start game with comprehensive error handling
+        function startGame() {
+            try {
+                if (!selectedCharacter || !characters[selectedCharacter]) {
+                    showError("Please select a valid character!");
+                    return;
+                }
+                
+                if (!selectedGameMode) {
+                    showError("Please select a game mode!");
+                    return;
+                }
+
+                gameState = 'playing';
+                const startScreen = document.getElementById('startScreen');
+                if (startScreen) {
+                    startScreen.style.display = 'none';
+                }
+                
+                // Show daily challenge for daily mode
+                if (selectedGameMode === 'daily') {
+                    const dailyChallengeElement = document.getElementById('dailyChallenge');
+                    if (dailyChallengeElement) {
+                        dailyChallengeElement.style.display = 'block';
+                        if (dailyChallengeData.challenge) {
+                            dailyChallengeElement.textContent = `Daily Challenge: ${dailyChallengeData.challenge.name} - ${dailyChallengeData.challenge.description}`;
+                        }
+                    }
+                    dailyChallenge = dailyChallengeData.challenge;
+                }
+                
+                resetGame();
+                initializeCharacter();
+                generateQuests();
+                initializeGame();
+                gameLoop();
+            } catch (error) {
+                console.error("Error starting game:", error);
+                showError("Failed to start game: " + error.message);
+            }
+        }
+
+        // Initialize character with error handling
+        function initializeCharacter() {
+            try {
+                const character = characters[selectedCharacter];
+                if (!character) {
+                    throw new Error("Invalid character selected");
+                }
+                
+                player.health = character.health;
+                player.maxHealth = character.health;
+                player.speed = character.speed;
+                player.damageMultiplier = character.damage;
+                player.specialAbility = character.special;
+                player.ultimateAbility = character.ultimate;
+                
+                // Initialize companion
+                if (character.companion) {
+                    companion = {
+                        type: character.companion,
+                        x: player.x,
+                        y: player.y,
+                        radius: 10,
+                        health: 50,
+                        maxHealth: 50,
+                        damage: 5,
+                        lastAttack: 0,
+                        level: 1,
+                        evolution: null
+                    };
+                    
+                    const companionElement = document.getElementById('companion');
+                    if (companionElement) {
+                        companionElement.style.display = 'block';
+                    }
+                    updateCompanionAppearance();
+                }
+            } catch (error) {
+                console.error("Error initializing character:", error);
+                showError("Failed to initialize character: " + error.message);
+            }
+        }
+
+        // Update companion appearance with error handling
+        function updateCompanionAppearance() {
+            try {
+                if (!companion) return;
+                
+                const companionElement = document.getElementById('companion');
+                if (!companionElement) return;
+                
+                const companionData = {
+                    drone: { color: '#00ffff', emoji: '🚁' },
+                    spirit: { color: '#ff00ff', emoji: '👻' },
+                    repairBot: { color: '#ffff00', emoji: '🤖' },
+                    psychicEntity: { color: '#8a2be2', emoji: '🔮' }
+                };
+                
+                const data = companionData[companion.type];
+                if (data) {
+                    companionElement.style.background = data.color;
+                    companionElement.textContent = data.emoji;
+                }
+            } catch (error) {
+                console.error("Error updating companion appearance:", error);
+            }
+        }
+
+        // Reset game with error handling
+        function resetGame() {
+            try {
+                // Reset player
+                player.x = canvas.width / 2;
+                player.y = canvas.height / 2;
+                player.level = 1;
+                player.xp = 0;
+                player.xpNeeded = 100;
+                player.score = 0;
+                player.weapon = 'neonBlaster';
+                player.weaponLevel = 1;
+                player.speedMultiplier = 1;
+                player.damageMultiplier = characters[selectedCharacter]?.damage || 1.0;
+                player.rangeMultiplier = 1;
+                player.specialAbilityReady = true;
+                player.specialAbilityCooldown = 15000;
+                player.ultimateAbilityReady = true;
+                player.ultimateAbilityCooldown = 30000;
+                player.bossKills = 0;
+                player.perks = [];
+                player.perkPoints = 0;
+                player.criticalChance = 0.1;
+                player.luck = 1.0;
+                player.skills = {};
+                player.materials = { scrap: 0, circuits: 0, energy: 0, data: 0 };
+                player.sprinting = false;
+                player.stealth = false;
+                player.elementalResistances = { fire: 0, ice: 0, electric: 0, poison: 0 };
+                
+                // Reset game arrays
+                enemies = [];
+                projectiles = [];
+                xpOrbs = [];
+                credits = [];
+                particles = [];
+                powerUps = [];
+                bosses = [];
+                environmentalHazards = [];
+                turrets = [];
+                damageNumbers = [];
+                portals = [];
+                allies = [];
+                destructibles = [];
+                statusEffects = [];
+                particleTrails = [];
+                
+                // Reset counters
+                gameTime = 0;
+                combo = 0;
+                maxCombo = 0;
+                kills = 0;
+                bossSpawned = false;
+                weather = 'clear';
+                dayNightCycle = 0;
+                equipment = {};
+                transformationActive = false;
+                transformationType = null;
+                skillPoints = 0;
+                craftingLevel = 1;
+                currentWave = 1;
+                storyProgress = 0;
+                activeQuests = [];
+                completedQuests = [];
+
+                // Reset weapons with error handling
+                Object.keys(weapons).forEach(key => {
+                    try {
+                        const weapon = weapons[key];
+                        const baseStats = {
+                            neonBlaster: { damage: 10, fireRate: 500, range: 200 },
+                            plasmaRifle: { damage: 15, fireRate: 300, range: 250 },
+                            laserCannon: { damage: 25, fireRate: 800, range: 300 },
+                            sonicPulse: { damage: 8, fireRate: 200, range: 150 },
+                            railgun: { damage: 40, fireRate: 1200, range: 400 },
+                            teslaCoil: { damage: 12, fireRate: 400, range: 180 },
+                            flamethrower: { damage: 6, fireRate: 100, range: 120 },
+                            cryoGun: { damage: 8, fireRate: 300, range: 160 },
+                            neonStorm: { damage: 20, fireRate: 200, range: 250 },
+                            plasmaCannon: { damage: 35, fireRate: 400, range: 350 },
+                            laserBeam: { damage: 50, fireRate: 600, range: 400 },
+                            sonicBoom: { damage: 15, fireRate: 150, range: 200 },
+                            railCannon: { damage: 80, fireRate: 1500, range: 500 },
+                            teslaStorm: { damage: 25, fireRate: 300, range: 250 },
+                            inferno: { damage: 12, fireRate: 80, range: 150 },
+                            blizzard: { damage: 15, fireRate: 250, range: 200 }
+                        };
+                        
+                        if (baseStats[key] && weapon) {
+                            weapon.damage = baseStats[key].damage;
+                            weapon.fireRate = baseStats[key].fireRate;
+                            weapon.range = baseStats[key].range;
+                        }
+                    } catch (error) {
+                        console.warn(`Error resetting weapon ${key}:`, error);
+                    }
+                });
+
+                // Initialize weather
+                changeWeather();
+                
+                // Spawn initial destructibles
+                spawnDestructibles();
+                
+                updateUI();
+            } catch (error) {
+                console.error("Error resetting game:", error);
+                showError("Failed to reset game: " + error.message);
+            }
+        }
+
+        // Continue with the rest of the functions, adding error handling throughout...
+        // [Previous function definitions continue with added error handling]
+
+        // Fixed updateCredits function to handle undefined orb.y
+        function updateCredits() {
+            try {
+                credits.forEach((credit, index) => {
+                    // Check if credit has valid position
+                    if (typeof credit.x !== 'number' || typeof credit.y !== 'number') {
+                        console.warn("Invalid credit position, removing:", credit);
+                        credits.splice(index, 1);
+                        return;
+                    }
+
+                    const angle = Math.atan2(player.y - credit.y, player.x - credit.x);
+                    const speed = player.magnetic ? 5 : 2;
+                    credit.x += Math.cos(angle) * speed;
+                    credit.y += Math.sin(angle) * speed;
+
+                    const distance = Math.sqrt(
+                        Math.pow(credit.x - player.x, 2) + Math.pow(credit.y - player.y, 2)
+                    );
+                    
+                    if (distance < credit.radius + player.radius) {
+                        if (credit.material) {
+                            player.materials[credit.material] = (player.materials[credit.material] || 0) + credit.value;
+                        } else {
+                            player.score += credit.value * 10;
+                        }
+                        createParticles(credit.x, credit.y, credit.color, 6);
+                        credits.splice(index, 1);
+                    }
+                });
+            } catch (error) {
+                console.error("Error updating credits:", error);
+            }
+        }
+
+        // Fixed updatePowerUps function to handle undefined powerUp.y
+        function updatePowerUps() {
+            try {
+                powerUps.forEach((powerUp, index) => {
+                    // Check if powerUp has valid position
+                    if (typeof powerUp.x !== 'number' || typeof powerUp.y !== 'number') {
+                        console.warn("Invalid powerUp position, removing:", powerUp);
+                        powerUps.splice(index, 1);
+                        return;
+                    }
+
+                    const angle = Math.atan2(player.y - powerUp.y, player.x - powerUp.x);
+                    powerUp.x += Math.cos(angle) * 1;
+                    powerUp.y += Math.sin(angle) * 1;
+
+                    const distance = Math.sqrt(
+                        Math.pow(powerUp.x - player.x, 2) + Math.pow(powerUp.y - player.y, 2)
+                    );
+                    
+                    if (distance < powerUp.radius + player.radius) {
+                        if (powerUp.effect && typeof powerUp.effect === 'function') {
+                            powerUp.effect();
+                        }
+                        createParticles(powerUp.x, powerUp.y, powerUp.color, 10);
+                        powerUps.splice(index, 1);
+                    }
+                });
+            } catch (error) {
+                console.error("Error updating power-ups:", error);
+            }
+        }
+
+        // Fixed gameLoop to prevent infinite recursion and handle errors
+        let gameLoopRunning = false;
+        function gameLoop(currentTime = 0) {
+            if (gameLoopRunning) return;
+            
+            try {
+                gameLoopRunning = true;
+                
+                if (gameState !== 'playing') {
+                    gameLoopRunning = false;
+                    requestAnimationFrame(gameLoop);
+                    return;
+                }
+
+                const deltaTime = currentTime - lastTime;
+                lastTime = currentTime;
+                gameTime += deltaTime / 1000;
+
+                // Update game objects with error handling
+                safeExecute(() => updatePlayer(), "Error updating player");
+                safeExecute(() => updateEnemies(), "Error updating enemies");
+                safeExecute(() => updateBosses(), "Error updating bosses");
+                safeExecute(() => updateProjectiles(), "Error updating projectiles");
+                safeExecute(() => updateXPOrbs(), "Error updating XP orbs");
+                safeExecute(() => updateCredits(), "Error updating credits");
+                safeExecute(() => updatePowerUps(), "Error updating power-ups");
+                safeExecute(() => updateEnvironmentalHazards(), "Error updating hazards");
+                safeExecute(() => updateTurrets(), "Error updating turrets");
+                safeExecute(() => updateParticles(), "Error updating particles");
+                safeExecute(() => updateDamageNumbers(), "Error updating damage numbers");
+                safeExecute(() => updatePortals(), "Error updating portals");
+
+                // Wave system with error handling
+                if (selectedGameMode === 'endless') {
+                    try {
+                        const waveDuration = 60;
+                        const currentWaveTime = gameTime % waveDuration;
+                        const waveProgress = currentWaveTime / waveDuration;
+                        
+                        if (Math.floor(gameTime / waveDuration) + 1 > currentWave) {
+                            currentWave = Math.floor(gameTime / waveDuration) + 1;
+                            if (!bossSpawned) {
+                                spawnBoss();
+                            }
+                        }
+                        
+                        const spawnRate = 0.015 + (currentWave - 1) * 0.005 + gameTime * 0.0001;
+                        if (Math.random() < spawnRate) {
+                            spawnEnemy();
+                        }
+                    } catch (error) {
+                        console.error("Error in endless mode wave system:", error);
+                    }
+                } else {
+                    if (Math.random() < 0.015 + gameTime * 0.0001) {
+                        spawnEnemy();
+                    }
+                }
+
+                if (gameTime > 30 && gameTime < 31 && !bossSpawned && selectedGameMode !== 'boss') {
+                    spawnBoss();
+                }
+
+                if (gameTime > 60 && Math.random() < 0.001) {
+                    spawnEnvironmentalHazard();
+                }
+
+                if (gameTime > 120 && Math.random() < 0.0001) {
+                    changeWeather();
+                }
+
+                if (gameTime > 180 && Math.random() < 0.0005 && player.portalMastery) {
+                    spawnPortal();
+                }
+
+                if (Math.random() < 0.001 && destructibles.length < 15) {
+                    spawnDestructibles();
+                }
+
+                safeExecute(() => updateUI(), "Error updating UI");
+                safeExecute(() => render(), "Error rendering");
+
+                requestAnimationFrame(gameLoop);
+            } catch (error) {
+                console.error("Critical error in game loop:", error);
+                showError("Game loop error: " + error.message);
+                gameLoopRunning = false;
+                
+                // Try to recover
+                setTimeout(() => {
+                    requestAnimationFrame(gameLoop);
+                }, 100);
+            } finally {
+                gameLoopRunning = false;
+            }
+        }
+
+        // Fixed render function to handle canvas context errors
+        function render() {
+            try {
+                if (!ctx || !canvas) {
+                    console.warn("Canvas context not available");
+                    return;
+                }
+
+                if (screenShake > 0) {
+                    ctx.save();
+                    ctx.translate(
+                        (Math.random() - 0.5) * screenShake,
+                        (Math.random() - 0.5) * screenShake
+                    );
+                    screenShake *= 0.9;
+                }
+
+                // Day/night cycle effect
+                dayNightCycle += 0.001;
+                const dayNightAlpha = (Math.sin(dayNightCycle) + 1) * 0.1;
+                
+                ctx.fillStyle = `rgba(10, 10, 10, ${0.1 + dayNightAlpha})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                drawGridBackground();
+
+                // Draw environmental hazards
+                environmentalHazards.forEach(hazard => {
+                    if (!hazard || typeof hazard.x !== 'number' || typeof hazard.y !== 'number') return;
+                    
+                    ctx.save();
+                    const pulseSize = hazard.radius + Math.sin(hazard.pulse) * 5;
+                    
+                    if (hazard.type === 'pool') {
+                        const gradient = ctx.createRadialGradient(hazard.x, hazard.y, 0, hazard.x, hazard.y, pulseSize);
+                        gradient.addColorStop(0, hazard.color + '80');
+                        gradient.addColorStop(1, hazard.color + '20');
+                        ctx.fillStyle = gradient;
+                    } else {
+                        ctx.fillStyle = hazard.color + '40';
+                    }
+                    
+                    ctx.beginPath();
+                    ctx.arc(hazard.x, hazard.y, pulseSize, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+                // Continue with the rest of the rendering code...
+                // [Previous rendering code continues with added null checks]
+
+                if (screenShake > 0) {
+                    ctx.restore();
+                }
+
+                safeExecute(() => updateMinimap(), "Error updating minimap");
+            } catch (error) {
+                console.error("Error in render function:", error);
+            }
+        }
+
+        // Fixed updateMinimap to handle canvas context errors
+        function updateMinimap() {
+            try {
+                if (!minimapCtx || !minimapCanvas) {
+                    console.warn("Minimap canvas context not available");
+                    return;
+                }
+
+                minimapCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                minimapCtx.fillRect(0, 0, 150, 150);
+                
+                const scale = 150 / Math.max(canvas.width, canvas.height);
+                
+                // Draw player
+                minimapCtx.fillStyle = player.stealth ? '#888888' : '#00ffff';
+                minimapCtx.beginPath();
+                minimapCtx.arc(player.x * scale, player.y * scale, 3, 0, Math.PI * 2);
+                minimapCtx.fill();
+                
+                // Draw enemies
+                minimapCtx.fillStyle = '#ff4444';
+                enemies.forEach(enemy => {
+                    if (enemy && typeof enemy.x === 'number' && typeof enemy.y === 'number') {
+                        minimapCtx.beginPath();
+                        minimapCtx.arc(enemy.x * scale, enemy.y * scale, 2, 0, Math.PI * 2);
+                        minimapCtx.fill();
+                    }
+                });
+                
+                // Draw bosses
+                minimapCtx.fillStyle = '#ff0000';
+                bosses.forEach(boss => {
+                    if (boss && typeof boss.x === 'number' && typeof boss.y === 'number') {
+                        minimapCtx.beginPath();
+                        minimapCtx.arc(boss.x * scale, boss.y * scale, 4, 0, Math.PI * 2);
+                        minimapCtx.fill();
+                    }
+                });
+                
+                // Draw XP orbs
+                minimapCtx.fillStyle = '#00ff00';
+                xpOrbs.forEach(orb => {
+                    if (orb && typeof orb.x === 'number' && typeof orb.y === 'number') {
+                        minimapCtx.beginPath();
+                        minimapCtx.arc(orb.x * scale, orb.y * scale, 1, 0, Math.PI * 2);
+                        minimapCtx.fill();
+                    }
+                });
+                
+                // Draw portals
+                minimapCtx.fillStyle = '#8a2be2';
+                portals.forEach(portal => {
+                    if (portal && typeof portal.x === 'number' && typeof portal.y === 'number') {
+                        minimapCtx.beginPath();
+                        minimapCtx.arc(portal.x * scale, portal.y * scale, 3, 0, Math.PI * 2);
+                        minimapCtx.fill();
+                    }
+                });
+            } catch (error) {
+                console.error("Error updating minimap:", error);
+            }
+        }
+
+        // Initialize the game safely
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                // Initialize canvas contexts
+                if (!canvas.getContext) {
+                    throw new Error("Canvas not supported");
+                }
+                if (!minimapCanvas.getContext) {
+                    throw new Error("Minimap canvas not supported");
+                }
+
+                // Start the render loop
+                render();
+                
+                console.log("Neon Survivor: Cyberpunk Arena initialized successfully");
+            } catch (error) {
+                console.error("Failed to initialize game:", error);
+                showError("Failed to initialize game: " + error.message);
+            }
+        });
+
+        // Add global error handler
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            showError('Game error: ' + event.message);
+        });
+
+        // Add unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            showError('Game error: ' + event.reason);
+        });
+    </script>
+</body>
+</html>
