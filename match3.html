@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Shapes Click Match</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #3DDC84 0%, #00C853 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #3DDC84;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .score, .target {
+            background: #3DDC84;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #E0E0E0;
+            padding: 10px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .shape {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shape:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .shape.highlighted {
+            border: 3px solid #FF5722;
+            transform: scale(1.15);
+            box-shadow: 0 0 20px rgba(255, 87, 34, 0.6);
+            animation: pulse 0.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.15); }
+            50% { transform: scale(1.25); }
+        }
+
+        .shape.removing {
+            animation: matchPulse 0.6s ease-in-out;
+        }
+
+        @keyframes matchPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); background: #FFD700; opacity: 0.8; }
+        }
+
+        .shape.falling {
+            animation: fall 0.5s ease-in;
+        }
+
+        @keyframes fall {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .android { background: #3DDC84; }
+        .robot { background: #2196F3; }
+        .gear { background: #FF9800; }
+        .battery { background: #F44336; }
+        .wifi { background: #9C27B0; }
+        .star { background: #FFEB3B; }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: #3DDC84;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: #00C853;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message.success {
+            background: #C8E6C9;
+            color: #2E7D32;
+        }
+
+        .message.info {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .message.warning {
+            background: #FFECB3;
+            color: #F57C00;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🤖 Android Click Match</h1>
+        
+        <div class="game-info">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="target">Target: <span id="target">1000</span></div>
+        </div>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="controls">
+            <button class="btn" onclick="newGame()">New Game</button>
+            <button class="btn" onclick="showHint()">Hint</button>
+        </div>
+
+        <div class="message" id="message">Click groups of 2+ adjacent shapes to remove them!</div>
+    </div>
+
+    <script>
+        class AndroidClickMatch {
+            constructor() {
+                this.board = [];
+                this.size = 8;
+                this.shapes = ['🤖', '⚙️', '🔋', '📶', '⭐', '🦾'];
+                this.shapeClasses = ['android', 'robot', 'gear', 'battery', 'wifi', 'star'];
+                this.score = 0;
+                this.target = 1000;
+                this.gameBoard = document.getElementById('gameBoard');
+                this.scoreElement = document.getElementById('score');
+                this.targetElement = document.getElementById('target');
+                this.messageElement = document.getElementById('message');
+                this.isProcessing = false;
+                
+                this.initBoard();
+                this.renderBoard();
+            }
+
+            initBoard() {
+                this.board = [];
+                for (let row = 0; row < this.size; row++) {
+                    this.board[row] = [];
+                    for (let col = 0; col < this.size; col++) {
+                        this.board[row][col] = Math.floor(Math.random() * this.shapes.length);
+                    }
+                }
+            }
+
+            renderBoard() {
+                this.gameBoard.innerHTML = '';
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.board[row][col] !== null) {
+                            const cell = document.createElement('div');
+                            cell.className = `shape ${this.shapeClasses[this.board[row][col]]}`;
+                            cell.textContent = this.shapes[this.board[row][col]];
+                            cell.dataset.row = row;
+                            cell.dataset.col = col;
+                            cell.addEventListener('click', () => this.handleCellClick(row, col));
+                            cell.addEventListener('mouseenter', () => this.handleCellHover(row, col));
+                            cell.addEventListener('mouseleave', () => this.clearHighlights());
+                            this.gameBoard.appendChild(cell);
+                        } else {
+                            const emptyCell = document.createElement('div');
+                            emptyCell.style.visibility = 'hidden';
+                            this.gameBoard.appendChild(emptyCell);
+                        }
+                    }
+                }
+            }
+
+            handleCellHover(row, col) {
+                if (this.isProcessing) return;
+                this.clearHighlights();
+                const group = this.findConnectedGroup(row, col);
+                if (group.length >= 2) {
+                    group.forEach(pos => {
+                        const cell = this.gameBoard.children[pos.row * this.size + pos.col];
+                        if (cell) cell.classList.add('highlighted');
+                    });
+                }
+            }
+
+            clearHighlights() {
+                const cells = this.gameBoard.querySelectorAll('.shape');
+                cells.forEach(cell => cell.classList.remove('highlighted'));
+            }
+
+            handleCellClick(row, col) {
+                if (this.isProcessing || this.board[row][col] === null) return;
+
+                const group = this.findConnectedGroup(row, col);
+                
+                if (group.length >= 2) {
+                    this.isProcessing = true;
+                    this.removeGroup(group);
+                    const points = this.calculatePoints(group.length);
+                    this.score += points;
+                    this.scoreElement.textContent = this.score;
+                    
+                    this.showMessage(`Removed ${group.length} shapes! +${points} points!`, 'success');
+                    
+                    setTimeout(() => {
+                        this.dropShapes();
+                        this.fillBoard();
+                        this.isProcessing = false;
+                        
+                        if (this.score >= this.target) {
+                            this.winGame();
+                        } else if (!this.hasValidMoves()) {
+                            this.gameOver();
+                        }
+                    }, 600);
+                } else {
+                    this.showMessage('Need at least 2 adjacent shapes!', 'warning');
+                }
+            }
+
+            findConnectedGroup(startRow, startCol) {
+                const shape = this.board[startRow][startCol];
+                if (shape === null) return [];
+                
+                const visited = new Set();
+                const group = [];
+                const stack = [{row: startRow, col: startCol}];
+                
+                while (stack.length > 0) {
+                    const {row, col} = stack.pop();
+                    const key = `${row}-${col}`;
+                    
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+                    
+                    if (row < 0 || row >= this.size || col < 0 || col >= this.size) continue;
+                    if (this.board[row][col] !== shape) continue;
+                    
+                    group.push({row, col});
+                    
+                    // Add adjacent cells (up, down, left, right)
+                    stack.push({row: row - 1, col});
+                    stack.push({row: row + 1, col});
+                    stack.push({row, col: col - 1});
+                    stack.push({row, col: col + 1});
+                }
+                
+                return group;
+            }
+
+            removeGroup(group) {
+                group.forEach(pos => {
+                    const cell = this.gameBoard.children[pos.row * this.size + pos.col];
+                    if (cell) {
+                        cell.classList.add('removing');
+                        this.board[pos.row][pos.col] = null;
+                    }
+                });
+            }
+
+            calculatePoints(groupSize) {
+                // Bonus points for larger groups
+                let points = groupSize * 10;
+                if (groupSize >= 5) points += 50;
+                else if (groupSize >= 4) points += 20;
+                else if (groupSize >= 3) points += 10;
+                return points;
+            }
+
+            dropShapes() {
+                for (let col = 0; col < this.size; col++) {
+                    let writePos = this.size - 1;
+                    
+                    for (let row = this.size - 1; row >= 0; row--) {
+                        if (this.board[row][col] !== null) {
+                            this.board[writePos][col] = this.board[row][col];
+                            if (writePos !== row) {
+                                this.board[row][col] = null;
+                            }
+                            writePos--;
+                        }
+                    }
+                }
+                this.renderBoard();
+            }
+
+            fillBoard() {
+                for (let col = 0; col < this.size; col++) {
+                    for (let row = 0; row < this.size; row++) {
+                        if (this.board[row][col] === null) {
+                            this.board[row][col] = Math.floor(Math.random() * this.shapes.length);
+                            const cell = this.gameBoard.children[row * this.size + col];
+                            if (cell) {
+                                cell.classList.add('falling');
+                                setTimeout(() => cell.classList.remove('falling'), 500);
+                            }
+                        }
+                    }
+                }
+                this.renderBoard();
+            }
+
+            hasValidMoves() {
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.board[row][col] !== null) {
+                            const group = this.findConnectedGroup(row, col);
+                            if (group.length >= 2) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            findHint() {
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.board[row][col] !== null) {
+                            const group = this.findConnectedGroup(row, col);
+                            if (group.length >= 3) { // Prioritize larger groups
+                                return {row, col, group};
+                            }
+                        }
+                    }
+                }
+                
+                // If no large groups, find any valid group
+                for (let row = 0; row < this.size; row++) {
+                    for (let col = 0; col < this.size; col++) {
+                        if (this.board[row][col] !== null) {
+                            const group = this.findConnectedGroup(row, col);
+                            if (group.length >= 2) {
+                                return {row, col, group};
+                            }
+                        }
+                    }
+                }
+                
+                return null;
+            }
+
+            showMessage(text, type = 'info') {
+                this.messageElement.textContent = text;
+                this.messageElement.className = `message ${type}`;
+            }
+
+            winGame() {
+                this.showMessage('🎉 Congratulations! You reached the target score!', 'success');
+            }
+
+            gameOver() {
+                this.showMessage('Game Over! No more valid moves. Try a new game!', 'warning');
+            }
+        }
+
+        let game = new AndroidClickMatch();
+
+        function newGame() {
+            game = new AndroidClickMatch();
+        }
+
+        function showHint() {
+            const hint = game.findHint();
+            if (hint) {
+                // Highlight the hint group
+                hint.group.forEach(pos => {
+                    const cell = game.gameBoard.children[pos.row * game.size + pos.col];
+                    if (cell) {
+                        cell.style.border = '3px solid #FF5722';
+                        cell.style.animation = 'pulse 1s infinite';
+                    }
+                });
+                
+                game.showMessage(`Hint: Click the highlighted group of ${hint.group.length} shapes!`, 'info');
+                
+                setTimeout(() => {
+                    hint.group.forEach(pos => {
+                        const cell = game.gameBoard.children[pos.row * game.size + pos.col];
+                        if (cell) {
+                            cell.style.border = '';
+                            cell.style.animation = '';
+                        }
+                    });
+                }, 3000);
+            } else {
+                game.showMessage('No available moves! Try starting a new game.', 'warning');
+            }
+        }
+    </script>
+</body>
+</html>
