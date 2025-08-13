@@ -2310,6 +2310,62 @@
         }
     }
 
+        function drawGridBackground() {
+        try {
+            // Draw a subtle grid pattern for the cyberpunk arena
+            ctx.save();
+            
+            // Grid settings
+            const gridSize = 50;
+            const lineWidth = 0.5;
+            
+            // Grid color with a cyberpunk feel
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+            ctx.lineWidth = lineWidth;
+            
+            // Draw vertical lines
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw horizontal lines
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Add some larger grid lines for more structure
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+            ctx.lineWidth = lineWidth * 1.5;
+            
+            const largeGridSize = gridSize * 5;
+            
+            // Draw larger vertical lines
+            for (let x = 0; x <= canvas.width; x += largeGridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw larger horizontal lines
+            for (let y = 0; y <= canvas.height; y += largeGridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        } catch (error) {
+            console.error("Error drawing grid background:", error);
+        }
+    }
 
         // Fixed render function to handle canvas context errors
         function render() {
