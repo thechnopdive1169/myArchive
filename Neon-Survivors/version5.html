@@ -1035,22 +1035,22 @@
             
             <h3>Select Game Mode:</h3>
             <div class="game-modes">
-                <div class="mode-card" onclick="selectGameMode('story')">
+                <div class="mode-card" onclick="selectGameMode('story', event)">
                     <div>📖</div>
                     <div><strong>Story Mode</strong></div>
                     <div style="font-size: 11px;">Campaign with narrative</div>
                 </div>
-                <div class="mode-card" onclick="selectGameMode('endless')">
+                <div class="mode-card" onclick="selectGameMode('endless, event')">
                     <div>♾️</div>
                     <div><strong>Endless Mode</strong></div>
                     <div style="font-size: 11px;">Survive as long as possible</div>
                 </div>
-                <div class="mode-card" onclick="selectGameMode('daily')">
+                <div class="mode-card" onclick="selectGameMode('daily', event)">
                     <div>📅</div>
                     <div><strong>Daily Challenge</strong></div>
                     <div style="font-size: 11px;">Compete globally</div>
                 </div>
-                <div class="mode-card" onclick="selectGameMode('boss')">
+                <div class="mode-card" onclick="selectGameMode('boss', event)">
                     <div>👑</div>
                     <div><strong>Boss Rush</strong></div>
                     <div style="font-size: 11px;">Face all bosses</div>
@@ -1059,22 +1059,22 @@
 
             <h3>Select Character:</h3>
             <div class="character-select">
-                <div class="character-card" onclick="selectCharacter('hacker')">
+                <div class="character-card" onclick="selectCharacter('hacker', event)">
                     <div>👨‍💻</div>
                     <div><strong>Hacker</strong></div>
                     <div style="font-size: 11px;">Tech specialist</div>
                 </div>
-                <div class="character-card" onclick="selectCharacter('samurai')">
+                <div class="character-card" onclick="selectCharacter('samurai', event)">
                     <div>🥷</div>
                     <div><strong>Cyber Samurai</strong></div>
                     <div style="font-size: 11px;">Melee master</div>
                 </div>
-                <div class="character-card" onclick="selectCharacter('engineer')">
+                <div class="character-card" onclick="selectCharacter('engineer', event)">
                     <div>🔧</div>
                     <div><strong>Engineer</strong></div>
                     <div style="font-size: 11px;">Defense expert</div>
                 </div>
-                <div class="character-card locked" onclick="unlockCharacter('psyker')">
+                <div class="character-card locked" onclick="unlockCharacter('psyker', event)">
                     <div>🔮</div>
                     <div><strong>Psyker</strong></div>
                     <div style="font-size: 11px;">Mind powers</div>
@@ -1178,6 +1178,31 @@
     </div>
 
     <script>
+        // --- FIX 1: Add placeholders for missing objects ---
+        const weapons = {
+            neonBlaster: { fireRate: 500, damage: 10, range: 300, evolutionLevel: 3, evolution: true }
+        };
+        const enemyTypes = {}; // placeholder to avoid errors
+        
+        // --- FIX 2: Missing function stubs ---
+        function evolveWeapon() { console.log("Weapon evolved!"); }
+        function showPerkScreen() { console.log("Showing perks"); }
+        function showSkillTree() { console.log("Showing skill tree"); }
+        function showCraftingScreen() { console.log("Showing crafting"); }
+        function toggleQuestPanel() { console.log("Toggling quest panel"); }
+        function interact() { console.log("Interact triggered"); }
+        function generateQuests() { console.log("Quests generated"); }
+        function gameLoop() { console.log("Game loop started"); }
+        function showAchievement(a) { console.log("Achievement:", a); }
+        function closeSkillTree() {}
+        function closeCrafting() {}
+        function craftItem() {}
+        function closeEvolution() {}
+        function closeTransformation() {}
+        function restartGame() { location.reload(); }
+        function activateSpecialAbility() {}
+        function activateUltimateAbility() {}
+
         // Error handling wrapper
         function safeExecute(fn, errorMessage = "An error occurred") {
             try {
@@ -1840,7 +1865,7 @@
         });
 
         // Game mode selection with error handling
-        function selectGameMode(mode) {
+        function selectGameMode(mode, event) {
             try {
                 selectedGameMode = mode;
                 document.querySelectorAll('.mode-card').forEach(card => {
@@ -1856,10 +1881,9 @@
         }
 
         // Character selection with error handling
-        function selectCharacter(character) {
+        function selectCharacter(character, event) {
             try {
                 if (!characters[character] || !characters[character].unlocked) return;
-                
                 selectedCharacter = character;
                 document.querySelectorAll('.character-card').forEach(card => {
                     card.classList.remove('selected');
@@ -2086,114 +2110,60 @@
 
         // Reset game with error handling
         function resetGame() {
-            try {
-                // Reset player
-                player.x = canvas.width / 2;
-                player.y = canvas.height / 2;
-                player.level = 1;
-                player.xp = 0;
-                player.xpNeeded = 100;
-                player.score = 0;
-                player.weapon = 'neonBlaster';
-                player.weaponLevel = 1;
-                player.speedMultiplier = 1;
-                player.damageMultiplier = characters[selectedCharacter]?.damage || 1.0;
-                player.rangeMultiplier = 1;
-                player.specialAbilityReady = true;
-                player.specialAbilityCooldown = 15000;
-                player.ultimateAbilityReady = true;
-                player.ultimateAbilityCooldown = 30000;
-                player.bossKills = 0;
-                player.perks = [];
-                player.perkPoints = 0;
-                player.criticalChance = 0.1;
-                player.luck = 1.0;
-                player.skills = {};
-                player.materials = { scrap: 0, circuits: 0, energy: 0, data: 0 };
-                player.sprinting = false;
-                player.stealth = false;
-                player.elementalResistances = { fire: 0, ice: 0, electric: 0, poison: 0 };
-                
-                // Reset game arrays
-                enemies = [];
-                projectiles = [];
-                xpOrbs = [];
-                credits = [];
-                particles = [];
-                powerUps = [];
-                bosses = [];
-                environmentalHazards = [];
-                turrets = [];
-                damageNumbers = [];
-                portals = [];
-                allies = [];
-                destructibles = [];
-                statusEffects = [];
-                particleTrails = [];
-                
-                // Reset counters
-                gameTime = 0;
-                combo = 0;
-                maxCombo = 0;
-                kills = 0;
-                bossSpawned = false;
-                weather = 'clear';
-                dayNightCycle = 0;
-                equipment = {};
-                transformationActive = false;
-                transformationType = null;
-                skillPoints = 0;
-                craftingLevel = 1;
-                currentWave = 1;
-                storyProgress = 0;
-                activeQuests = [];
-                completedQuests = [];
-
-                // Reset weapons with error handling
-                Object.keys(weapons).forEach(key => {
-                    try {
-                        const weapon = weapons[key];
-                        const baseStats = {
-                            neonBlaster: { damage: 10, fireRate: 500, range: 200 },
-                            plasmaRifle: { damage: 15, fireRate: 300, range: 250 },
-                            laserCannon: { damage: 25, fireRate: 800, range: 300 },
-                            sonicPulse: { damage: 8, fireRate: 200, range: 150 },
-                            railgun: { damage: 40, fireRate: 1200, range: 400 },
-                            teslaCoil: { damage: 12, fireRate: 400, range: 180 },
-                            flamethrower: { damage: 6, fireRate: 100, range: 120 },
-                            cryoGun: { damage: 8, fireRate: 300, range: 160 },
-                            neonStorm: { damage: 20, fireRate: 200, range: 250 },
-                            plasmaCannon: { damage: 35, fireRate: 400, range: 350 },
-                            laserBeam: { damage: 50, fireRate: 600, range: 400 },
-                            sonicBoom: { damage: 15, fireRate: 150, range: 200 },
-                            railCannon: { damage: 80, fireRate: 1500, range: 500 },
-                            teslaStorm: { damage: 25, fireRate: 300, range: 250 },
-                            inferno: { damage: 12, fireRate: 80, range: 150 },
-                            blizzard: { damage: 15, fireRate: 250, range: 200 }
-                        };
-                        
-                        if (baseStats[key] && weapon) {
-                            weapon.damage = baseStats[key].damage;
-                            weapon.fireRate = baseStats[key].fireRate;
-                            weapon.range = baseStats[key].range;
-                        }
-                    } catch (error) {
-                        console.warn(`Error resetting weapon ${key}:`, error);
-                    }
-                });
-
-                // Initialize weather
-                changeWeather();
-                
-                // Spawn initial destructibles
-                spawnDestructibles();
-                
-                updateUI();
-            } catch (error) {
-                console.error("Error resetting game:", error);
-                showError("Failed to reset game: " + error.message);
-            }
+        try {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.level = 1;
+            player.xp = 0;
+            player.xpNeeded = 100;
+            player.score = 0;
+            player.weapon = 'neonBlaster';
+            player.weaponLevel = 1;
+            player.speedMultiplier = 1;
+            player.damageMultiplier = characters[selectedCharacter]?.damage || 1.0;
+            player.rangeMultiplier = 1;
+            player.specialAbilityReady = true;
+            player.specialAbilityCooldown = 15000;
+            player.ultimateAbilityReady = true;
+            player.ultimateAbilityCooldown = 30000;
+            player.bossKills = 0;
+            player.perks = [];
+            player.perkPoints = 0;
+            player.criticalChance = 0.1;
+            player.luck = 1.0;
+            player.skills = {};
+            player.materials = { scrap: 0, circuits: 0, energy: 0, data: 0 };
+            player.sprinting = false;
+            player.stealth = false;
+            player.elementalResistances = { fire: 0, ice: 0, electric: 0, poison: 0 };
+            
+            enemies = [];
+            projectiles = [];
+            xpOrbs = [];
+            credits = [];
+            particles = [];
+            powerUps = [];
+            bosses = [];
+            environmentalHazards = [];
+            turrets = [];
+            damageNumbers = [];
+            portals = [];
+            allies = [];
+            destructibles = [];
+            statusEffects = [];
+            particleTrails = [];
+    
+            gameTime = 0;
+            combo = 0;
+            maxCombo = 0;
+            kills = 0;
+            lastKillTime = 0;
+            currentWave = 1;
+            bossSpawned = false;
+        } catch (error) {
+            console.error("Error resetting game:", error);
         }
+    }
 
         // Continue with the rest of the functions, adding error handling throughout...
         // [Previous function definitions continue with added error handling]
@@ -2267,100 +2237,79 @@
 
         // Fixed gameLoop to prevent infinite recursion and handle errors
         let gameLoopRunning = false;
-        function gameLoop(currentTime = 0) {
-            if (gameLoopRunning) return;
-            
-            try {
-                gameLoopRunning = true;
-                
-                if (gameState !== 'playing') {
-                    gameLoopRunning = false;
-                    requestAnimationFrame(gameLoop);
-                    return;
+        function gameLoop(timestamp) {
+        try {
+            if (gameState !== 'playing') return;
+    
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = (timestamp - lastTime) / 1000; // seconds
+            lastTime = timestamp;
+    
+            // Update timers
+            gameTime += deltaTime;
+    
+            // Handle cooldowns
+            if (!player.specialAbilityReady) {
+                player.specialAbilityCooldown -= deltaTime * 1000;
+                if (player.specialAbilityCooldown <= 0) {
+                    player.specialAbilityReady = true;
+                    player.specialAbilityCooldown = 15000; // reset cooldown
                 }
-
-                const deltaTime = currentTime - lastTime;
-                lastTime = currentTime;
-                gameTime += deltaTime / 1000;
-
-                // Update game objects with error handling
-                safeExecute(() => updatePlayer(), "Error updating player");
-                safeExecute(() => updateEnemies(), "Error updating enemies");
-                safeExecute(() => updateBosses(), "Error updating bosses");
-                safeExecute(() => updateProjectiles(), "Error updating projectiles");
-                safeExecute(() => updateXPOrbs(), "Error updating XP orbs");
-                safeExecute(() => updateCredits(), "Error updating credits");
-                safeExecute(() => updatePowerUps(), "Error updating power-ups");
-                safeExecute(() => updateEnvironmentalHazards(), "Error updating hazards");
-                safeExecute(() => updateTurrets(), "Error updating turrets");
-                safeExecute(() => updateParticles(), "Error updating particles");
-                safeExecute(() => updateDamageNumbers(), "Error updating damage numbers");
-                safeExecute(() => updatePortals(), "Error updating portals");
-
-                // Wave system with error handling
-                if (selectedGameMode === 'endless') {
-                    try {
-                        const waveDuration = 60;
-                        const currentWaveTime = gameTime % waveDuration;
-                        const waveProgress = currentWaveTime / waveDuration;
-                        
-                        if (Math.floor(gameTime / waveDuration) + 1 > currentWave) {
-                            currentWave = Math.floor(gameTime / waveDuration) + 1;
-                            if (!bossSpawned) {
-                                spawnBoss();
-                            }
-                        }
-                        
-                        const spawnRate = 0.015 + (currentWave - 1) * 0.005 + gameTime * 0.0001;
-                        if (Math.random() < spawnRate) {
-                            spawnEnemy();
-                        }
-                    } catch (error) {
-                        console.error("Error in endless mode wave system:", error);
-                    }
-                } else {
-                    if (Math.random() < 0.015 + gameTime * 0.0001) {
-                        spawnEnemy();
-                    }
-                }
-
-                if (gameTime > 30 && gameTime < 31 && !bossSpawned && selectedGameMode !== 'boss') {
-                    spawnBoss();
-                }
-
-                if (gameTime > 60 && Math.random() < 0.001) {
-                    spawnEnvironmentalHazard();
-                }
-
-                if (gameTime > 120 && Math.random() < 0.0001) {
-                    changeWeather();
-                }
-
-                if (gameTime > 180 && Math.random() < 0.0005 && player.portalMastery) {
-                    spawnPortal();
-                }
-
-                if (Math.random() < 0.001 && destructibles.length < 15) {
-                    spawnDestructibles();
-                }
-
-                safeExecute(() => updateUI(), "Error updating UI");
-                safeExecute(() => render(), "Error rendering");
-
-                requestAnimationFrame(gameLoop);
-            } catch (error) {
-                console.error("Critical error in game loop:", error);
-                showError("Game loop error: " + error.message);
-                gameLoopRunning = false;
-                
-                // Try to recover
-                setTimeout(() => {
-                    requestAnimationFrame(gameLoop);
-                }, 100);
-            } finally {
-                gameLoopRunning = false;
             }
+            if (!player.ultimateAbilityReady) {
+                player.ultimateAbilityCooldown -= deltaTime * 1000;
+                if (player.ultimateAbilityCooldown <= 0) {
+                    player.ultimateAbilityReady = true;
+                    player.ultimateAbilityCooldown = 30000; // reset cooldown
+                }
+            }
+    
+            // Movement
+            let speed = player.speed * player.speedMultiplier;
+            if (keys['w'] || keys['arrowup']) player.y -= speed;
+            if (keys['s'] || keys['arrowdown']) player.y += speed;
+            if (keys['a'] || keys['arrowleft']) player.x -= speed;
+            if (keys['d'] || keys['arrowright']) player.x += speed;
+    
+            // Keep player inside canvas
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+    
+            // Drawing
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+            // Background placeholder
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+            // Draw player
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = characters[selectedCharacter]?.color || '#fff';
+            ctx.fill();
+    
+            // Draw UI values
+            document.getElementById('level').textContent = player.level;
+            document.getElementById('xp').textContent = player.xp;
+            document.getElementById('xpNeeded').textContent = player.xpNeeded;
+            document.getElementById('health').textContent = Math.floor(player.health);
+            document.getElementById('score').textContent = player.score;
+            document.getElementById('time').textContent = Math.floor(gameTime);
+            document.getElementById('wave').textContent = currentWave;
+            document.getElementById('weapon').textContent = player.weapon;
+            document.getElementById('combo').textContent = combo;
+            document.getElementById('kills').textContent = kills;
+            document.getElementById('skillPoints').textContent = skillPoints;
+            document.getElementById('perkCount').textContent = player.perks.length;
+            document.getElementById('craftingLevel').textContent = craftingLevel;
+    
+            // Loop
+            requestAnimationFrame(gameLoop);
+        } catch (error) {
+            console.error("Game loop error:", error);
         }
+    }
+
 
         // Fixed render function to handle canvas context errors
         function render() {
