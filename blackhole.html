@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Black Hole Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #gameContainer {
+            position: relative;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px auto;
+            display: block;
+            background: radial-gradient(circle at center, #0a0a2e 0%, #000 100%);
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: none;
+        }
+
+        #mainMenu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #mainMenu h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(78, 205, 196, 0.5);
+        }
+
+        .menuButton {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 20px;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .menuButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        #gameUI {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+            display: none;
+        }
+
+        .uiElement {
+            margin: 10px 0;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        #pauseMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 80;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 80;
+        }
+
+        #highScores {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 80;
+            max-width: 400px;
+        }
+
+        .scoreEntry {
+            margin: 10px 0;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+
+        #levelEditor {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            z-index: 90;
+        }
+
+        #editorTools {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .toolButton {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(78, 205, 196, 0.3);
+            border: 1px solid #4ecdc4;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toolButton:hover {
+            background: rgba(78, 205, 196, 0.5);
+        }
+
+        .toolButton.active {
+            background: rgba(78, 205, 196, 0.7);
+            border-color: #fff;
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: none;
+            z-index: 60;
+        }
+
+        .controlPad {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4ecdc4;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .controlButton {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(78, 205, 196, 0.5);
+            border: 2px solid #4ecdc4;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .controlButton:active {
+            background: rgba(78, 205, 196, 0.8);
+        }
+
+        #upBtn { top: 5px; left: 50px; }
+        #downBtn { bottom: 5px; left: 50px; }
+        #leftBtn { left: 5px; top: 50px; }
+        #rightBtn { right: 5px; top: 50px; }
+
+        #powerUpBar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: none;
+            z-index: 50;
+        }
+
+        .powerUpSlot {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            margin: 5px;
+            display: inline-block;
+            text-align: center;
+            line-height: 56px;
+            font-size: 24px;
+        }
+
+        .powerUpSlot.active {
+            background: rgba(78, 205, 196, 0.3);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            opacity: 0.7;
+            font-size: 14px;
+            z-index: 40;
+        }
+
+        @media (max-width: 768px) {
+            #mobileControls {
+                display: block;
+            }
+            
+            #gameUI {
+                font-size: 14px;
+            }
+            
+            .menuButton {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1000" height="700"></canvas>
+        
+        <!-- Main Menu -->
+        <div id="mainMenu">
+            <h1>Black Hole Universe</h1>
+            <button class="menuButton" onclick="game.startGame('campaign')">Campaign Mode</button>
+            <button class="menuButton" onclick="game.startGame('survival')">Survival Mode</button>
+            <button class="menuButton" onclick="game.startGame('timeAttack')">Time Attack</button>
+            <button class="menuButton" onclick="game.startGame('cooperative')">Co-op Mode</button>
+            <button class="menuButton" onclick="game.startGame('puzzle')">Puzzle Mode</button>
+            <button class="menuButton" onclick="game.startGame('sandbox')">Sandbox Mode</button>
+            <button class="menuButton" onclick="game.showHighScores()">High Scores</button>
+            <button class="menuButton" onclick="game.showLevelEditor()">Level Editor</button>
+        </div>
+
+        <!-- Game UI -->
+        <div id="gameUI">
+            <div class="uiElement">Score: <span id="score">0</span></div>
+            <div class="uiElement">Level: <span id="level">1</span></div>
+            <div class="uiElement">Objects: <span id="objects">0</span></div>
+            <div class="uiElement">Time: <span id="time">0</span></div>
+            <div class="uiElement">Health: <span id="health">100</span></div>
+        </div>
+
+        <!-- Power-up Bar -->
+        <div id="powerUpBar">
+            <div class="powerUpSlot" id="power1">⚡</div>
+            <div class="powerUpSlot" id="power2">🛡️</div>
+            <div class="powerUpSlot" id="power3">⚡</div>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pauseMenu">
+            <h2>Game Paused</h2>
+            <button class="menuButton" onclick="game.resumeGame()">Resume</button>
+            <button class="menuButton" onclick="game.restartGame()">Restart</button>
+            <button class="menuButton" onclick="game.returnToMenu()">Main Menu</button>
+        </div>
+
+        <!-- Game Over -->
+        <div id="gameOver">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p id="gameOverStats"></p>
+            <button class="menuButton" onclick="game.restartGame()">Play Again</button>
+            <button class="menuButton" onclick="game.returnToMenu()">Main Menu</button>
+        </div>
+
+        <!-- High Scores -->
+        <div id="highScores">
+            <h2>High Scores</h2>
+            <div id="scoreList"></div>
+            <button class="menuButton" onclick="game.hideHighScores()">Close</button>
+        </div>
+
+        <!-- Level Editor -->
+        <div id="levelEditor">
+            <div id="editorTools">
+                <h3>Level Editor</h3>
+                <button class="toolButton active" onclick="editor.selectTool('star')">⭐ Star</button>
+                <button class="toolButton" onclick="editor.selectTool('planet')">🪐 Planet</button>
+                <button class="toolButton" onclick="editor.selectTool('enemy')">👾 Enemy</button>
+                <button class="toolButton" onclick="editor.selectTool('powerup')">💎 Power-up</button>
+                <button class="toolButton" onclick="editor.selectTool('obstacle')">🗿 Obstacle</button>
+                <button class="toolButton" onclick="editor.clearLevel()">Clear All</button>
+                <button class="toolButton" onclick="editor.saveLevel()">Save Level</button>
+                <button class="toolButton" onclick="editor.loadLevel()">Load Level</button>
+                <button class="menuButton" onclick="game.hideLevelEditor()">Back to Menu</button>
+            </div>
+            <canvas id="editorCanvas" width="1000" height="700"></canvas>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobileControls">
+            <div class="controlPad">
+                <div class="controlButton" id="upBtn">↑</div>
+                <div class="controlButton" id="downBtn">↓</div>
+                <div class="controlButton" id="leftBtn">←</div>
+                <div class="controlButton" id="rightBtn">→</div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <div>Use ARROW KEYS or WASD to move | SPACE to pause | P for power-ups</div>
+        </div>
+    </div>
+
+    <script>
+        // Particle Class
+        class Particle {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1;
+                this.decay = 0.02;
+                this.type = type;
+                this.size = Math.random() * 3 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.life -= this.decay;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                
+                if (this.type === 'star') {
+                    ctx.fillStyle = '#ffff00';
+                } else if (this.type === 'planet') {
+                    ctx.fillStyle = '#ff6b6b';
+                } else if (this.type === 'explosion') {
+                    ctx.fillStyle = '#ff4444';
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                }
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // Effect Class
+        class Effect {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.life = 1;
+                this.decay = 0.05;
+                this.radius = 10;
+            }
+
+            update() {
+                this.life -= this.decay;
+                this.radius += 2;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                
+                if (this.type === 'damage') {
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 3;
+                } else if (this.type === 'powerup') {
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 2;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+        }
+
+        // Game Object Class
+        class GameObject {
+            constructor(x, y, type = 'star') {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.vx = 0;
+                this.vy = 0;
+                this.mass = type === 'star' ? 10 : type === 'planet' ? 25 : 15;
+                this.radius = type === 'star' ? 3 : type === 'planet' ? 8 : 5;
+                this.consumed = false;
+                this.trail = [];
+                this.maxTrailLength = 10;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > this.maxTrailLength) {
+                    this.trail.shift();
+                }
+                
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+            }
+
+            draw(ctx) {
+                // Draw trail
+                if (this.trail.length > 1) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
+                    for (let i = 1; i < this.trail.length; i++) {
+                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
+                    }
+                    ctx.stroke();
+                }
+
+                // Draw object
+                if (this.type === 'star') {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffff00';
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + 2, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.fill();
+                } else if (this.type === 'planet') {
+                    const gradient = ctx.createRadialGradient(
+                        this.x - this.radius/3, this.y - this.radius/3, 0,
+                        this.x, this.y, this.radius
+                    );
+                    gradient.addColorStop(0, '#ff6b6b');
+                    gradient.addColorStop(1, '#cc0000');
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // PowerUp Class
+        class PowerUp {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 12;
+                this.type = ['speed', 'shield', 'magnet'][Math.floor(Math.random() * 3)];
+                this.rotation = 0;
+                this.floatOffset = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                this.rotation += 0.05;
+                this.y += Math.sin(Date.now() * 0.003 + this.floatOffset) * 0.5;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.getPowerUpColor();
+                ctx.fill();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.getPowerUpIcon(), 0, 0);
+                
+                ctx.restore();
+            }
+
+            getPowerUpColor() {
+                switch (this.type) {
+                    case 'speed': return '#ffaa00';
+                    case 'shield': return '#00aaff';
+                    case 'magnet': return '#aa00ff';
+                    default: return '#ffffff';
+                }
+            }
+
+            getPowerUpIcon() {
+                switch (this.type) {
+                    case 'speed': return '⚡';
+                    case 'shield': return '🛡️';
+                    case 'magnet': return '🧲';
+                    default: return '?';
+                }
+            }
+        }
+
+        // Obstacle Class
+        class Obstacle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 20;
+                this.vx = 0;
+                this.vy = 0;
+                this.mass = 50;
+                this.health = 100;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.vx *= 0.95;
+                this.vy *= 0.95;
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#666666';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
+                ctx.strokeStyle = '#999999';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            bounce() {
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+            }
+        }
+
+        // Enemy Class
+        class Enemy {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = 15;
+                this.mass = 30;
+                this.type = 'enemy';
+                this.health = 50;
+                this.color = '#ff4444';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < this.radius || this.x > game.canvas.width - this.radius) {
+                    this.vx *= -1;
+                }
+                if (this.y < this.radius || this.y > game.canvas.height - this.radius) {
+                    this.vy *= -1;
+                }
+                
+                this.x = Math.max(this.radius, Math.min(game.canvas.width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(game.canvas.height - this.radius, this.y));
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius - 2, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                const barWidth = 30;
+                const barHeight = 4;
+                const healthPercent = this.health / 50;
+                
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 10, barWidth, barHeight);
+                
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 10, barWidth * healthPercent, barHeight);
+            }
+        }
+
+        // Boss Class
+        class Boss {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = 0;
+                this.vy = 1;
+                this.radius = 40;
+                this.mass = 100;
+                this.type = 'boss';
+                this.health = 200;
+                this.color = '#ff00ff';
+                this.shootCooldown = 0;
+            }
+
+            update() {
+                this.y += this.vy;
+                
+                if (this.y > game.canvas.height - this.radius || this.y < this.radius) {
+                    this.vy *= -1;
+                }
+                
+                this.shootCooldown--;
+                if (this.shootCooldown <= 0) {
+                    this.shoot();
+                    this.shootCooldown = 60;
+                }
+            }
+
+            shoot() {
+                game.enemies.push(new Projectile(this.x, this.y + this.radius, 0, 3));
+            }
+
+            draw(ctx) {
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(1, '#660066');
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius - 5, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                const barWidth = 60;
+                const barHeight = 6;
+                const healthPercent = this.health / 200;
+                
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 15, barWidth, barHeight);
+                
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 15, barWidth * healthPercent, barHeight);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('BOSS', this.x, this.y);
+            }
+        }
+
+        // Projectile Class
+        class Projectile {
+            constructor(x, y, vx, vy) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.radius = 3;
+                this.damage = 10;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0000';
+                ctx.fill();
+            }
+        }
+
+        // Black Hole Class
+        class BlackHole {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 30;
+                this.mass = 1000;
+                this.eventHorizon = this.radius * 2;
+                this.particles = [];
+                this.rotation = 0;
+                this.speedBoost = 1;
+                this.shield = false;
+                this.magnetRange = this.eventHorizon;
+            }
+
+            update(input) {
+                const speed = 3 * this.speedBoost;
+                
+                if (input.x !== 0 || input.y !== 0) {
+                    const length = Math.sqrt(input.x * input.x + input.y * input.y);
+                    this.x += (input.x / length) * speed;
+                    this.y += (input.y / length) * speed;
+                }
+                
+                this.x = Math.max(this.eventHorizon, Math.min(game.canvas.width - this.eventHorizon, this.x));
+                this.y = Math.max(this.eventHorizon, Math.min(game.canvas.height - this.eventHorizon, this.y));
+                
+                this.rotation += 0.02;
+                this.updateParticles();
+            }
+
+            updateParticles() {
+                if (Math.random() < 0.3) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = this.eventHorizon + Math.random() * 50;
+                    this.particles.push({
+                        x: this.x + Math.cos(angle) * distance,
+                        y: this.y + Math.sin(angle) * distance,
+                        angle: angle,
+                        distance: distance,
+                        speed: 0.02 + Math.random() * 0.03,
+                        size: 1 + Math.random() * 2
+                    });
+                }
+
+                this.particles = this.particles.filter(particle => {
+                    particle.angle += particle.speed;
+                    particle.distance -= 1;
+                    particle.x = this.x + Math.cos(particle.angle) * particle.distance;
+                    particle.y = this.y + Math.sin(particle.angle) * particle.distance;
+                    return particle.distance > 5;
+                });
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                for (let i = 0; i < 5; i++) {
+                    const ringRadius = this.eventHorizon + i * 15;
+                    const alpha = 0.3 - (i * 0.05);
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 140, 0, ${alpha})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+
+                this.particles.forEach(particle => {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${0.8 - (particle.distance / 100)})`;
+                    ctx.fill();
+                });
+
+                if (this.magnetRange > this.eventHorizon) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.magnetRange, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(78, 205, 196, 0.2)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.eventHorizon, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                ctx.fill();
+
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                gradient.addColorStop(0, '#000');
+                gradient.addColorStop(0.7, '#000');
+                gradient.addColorStop(1, '#333');
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + 5, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                if (this.shield) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.eventHorizon + 10, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(78, 205, 196, 0.5)';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+
+            attract(object) {
+                const dx = this.x - object.x;
+                const dy = this.y - object.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < this.eventHorizon) {
+                    return true;
+                }
+
+                const force = (this.mass * object.mass) / (distance * distance);
+                const acceleration = force / object.mass;
+                
+                object.vx += (dx / distance) * acceleration * 0.1;
+                object.vy += (dy / distance) * acceleration * 0.1;
+                
+                return false;
+            }
+
+            grow(amount) {
+                this.radius += amount;
+                this.eventHorizon = this.radius * 2;
+                this.mass += amount * 50;
+            }
+        }
+
+        // Level Editor
+        class LevelEditor {
+            constructor() {
+                this.canvas = document.getElementById('editorCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.selectedTool = 'star';
+                this.objects = [];
+                this.enemies = [];
+                this.powerUps = [];
+                this.obstacles = [];
+                this.isPlacing = false;
+                
+                this.setupEventListeners();
+            }
+
+            initialize() {
+                this.canvas.addEventListener('click', (e) => this.handleClick(e));
+                this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.toolButton').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.toolButton').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.selectedTool = e.target.textContent.trim();
+                    });
+                });
+            }
+
+            handleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                switch (this.selectedTool) {
+                    case '⭐ Star':
+                        this.objects.push(new GameObject(x, y, 'star'));
+                        break;
+                    case '🪐 Planet':
+                        this.objects.push(new GameObject(x, y, 'planet'));
+                        break;
+                    case '👾 Enemy':
+                        this.enemies.push(new Enemy(x, y));
+                        break;
+                    case '💎 Power-up':
+                        this.powerUps.push(new PowerUp(x, y));
+                        break;
+                    case '🗿 Obstacle':
+                        this.obstacles.push(new Obstacle(x, y));
+                        break;
+                }
+                
+                this.render();
+            }
+
+            handleMouseMove(e) {
+                // Preview placement could be implemented here
+            }
+
+            clearLevel() {
+                this.objects = [];
+                this.enemies = [];
+                this.powerUps = [];
+                this.obstacles = [];
+                this.render();
+            }
+
+            saveLevel() {
+                const levelData = {
+                    objects: this.objects,
+                    enemies: this.enemies,
+                    powerUps: this.powerUps,
+                    obstacles: this.obstacles
+                };
+                
+                const dataStr = JSON.stringify(levelData);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'custom_level.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+            }
+
+            loadLevel() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    
+                    reader.onload = (event) => {
+                        try {
+                            const levelData = JSON.parse(event.target.result);
+                            this.objects = levelData.objects || [];
+                            this.enemies = levelData.enemies || [];
+                            this.powerUps = levelData.powerUps || [];
+                            this.obstacles = levelData.obstacles || [];
+                            this.render();
+                        } catch (error) {
+                            alert('Error loading level file');
+                        }
+                    };
+                    
+                    reader.readAsText(file);
+                };
+                
+                input.click();
+            }
+
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.drawGrid();
+                
+                this.objects.forEach(obj => obj.draw(this.ctx));
+                this.enemies.forEach(enemy => enemy.draw(this.ctx));
+                this.powerUps.forEach(powerup => powerup.draw(this.ctx));
+                this.obstacles.forEach(obstacle => obstacle.draw(this.ctx));
+            }
+
+            drawGrid() {
+                const gridSize = 50;
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.lineWidth = 1;
+                
+                for (let x = 0; x <= this.canvas.width; x += gridSize) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, this.canvas.height);
+                    this.ctx.stroke();
+                }
+                
+                for (let y = 0; y <= this.canvas.height; y += gridSize) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(this.canvas.width, y);
+                    this.ctx.stroke();
+                }
+            }
+        }
+
+        // Game Engine
+        class GameEngine {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.editorCanvas = document.getElementById('editorCanvas');
+                this.editorCtx = this.editorCanvas.getContext('2d');
+                
+                this.gameState = {
+                    mode: 'menu',
+                    currentMode: 'campaign',
+                    running: false,
+                    paused: false,
+                    score: 0,
+                    level: 1,
+                    time: 0,
+                    health: 100
+                };
+                
+                this.blackHoles = [];
+                this.objects = [];
+                this.enemies = [];
+                this.powerUps = [];
+                this.obstacles = [];
+                this.particles = [];
+                this.backgroundStars = [];
+                this.effects = [];
+                
+                this.keys = {};
+                this.mobileControls = {};
+                this.powerUpsActive = [];
+                this.highScores = this.loadHighScores();
+                
+                this.initializeBackground();
+                this.setupEventListeners();
+                this.gameLoop();
+            }
+
+            initializeBackground() {
+                for (let i = 0; i < 200; i++) {
+                    this.backgroundStars.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        size: Math.random() * 2,
+                        twinkle: Math.random() * Math.PI * 2,
+                        speed: Math.random() * 0.5 + 0.1
+                    });
+                }
+            }
+
+            setupEventListeners() {
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key] = true;
+                    
+                    if (e.key === ' ' && this.gameState.running) {
+                        this.togglePause();
+                    }
+                    
+                    if (e.key === 'p' || e.key === 'P') {
+                        this.activateRandomPowerUp();
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key] = false;
+                });
+
+                const mobileBtns = ['upBtn', 'downBtn', 'leftBtn', 'rightBtn'];
+                mobileBtns.forEach(btnId => {
+                    const btn = document.getElementById(btnId);
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        this.mobileControls[btnId] = true;
+                    });
+                    btn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        this.mobileControls[btnId] = false;
+                    });
+                });
+            }
+
+            startGame(mode) {
+                this.gameState.mode = mode;
+                this.gameState.currentMode = mode;
+                this.gameState.running = true;
+                this.gameState.paused = false;
+                this.gameState.score = 0;
+                this.gameState.level = 1;
+                this.gameState.time = 0;
+                this.gameState.health = 100;
+                
+                this.resetGame();
+                this.initializeGameMode(mode);
+                
+                document.getElementById('mainMenu').style.display = 'none';
+                document.getElementById('gameUI').style.display = 'block';
+                document.getElementById('powerUpBar').style.display = 'inline-block';
+            }
+
+            initializeGameMode(mode) {
+                this.blackHoles = [];
+                this.objects = [];
+                this.enemies = [];
+                this.powerUps = [];
+                this.obstacles = [];
+                this.particles = [];
+                this.effects = [];
+                this.powerUpsActive = [];
+
+                switch (mode) {
+                    case 'campaign':
+                        this.blackHoles.push(new BlackHole(this.canvas.width / 2, this.canvas.height / 2));
+                        this.spawnLevel(this.gameState.level);
+                        break;
+                    case 'survival':
+                        this.blackHoles.push(new BlackHole(this.canvas.width / 2, this.canvas.height / 2));
+                        this.spawnSurvivalWave();
+                        break;
+                    case 'timeAttack':
+                        this.blackHoles.push(new BlackHole(this.canvas.width / 2, this.canvas.height / 2));
+                        this.spawnTimeAttackLevel();
+                        break;
+                    case 'cooperative':
+                        this.blackHoles.push(new BlackHole(this.canvas.width / 3, this.canvas.height / 2));
+                        this.blackHoles.push(new BlackHole(this.canvas.width * 2 / 3, this.canvas.height / 2));
+                        this.spawnCoopLevel();
+                        break;
+                    case 'puzzle':
+                        this.blackHoles.push(new BlackHole(this.canvas.width / 2, this.canvas.height / 2));
+                        this.spawnPuzzleLevel();
+                        break;
+                    case 'sandbox':
+                        this.blackHoles.push(new BlackHole(this.canvas.width / 2, this.canvas.height / 2));
+                        this.spawnSandboxLevel();
+                        break;
+                }
+            }
+
+            resetGame() {
+                this.particles = [];
+                this.effects = [];
+                this.backgroundStars = [];
+                this.initializeBackground();
+            }
+
+            spawnLevel(level) {
+                const numObjects = 5 + level * 2;
+                const numEnemies = Math.floor(level / 3);
+                const numPowerUps = Math.floor(level / 5);
+                
+                for (let i = 0; i < numObjects; i++) {
+                    this.spawnRandomObject('star');
+                }
+                
+                for (let i = 0; i < numEnemies; i++) {
+                    this.spawnRandomObject('enemy');
+                }
+                
+                for (let i = 0; i < numPowerUps; i++) {
+                    this.spawnRandomObject('powerup');
+                }
+                
+                if (level > 2) {
+                    for (let i = 0; i < level - 2; i++) {
+                        this.spawnRandomObject('obstacle');
+                    }
+                }
+                
+                if (level % 5 === 0) {
+                    this.spawnBoss();
+                }
+            }
+
+            spawnSurvivalWave() {
+                const wave = Math.floor(this.gameState.score / 100) + 1;
+                const numObjects = 3 + wave * 2;
+                const numEnemies = wave;
+                
+                for (let i = 0; i < numObjects; i++) {
+                    this.spawnRandomObject('star');
+                }
+                
+                for (let i = 0; i < numEnemies; i++) {
+                    this.spawnRandomObject('enemy');
+                }
+                
+                if (Math.random() < 0.3) {
+                    this.spawnRandomObject('powerup');
+                }
+            }
+
+            spawnTimeAttackLevel() {
+                const numObjects = 20;
+                
+                for (let i = 0; i < numObjects; i++) {
+                    this.spawnRandomObject('star');
+                }
+                
+                for (let i = 0; i < 5; i++) {
+                    this.spawnRandomObject('enemy');
+                }
+            }
+
+            spawnCoopLevel() {
+                const numObjects = 10;
+                
+                for (let i = 0; i < numObjects; i++) {
+                    this.spawnRandomObject('star');
+                }
+                
+                for (let i = 0; i < 3; i++) {
+                    this.spawnRandomObject('powerup');
+                }
+            }
+
+            spawnPuzzleLevel() {
+                const puzzles = [
+                    () => {
+                        for (let i = 0; i < 5; i++) {
+                            for (let j = 0; j < 5; j++) {
+                                if ((i + j) % 2 === 0) {
+                                    this.objects.push(new GameObject(200 + i * 100, 200 + j * 100, 'star'));
+                                }
+                            }
+                        }
+                    },
+                    () => {
+                        const centerX = this.canvas.width / 2;
+                        const centerY = this.canvas.height / 2;
+                        const radius = 150;
+                        for (let i = 0; i < 12; i++) {
+                            const angle = (i / 12) * Math.PI * 2;
+                            this.objects.push(new GameObject(
+                                centerX + Math.cos(angle) * radius,
+                                centerY + Math.sin(angle) * radius,
+                                'star'
+                            ));
+                        }
+                    }
+                ];
+                
+                const puzzle = puzzles[this.gameState.level % puzzles.length];
+                puzzle();
+            }
+
+            spawnSandboxLevel() {
+                for (let i = 0; i < 50; i++) {
+                    const types = ['star', 'planet', 'enemy', 'powerup', 'obstacle'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    this.spawnRandomObject(type);
+                }
+            }
+
+            spawnRandomObject(type) {
+                let x, y;
+                const margin = 100;
+                
+                do {
+                    x = margin + Math.random() * (this.canvas.width - 2 * margin);
+                    y = margin + Math.random() * (this.canvas.height - 2 * margin);
+                } while (this.isTooCloseToBlackHole(x, y));
+                
+                switch (type) {
+                    case 'star':
+                        this.objects.push(new GameObject(x, y, 'star'));
+                        break;
+                    case 'planet':
+                        this.objects.push(new GameObject(x, y, 'planet'));
+                        break;
+                    case 'enemy':
+                        this.enemies.push(new Enemy(x, y));
+                        break;
+                    case 'powerup':
+                        this.powerUps.push(new PowerUp(x, y));
+                        break;
+                    case 'obstacle':
+                        this.obstacles.push(new Obstacle(x, y));
+                        break;
+                }
+            }
+
+            spawnBoss() {
+                const boss = new Boss(this.canvas.width / 2, 100);
+                this.enemies.push(boss);
+            }
+
+            isTooCloseToBlackHole(x, y) {
+                return this.blackHoles.some(bh => {
+                    const dx = bh.x - x;
+                    const dy = bh.y - y;
+                    return Math.sqrt(dx * dx + dy * dy) < bh.eventHorizon + 50;
+                });
+            }
+
+            update() {
+                if (!this.gameState.running || this.gameState.paused) return;
+                
+                this.gameState.time += 1/60;
+                
+                this.updateBackgroundStars();
+                
+                this.blackHoles.forEach(bh => {
+                    bh.update(this.getMovementInput());
+                });
+                
+                this.updateObjects();
+                this.updateEnemies();
+                this.updatePowerUps();
+                this.updateObstacles();
+                this.updateParticles();
+                this.updateEffects();
+                this.updateActivePowerUps();
+                
+                this.checkGameConditions();
+                this.maintainObjectCount();
+            }
+
+            getMovementInput() {
+                let input = { x: 0, y: 0 };
+                
+                if (this.keys['ArrowLeft'] || this.keys['a'] || this.keys['A']) input.x -= 1;
+                if (this.keys['ArrowRight'] || this.keys['d'] || this.keys['D']) input.x += 1;
+                if (this.keys['ArrowUp'] || this.keys['w'] || this.keys['W']) input.y -= 1;
+                if (this.keys['ArrowDown'] || this.keys['s'] || this.keys['S']) input.y += 1;
+                
+                if (this.mobileControls.leftBtn) input.x -= 1;
+                if (this.mobileControls.rightBtn) input.x += 1;
+                if (this.mobileControls.upBtn) input.y -= 1;
+                if (this.mobileControls.downBtn) input.y += 1;
+                
+                return input;
+            }
+
+            updateBackgroundStars() {
+                this.backgroundStars.forEach(star => {
+                    star.twinkle += 0.05;
+                    star.y += star.speed;
+                    
+                    if (star.y > this.canvas.height) {
+                        star.y = 0;
+                        star.x = Math.random() * this.canvas.width;
+                    }
+                });
+            }
+
+            updateObjects() {
+                this.objects = this.objects.filter(obj => {
+                    obj.update();
+                    
+                    for (let bh of this.blackHoles) {
+                        const consumed = bh.attract(obj);
+                        if (consumed) {
+                            this.gameState.score += obj.type === 'star' ? 10 : 25;
+                            bh.grow(0.5);
+                            this.createConsumptionEffect(obj.x, obj.y, obj.type);
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+            }
+
+            updateEnemies() {
+                this.enemies = this.enemies.filter(enemy => {
+                    enemy.update();
+                    
+                    for (let bh of this.blackHoles) {
+                        const consumed = bh.attract(enemy);
+                        if (consumed) {
+                            this.gameState.score += enemy.type === 'boss' ? 100 : 50;
+                            bh.grow(1);
+                            this.createExplosionEffect(enemy.x, enemy.y);
+                            return false;
+                        }
+                    }
+                    
+                    for (let bh of this.blackHoles) {
+                        const dx = bh.x - enemy.x;
+                        const dy = bh.y - enemy.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < bh.radius + enemy.radius) {
+                            this.gameState.health -= 10;
+                            this.createDamageEffect(bh.x, bh.y);
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+            }
+
+            updatePowerUps() {
+                this.powerUps = this.powerUps.filter(powerup => {
+                    powerup.update();
+                    
+                    for (let bh of this.blackHoles) {
+                        const dx = bh.x - powerup.x;
+                        const dy = bh.y - powerup.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < bh.eventHorizon) {
+                            this.activatePowerUp(powerup.type);
+                            this.createPowerUpEffect(powerup.x, powerup.y);
+                            return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+            }
+
+            updateObstacles() {
+                this.obstacles.forEach(obstacle => {
+                    obstacle.update();
+                    
+                    for (let bh of this.blackHoles) {
+                        const dx = bh.x - obstacle.x;
+                        const dy = bh.y - obstacle.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < bh.radius + obstacle.radius) {
+                            this.gameState.health -= 5;
+                            this.createDamageEffect(bh.x, bh.y);
+                            obstacle.bounce();
+                        }
+                    }
+                });
+            }
+
+            updateParticles() {
+                this.particles = this.particles.filter(particle => {
+                    particle.update();
+                    return particle.life > 0;
+                });
+            }
+
+            updateEffects() {
+                this.effects = this.effects.filter(effect => {
+                    effect.update();
+                    return effect.life > 0;
+                });
+            }
+
+            updateActivePowerUps() {
+                this.powerUpsActive = this.powerUpsActive.filter(powerup => {
+                    powerup.duration -= 1/60;
+                    if (powerup.duration <= 0) {
+                        this.deactivatePowerUp(powerup.type);
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            createConsumptionEffect(x, y, type) {
+                for (let i = 0; i < 10; i++) {
+                    this.particles.push(new Particle(x, y, type));
+                }
+            }
+
+            createExplosionEffect(x, y) {
+                for (let i = 0; i < 20; i++) {
+                    this.particles.push(new Particle(x, y, 'explosion'));
+                }
+            }
+
+            createDamageEffect(x, y) {
+                this.effects.push(new Effect(x, y, 'damage'));
+            }
+
+            createPowerUpEffect(x, y) {
+                this.effects.push(new Effect(x, y, 'powerup'));
+            }
+
+            activatePowerUp(type) {
+                const powerupSlot = document.getElementById(`power${this.powerUpsActive.length + 1}`);
+                if (powerupSlot) {
+                    powerupSlot.classList.add('active');
+                }
+                
+                const powerup = {
+                    type: type,
+                    duration: 10
+                };
+                
+                this.powerUpsActive.push(powerup);
+                
+                switch (type) {
+                    case 'speed':
+                        this.blackHoles.forEach(bh => bh.speedBoost = 2);
+                        break;
+                    case 'shield':
+                        this.blackHoles.forEach(bh => bh.shield = true);
+                        break;
+                    case 'magnet':
+                        this.blackHoles.forEach(bh => bh.magnetRange = bh.eventHorizon * 2);
+                        break;
+                }
+            }
+
+            deactivatePowerUp(type) {
+                const index = this.powerUpsActive.findIndex(p => p.type === type);
+                if (index !== -1) {
+                    const powerupSlot = document.getElementById(`power${index + 1}`);
+                    if (powerupSlot) {
+                        powerupSlot.classList.remove('active');
+                    }
+                    
+                    this.powerUpsActive.splice(index, 1);
+                    
+                    switch (type) {
+                        case 'speed':
+                            this.blackHoles.forEach(bh => bh.speedBoost = 1);
+                            break;
+                        case 'shield':
+                            this.blackHoles.forEach(bh => bh.shield = false);
+                            break;
+                        case 'magnet':
+                            this.blackHoles.forEach(bh => bh.magnetRange = bh.eventHorizon);
+                            break;
+                    }
+                }
+            }
+
+            activateRandomPowerUp() {
+                const types = ['speed', 'shield', 'magnet'];
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                this.activatePowerUp(randomType);
+            }
+
+            maintainObjectCount() {
+                const targetCount = this.gameState.currentMode === 'sandbox' ? 30 : 10;
+                const currentCount = this.objects.length + this.enemies.length + this.powerUps.length;
+                
+                if (currentCount < targetCount && Math.random() < 0.02) {
+                    const types = ['star', 'planet', 'enemy', 'powerup'];
+                    const weights = [0.5, 0.3, 0.15, 0.05];
+                    const type = this.weightedRandom(types, weights);
+                    this.spawnRandomObject(type);
+                }
+            }
+
+            weightedRandom(items, weights) {
+                const totalWeight = weights.reduce((a, b) => a + b, 0);
+                let random = Math.random() * totalWeight;
+                
+                for (let i = 0; i < items.length; i++) {
+                    random -= weights[i];
+                    if (random <= 0) {
+                        return items[i];
+                    }
+                }
+                
+                return items[items.length - 1];
+            }
+
+            checkGameConditions() {
+                if (this.gameState.health <= 0) {
+                    this.gameOver();
+                    return;
+                }
+                
+                switch (this.gameState.currentMode) {
+                    case 'campaign':
+                        if (this.objects.length === 0 && this.enemies.length === 0) {
+                            this.nextLevel();
+                        }
+                        break;
+                    case 'timeAttack':
+                        if (this.gameState.time >= 60) {
+                            this.gameOver();
+                        }
+                        break;
+                }
+            }
+
+            nextLevel() {
+                this.gameState.level++;
+                this.spawnLevel(this.gameState.level);
+            }
+
+            gameOver() {
+                this.gameState.running = false;
+                this.saveHighScore();
+                this.showGameOverScreen();
+            }
+
+            togglePause() {
+                this.gameState.paused = !this.gameState.paused;
+                document.getElementById('pauseMenu').style.display = this.gameState.paused ? 'block' : 'none';
+            }
+
+            resumeGame() {
+                this.gameState.paused = false;
+                document.getElementById('pauseMenu').style.display = 'none';
+            }
+
+            restartGame() {
+                this.startGame(this.gameState.currentMode);
+            }
+
+            returnToMenu() {
+                this.gameState.running = false;
+                document.getElementById('mainMenu').style.display = 'flex';
+                document.getElementById('gameUI').style.display = 'none';
+                document.getElementById('powerUpBar').style.display = 'none';
+                document.getElementById('pauseMenu').style.display = 'none';
+                document.getElementById('gameOver').style.display = 'none';
+            }
+
+            showGameOverScreen() {
+                document.getElementById('gameOver').style.display = 'block';
+                document.getElementById('finalScore').textContent = this.gameState.score;
+                document.getElementById('gameOverStats').textContent = 
+                    `Level: ${this.gameState.level} | Time: ${Math.floor(this.gameState.time)}s`;
+            }
+
+            saveHighScore() {
+                const score = {
+                    score: this.gameState.score,
+                    level: this.gameState.level,
+                    time: Math.floor(this.gameState.time),
+                    mode: this.gameState.currentMode,
+                    date: new Date().toISOString()
+                };
+                
+                this.highScores.push(score);
+                this.highScores.sort((a, b) => b.score - a.score);
+                this.highScores = this.highScores.slice(0, 10);
+                
+                localStorage.setItem('blackHoleHighScores', JSON.stringify(this.highScores));
+            }
+
+            loadHighScores() {
+                const saved = localStorage.getItem('blackHoleHighScores');
+                return saved ? JSON.parse(saved) : [];
+            }
+
+            showHighScores() {
+                const scoreList = document.getElementById('scoreList');
+                scoreList.innerHTML = '';
+                
+                this.highScores.forEach((score, index) => {
+                    const entry = document.createElement('div');
+                    entry.className = 'scoreEntry';
+                    entry.innerHTML = `
+                        ${index + 1}. ${score.score} pts (${score.mode}) - Level ${score.level}
+                        <br><small>${new Date(score.date).toLocaleDateString()}</small>
+                    `;
+                    scoreList.appendChild(entry);
+                });
+                
+                document.getElementById('highScores').style.display = 'block';
+            }
+
+            hideHighScores() {
+                document.getElementById('highScores').style.display = 'none';
+            }
+
+            showLevelEditor() {
+                document.getElementById('levelEditor').style.display = 'block';
+                editor.initialize();
+                editor.render();
+            }
+
+            hideLevelEditor() {
+                document.getElementById('levelEditor').style.display = 'none';
+            }
+
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.drawBackground();
+                this.drawObjects();
+                this.drawEnemies();
+                this.drawPowerUps();
+                this.drawObstacles();
+                this.drawBlackHoles();
+                this.drawParticles();
+                this.drawEffects();
+                
+                this.updateUI();
+            }
+
+            drawBackground() {
+                const gradient = this.ctx.createRadialGradient(
+                    this.canvas.width / 2, this.canvas.height / 2, 0,
+                    this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2
+                );
+                gradient.addColorStop(0, '#0a0a2e');
+                gradient.addColorStop(1, '#000');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.backgroundStars.forEach(star => {
+                    const alpha = 0.5 + Math.sin(star.twinkle) * 0.3;
+                    this.ctx.beginPath();
+                    this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                    this.ctx.fill();
+                });
+            }
+
+            drawObjects() {
+                this.objects.forEach(obj => obj.draw(this.ctx));
+            }
+
+            drawEnemies() {
+                this.enemies.forEach(enemy => enemy.draw(this.ctx));
+            }
+
+            drawPowerUps() {
+                this.powerUps.forEach(powerup => powerup.draw(this.ctx));
+            }
+
+            drawObstacles() {
+                this.obstacles.forEach(obstacle => obstacle.draw(this.ctx));
+            }
+
+            drawBlackHoles() {
+                this.blackHoles.forEach(bh => bh.draw(this.ctx));
+            }
+
+            drawParticles() {
+                this.particles.forEach(particle => particle.draw(this.ctx));
+            }
+
+            drawEffects() {
+                this.effects.forEach(effect => effect.draw(this.ctx));
+            }
+
+            updateUI() {
+                document.getElementById('score').textContent = this.gameState.score;
+                document.getElementById('level').textContent = this.gameState.level;
+                document.getElementById('objects').textContent = 
+                    this.objects.length + this.enemies.length + this.powerUps.length;
+                document.getElementById('time').textContent = Math.floor(this.gameState.time);
+                document.getElementById('health').textContent = this.gameState.health;
+            }
+
+            gameLoop() {
+                this.update();
+                this.render();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        // Initialize game and editor
+        const game = new GameEngine();
+        const editor = new LevelEditor();
+    </script>
+</body>
+</html>
